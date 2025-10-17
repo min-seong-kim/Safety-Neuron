@@ -49,10 +49,10 @@ def main(argv):
 
     lines = []
     file_path = "./corpus_all/"+argv[0] + ".txt"
-        with open(file_path, 'r') as file:
-            lines = file.readlines()
-        lines = [line.strip() for line in lines]
-        lines = random.sample(lines, int(argv[1]))
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+    lines = [line.strip() for line in lines]
+    lines = random.sample(lines, int(argv[1]))
 
 
     candidate_premature_layers = []
@@ -91,6 +91,10 @@ def main(argv):
     common_elements_dict_k = {}
     common_elements_dict_v = {}
 
+    # # Check if lists are not empty before processing
+    if not activate_keys_set_fwd_up:
+        print("Error: activate_keys_set_fwd_up is empty. All prompts may have failed.")
+        return
 
     # Iterate through the keys of the first dictionary
     for key in activate_keys_set_fwd_up[0].keys():
