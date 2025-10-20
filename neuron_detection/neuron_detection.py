@@ -66,6 +66,7 @@ def Prompting(model, prompt, candidate_premature_layers):
     for i, early_exit_layer in enumerate(candidate_premature_layers):
         hidden_embed[early_exit_layer] = f"layer_{early_exit_layer}_output"
         activate_keys_fwd_up[early_exit_layer] = [f"neuron_{j}" for j in range(10)]  # dummy neurons
+        # 이 코드는 각 레이어마다 10개의 가짜 뉴런을 생성
         activate_keys_fwd_down[early_exit_layer] = [f"neuron_{j}" for j in range(10)]
         activate_keys_q[early_exit_layer] = [f"neuron_{j}" for j in range(10)]
         activate_keys_k[early_exit_layer] = [f"neuron_{j}" for j in range(10)]

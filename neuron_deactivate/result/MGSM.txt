@@ -1,2 +1,12 @@
 
 Mistral chinese 10 20 5 5 True False True False True False 1.0 0.0
+
+Mistral chinese 10 20 5 5 True False True False True False 0.0 1.0
+
+Mistral chinese 10 20 5 5 True False True False True False 0.0 1.0
+
+Mistral chinese 10 20 5 5 True False True False True False 0.0 0.0
+
+Mistral chinese 10 20 5 5 False False False False False False 0.0 1.0
+
+Mistral chinese 10 20 5 5 True False True False True False 0.0 0.0

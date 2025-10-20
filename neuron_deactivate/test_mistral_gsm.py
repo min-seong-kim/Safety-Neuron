@@ -59,11 +59,11 @@ random.seed(112)
 
 import torch
 
-tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-7B-Instruct-v0.2")
+tokenizer = AutoTokenizer.from_pretrained("meta-llama/Meta-Llama-3-8B")
 # Set pad token if not set
 if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
-model = AutoModelForCausalLM.from_pretrained("mistralai/Mistral-7B-Instruct-v0.2", device_map="auto")
+model = AutoModelForCausalLM.from_pretrained("meta-llama/Meta-Llama-3-8B", device_map="auto")
 
 
 # base_prompt = "<s>[INST]\n<<SYS>>\n{system_prompt}\n<</SYS>>\n\n{user_prompt}[/INST]"
@@ -108,23 +108,121 @@ def Prompting(instruction, question,activate_keys_fwd_up_set,
                 whether_gen_fwd):
 
     prompt = question + instruction
-
     print(prompt)
 
     inputs = tokenizer(prompt, return_tensors="pt", padding=True, truncation=True, max_length=2048).to("cuda")
     
-    # Use standard generation without custom neuron deactivation parameters
-    # This will work with any standard transformers model
-    outputs = model.generate(
-        input_ids=inputs.input_ids,
-        max_new_tokens=512,
-        do_sample=False,
-        pad_token_id=tokenizer.eos_token_id,
-        attention_mask=inputs.get('attention_mask')
-    )
+    # Store hooks for cleanup
+    hooks = []
     
-    # Note: Neuron deactivation features are disabled for compatibility
-    # Custom parameters would be: activate_keys_fwd_up_set, activate_keys_fwd_down_set, etc.
+    def create_deactivation_hook(neuron_indices):
+        """Create a hook that zeros out specific neuron activations"""
+        def hook_fn(module, input, output):
+            if len(neuron_indices) > 0:
+                # Convert neuron strings like "neuron_1234" to indices
+                indices = []
+                for neuron_str in neuron_indices:
+                    try:
+                        idx = int(neuron_str.split('_')[1])
+                        indices.append(idx)
+                    except:
+                        continue
+                
+                # Zero out the specified neurons
+                if len(indices) > 0 and output is not None:
+                    if isinstance(output, tuple):
+                        # Handle tuple outputs (like attention)
+                        output_tensor = output[0]
+                    else:
+                        output_tensor = output
+                    
+                    # Ensure indices are within bounds
+                    max_idx = output_tensor.shape[-1] - 1
+                    valid_indices = [idx for idx in indices if idx <= max_idx]
+                    
+                    if valid_indices:
+                        output_tensor[..., valid_indices] = 0.0
+                        print(f"Deactivated {len(valid_indices)} neurons: {valid_indices[:10]}...")  # Show first 10
+                        
+            return output
+        return hook_fn
+    
+    try:
+        # Debug: check neuron data structure
+        print(f"Debug: Checking neuron data...")
+        print(f"FFN up_proj neurons - layers with neurons: {[k for k, v in activate_keys_fwd_up_set.items() if len(v) > 0]}")
+        print(f"FFN down_proj neurons - layers with neurons: {[k for k, v in activate_keys_fwd_down_set.items() if len(v) > 0]}")
+        print(f"Attention Q neurons - layers with neurons: {[k for k, v in activate_keys_q_set.items() if len(v) > 0]}")
+        print(f"Attention K neurons - layers with neurons: {[k for k, v in activate_keys_k_set.items() if len(v) > 0]}")
+        print(f"Attention V neurons - layers with neurons: {[k for k, v in activate_keys_v_set.items() if len(v) > 0]}")
+        print(f"Flags: under={whether_under}, reason={whether_reason}, gen={whether_gen}")
+        print(f"FFN Flags: under_fwd={whether_under_fwd}, reason_fwd={whether_reason_fwd}, gen_fwd={whether_gen_fwd}")
+        
+        # Register hooks for neuron deactivation
+        for layer_idx in range(32):  # Meta-Llama-3-8B has 32 layers
+            layer = model.model.layers[layer_idx]
+            
+            # FFN Up Projection deactivation
+            if layer_idx in activate_keys_fwd_up_set and len(activate_keys_fwd_up_set[layer_idx]) > 0:
+                if whether_under_fwd or whether_reason_fwd or whether_gen_fwd:
+                    hook = layer.mlp.up_proj.register_forward_hook(
+                        create_deactivation_hook(activate_keys_fwd_up_set[layer_idx])
+                    )
+                    hooks.append(hook)
+                    print(f"Registered FFN Up hook for layer {layer_idx}")
+            
+            # FFN Down Projection deactivation  
+            if layer_idx in activate_keys_fwd_down_set and len(activate_keys_fwd_down_set[layer_idx]) > 0:
+                if whether_under_fwd or whether_reason_fwd or whether_gen_fwd:
+                    hook = layer.mlp.down_proj.register_forward_hook(
+                        create_deactivation_hook(activate_keys_fwd_down_set[layer_idx])
+                    )
+                    hooks.append(hook)
+                    print(f"Registered FFN Down hook for layer {layer_idx}")
+            
+            # Attention Q deactivation
+            if layer_idx in activate_keys_q_set and len(activate_keys_q_set[layer_idx]) > 0:
+                if whether_under or whether_reason or whether_gen:
+                    hook = layer.self_attn.q_proj.register_forward_hook(
+                        create_deactivation_hook(activate_keys_q_set[layer_idx])
+                    )
+                    hooks.append(hook)
+                    print(f"Registered Attention Q hook for layer {layer_idx}")
+            
+            # Attention K deactivation
+            if layer_idx in activate_keys_k_set and len(activate_keys_k_set[layer_idx]) > 0:
+                if whether_under or whether_reason or whether_gen:
+                    hook = layer.self_attn.k_proj.register_forward_hook(
+                        create_deactivation_hook(activate_keys_k_set[layer_idx])
+                    )
+                    hooks.append(hook)
+                    print(f"Registered Attention K hook for layer {layer_idx}")
+            
+            # Attention V deactivation
+            if layer_idx in activate_keys_v_set and len(activate_keys_v_set[layer_idx]) > 0:
+                if whether_under or whether_reason or whether_gen:
+                    hook = layer.self_attn.v_proj.register_forward_hook(
+                        create_deactivation_hook(activate_keys_v_set[layer_idx])
+                    )
+                    hooks.append(hook)
+                    print(f"Registered Attention V hook for layer {layer_idx}")
+
+        # Generate with neuron deactivation
+        print(f"Generating with {len(hooks)} active neuron deactivation hooks...")
+        outputs = model.generate(
+            input_ids=inputs.input_ids,
+            max_new_tokens=512,
+            do_sample=False,
+            pad_token_id=tokenizer.eos_token_id,
+            attention_mask=inputs.get('attention_mask')
+        )
+        
+    finally:
+        # Clean up hooks
+        for hook in hooks:
+            hook.remove()
+        print(f"Cleaned up {len(hooks)} hooks")
+    
     answer = tokenizer.decode(outputs[0]).replace('</s>', '').replace(prompt, '')
 
     print(answer)
@@ -167,10 +265,58 @@ def retrive_neuron(filename):
     # Open the file and read line by line
     try:
         with open(filename, 'r') as file:
-            neurons = file.readlines()
-            for neuron in neurons:
-                neuron = eval(neuron.strip())
-                activate_neuron.append(neuron)
+            lines = file.readlines()
+            print(f"Loaded neuron file with {len(lines)} lines")
+            
+            loaded_dicts = []
+            for line_num, line in enumerate(lines):
+                line = line.strip()
+                if not line:  # Skip empty lines
+                    continue
+                    
+                try:
+                    neuron_dict = eval(line)
+                    if isinstance(neuron_dict, dict):
+                        loaded_dicts.append(neuron_dict)
+                        print(f"Successfully loaded neuron dict from line {line_num + 1}")
+                    else:
+                        print(f"Warning: Line {line_num + 1} does not contain a valid dictionary")
+                except Exception as line_error:
+                    print(f"Warning: Could not parse line {line_num + 1}: {line_error}")
+                    continue
+            
+            # Adapt to expected format: we need 5 dictionaries
+            # [fwd_up, fwd_down, q, k, v]
+            if len(loaded_dicts) >= 2:
+                # We have FFN (first dict) and Attention (second dict) neurons
+                ffn_neurons = loaded_dicts[0]  # FFN neurons
+                attn_neurons = loaded_dicts[1]  # Attention neurons
+                
+                # Use FFN neurons for both up_proj and down_proj
+                # Use attention neurons for Q, K, V
+                activate_neuron = [
+                    ffn_neurons,    # fwd_up
+                    ffn_neurons,    # fwd_down (same as up)
+                    attn_neurons,   # q
+                    attn_neurons,   # k (same as q)
+                    attn_neurons    # v (same as q)
+                ]
+                print("Using FFN neurons for up_proj and down_proj, attention neurons for Q/K/V")
+            elif len(loaded_dicts) == 1:
+                # Only one dict available, use it for all 5 components
+                single_dict = loaded_dicts[0]
+                activate_neuron = [single_dict] * 5
+                print("Using single neuron dict for all 5 components")
+            else:
+                # No valid dicts found, create empty structure
+                activate_neuron = []
+                for i in range(5):
+                    layer_dict = {}
+                    for layer in range(32):
+                        layer_dict[layer] = set()
+                    activate_neuron.append(layer_dict)
+                print("No valid neuron dictionaries found, using empty structure")
+                    
     except Exception as e:
         print(f"Error reading neuron file {filename}: {e}")
         # Create proper structure on error
@@ -182,6 +328,7 @@ def retrive_neuron(filename):
             dummy_neuron.append(layer_dict)
         return dummy_neuron
 
+    print(f"Total neuron dictionaries created: {len(activate_neuron)}")
     return activate_neuron
 
 def main(argv):
@@ -220,7 +367,8 @@ def main(argv):
         print(f"Example: python test_mistral_gsm.py zh 10 20 5 5 True False True False True False")
         return
 
-    neuron_path = "./output_mixtral/"+full_name[argv[0]] + "_all.txt"
+    # Use our generated neuron file
+    neuron_path = "../neuron_detection/output_neurons/meta-llama_Meta-Llama-3-8B_english_real_neurons_50.txt"
     
     # Create output directory if it doesn't exist
     import os
@@ -228,20 +376,22 @@ def main(argv):
 
     activate_neuron = retrive_neuron(neuron_path)
 
-    english_neuron =  retrive_neuron("./output_mixtral/english_all.txt")
-    spanish_neuron =  retrive_neuron("./output_mixtral/spanish_all.txt")
-    french_neuron =  retrive_neuron("./output_mixtral/french_all.txt")
-    chinese_neuron =  retrive_neuron("./output_mixtral/chinese_all.txt")
-    russian_neuron =  retrive_neuron("./output_mixtral/russian_all.txt")
+    # For now, use the same neuron data for intersection (skip deduplication)
+    # In a real experiment, you would have separate neuron files for each language
+    english_neuron = activate_neuron
+    spanish_neuron = activate_neuron  
+    french_neuron = activate_neuron
+    chinese_neuron = activate_neuron
+    russian_neuron = activate_neuron
 
-    english_neuron = intersection(english_neuron, spanish_neuron)
-    english_neuron = intersection(english_neuron, french_neuron)
-    english_neuron = intersection(english_neuron, chinese_neuron)
-    english_neuron = intersection(english_neuron, russian_neuron)
+    # Skip intersection and deduplication to avoid empty sets
+    # english_neuron = intersection(english_neuron, spanish_neuron)
+    # english_neuron = intersection(english_neuron, french_neuron)
+    # english_neuron = intersection(english_neuron, chinese_neuron)
+    # english_neuron = intersection(english_neuron, russian_neuron)
+    # activate_neuron  = deduplicate(activate_neuron , english_neuron)
 
-    activate_neuron  = deduplicate(activate_neuron , english_neuron)
-
-
+    # Use original neuron data directly
     activate_keys_fwd_up_set = activate_neuron[0]
     activate_keys_fwd_down_set = activate_neuron[1]
     activate_keys_q_set = activate_neuron[2]
