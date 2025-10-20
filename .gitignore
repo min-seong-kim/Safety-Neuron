@@ -93,6 +93,29 @@ Thumbs.db
 checkpoint-*/
 wandb/
 
+# Specific model directories and checkpoints
+neuron_enhancement/xxxxxx/
+neuron_enhancement/xxxxxx/Llama3_Reason/
+neuron_enhancement/xxxxxx/checkpoint-*/
+**/Llama3_Reason/
+**/checkpoint-*/
+**/adapter_model.safetensors
+**/optimizer.pt
+**/pytorch_model.bin
+**/model.safetensors
+
+# Hugging Face cache and model files
+.cache/
+transformers_cache/
+hf_cache/
+huggingface/
+
+# Training outputs and logs
+output*/
+outputs/
+runs/
+tensorboard_logs/
+
 # Temporary files
 temp_training_data.json
 *.tmp
