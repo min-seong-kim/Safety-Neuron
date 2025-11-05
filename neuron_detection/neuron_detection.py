@@ -201,7 +201,7 @@ def main(argv):
     
     # Clean model name for file path (replace / with _)
     clean_model_name = model_name.replace("/", "_")
-    file_path = "./output_neurons/" + clean_model_name + "_" + argv[0] + "_gsm_2000_12000_"+str(int(argv[1])-count)+".txt"
+    file_path = "./output_neurons/" + clean_model_name + "_" + argv[0] + "do-not-answer-"+str(int(argv[1])-count)+".txt"
 
     with open(file_path, 'w') as file:
         file.write(str(common_elements_dict_fwd_up) + '\n')

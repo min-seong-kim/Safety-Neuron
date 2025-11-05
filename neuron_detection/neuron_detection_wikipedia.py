@@ -28,6 +28,7 @@ if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
 model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto")
 
+
 def Prompting(model, prompt, candidate_premature_layers):
     
     inputs = tokenizer(prompt, return_tensors="pt", padding=True, truncation=True, max_length=512)
@@ -223,14 +224,70 @@ def Prompting(model, prompt, candidate_premature_layers):
     return hidden_embed, answer, activate_keys_fwd_up, activate_keys_fwd_down, activate_keys_q, activate_keys_k, activate_keys_v, activate_keys_o, layer_keys
 
 
-def main(argv):
+def load_wikipedia_data(num_samples: int = 1000):
+    """
+    Load Wikipedia data from Hugging Face.
+    
+    Args:
+        num_samples: Number of samples to load
+        
+    Returns:
+        List of text samples from Wikipedia
+    """
+    print(f"Loading Wikipedia dataset (subset: 20231101.en)...")
+    try:
+        dataset = load_dataset(
+            "wikimedia/wikipedia",
+            "20231101.en",
+            split="train",
+            streaming=False,
+            cache_dir="./wikipedia_cache"
+        )
+        
+        # Extract text and sample
+        texts = []
+        print(f"Sampling {num_samples} documents from Wikipedia...")
+        
+        # Get random indices
+        total_size = len(dataset)
+        random_indices = random.sample(range(total_size), min(num_samples, total_size))
+        
+        for idx in tqdm(random_indices):
+            try:
+                text = dataset[idx]['text']
+                # Take first sentence or paragraph (max 512 tokens)
+                sentences = text.split('.')
+                if sentences:
+                    texts.append(sentences[0].strip()[:512])
+            except Exception as e:
+                print(f"Error processing sample {idx}: {e}")
+                continue
+        
+        print(f"Successfully loaded {len(texts)} Wikipedia samples")
+        return texts
+        
+    except Exception as e:
+        print(f"Error loading Wikipedia dataset: {e}")
+        print("Falling back to creating dummy data...")
+        return ["The quick brown fox jumps over the lazy dog."] * num_samples
 
-    lines = []
-    file_path = "./corpus_all/"+argv[0] + ".txt"
-    with open(file_path, 'r') as file:
-        lines = file.readlines()
-    lines = [line.strip() for line in lines]
-    lines = random.sample(lines, int(argv[1]))
+
+def main(argv):
+    """
+    argv[0]: Number of samples to load from Wikipedia (default: 1000)
+    """
+    
+    # Parse arguments
+    num_samples = int(argv[0]) if len(argv) > 0 else 1000
+    
+    # Load Wikipedia data instead of local corpus
+    lines = load_wikipedia_data(num_samples=num_samples)
+    
+    if not lines:
+        print("Error: No data loaded. Exiting.")
+        return
+    
+    print(f"Total samples: {len(lines)}")
 
     candidate_premature_layers = []
     for i in range(32):
@@ -246,6 +303,9 @@ def main(argv):
 
     # Test with just the first prompt to debug
     print(f"Testing with first prompt: {lines[0][:50]}...")
+    
+    # Process each prompt
+    print("Processing prompts to detect utility neurons...")
     
     for prompt in tqdm(lines):
         try:
@@ -327,22 +387,25 @@ def main(argv):
             common_elements_dict_v[key] = common_elements
 
     # Create output directory if it doesn't exist
-    import os
     os.makedirs("./output_neurons", exist_ok=True)
     
     # Clean model name for file path (replace / with _)
     clean_model_name = model_name.replace("/", "_")
-    file_path = "./output_neurons/" + clean_model_name + "_" + argv[0] + "_real_neurons_"+str(int(argv[1])-count)+".txt"
+    successful_samples = len(lines) - count
+    file_path = f"./output_neurons/{clean_model_name}_wikipedia_utility_neurons_{successful_samples}.txt"
 
+    print(f"Saving utility neurons to {file_path}")
+    
     with open(file_path, 'w') as file:
         file.write(str(common_elements_dict_fwd_up) + '\n')
         file.write(str(common_elements_dict_fwd_down) + '\n')
         file.write(str(common_elements_dict_q) + '\n')
         file.write(str(common_elements_dict_k) + '\n')
         file.write(str(common_elements_dict_v) + '\n')
+    
+    print(f"Utility neuron detection completed. Results saved to: {file_path}")
+    print(f"Processed {successful_samples} prompts successfully out of {len(lines)} total.")
 
-    print(f"Real neuron detection completed. Results saved to: {file_path}")
-    print(f"Processed {int(argv[1])-count} prompts successfully out of {argv[1]} total.")
 
 if __name__ == "__main__":
     main(sys.argv[1:])

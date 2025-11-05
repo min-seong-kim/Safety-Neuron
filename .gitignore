@@ -109,6 +109,8 @@ neuron_enhancement/xxxxxx/checkpoint-*/
 transformers_cache/
 hf_cache/
 huggingface/
+wikipedia_cache/
+**/wikipedia_cache/
 
 # Training outputs and logs
 output*/
