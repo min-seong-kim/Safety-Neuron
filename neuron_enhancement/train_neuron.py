@@ -252,12 +252,12 @@ def restore_frozen_neurons(model):
 
 # Load Safety Neuron (from safety corpus)
 print("Loading Safety Neuron...")
-safety_neuron = retrive_neuron('../neuron_detection/output_neurons/meta-llama_Meta-Llama-3-8B_do_not_answer_real_neurons_50.txt')
+safety_neuron = retrive_neuron('../neuron_detection/output_neurons/meta-llama_Meta-Llama-3-8B_do_not_answer_real_neurons_500.txt')
 print(f"✓ Safety Neuron loaded")
 
 # Load Utility Neuron (from Wikipedia corpus)
 print("Loading Utility Neuron...")
-utility_neuron = retrive_neuron('../neuron_detection/output_neurons/meta-llama_Meta-Llama-3-8B_wikipedia_utility_neurons_50.txt')
+utility_neuron = retrive_neuron('../neuron_detection/output_neurons/meta-llama_Meta-Llama-3-8B_wikipedia_utility_neurons_500.txt')
 print(f"✓ Utility Neuron loaded")
 
 # Deduplicate: Remove Utility Neurons from Safety Neurons to get pure Safety Neurons
@@ -415,14 +415,14 @@ class SafeNeuronFreezeCallback(TrainerCallback):
 
 # Parameters for training arguments details => https://github.com/huggingface/transformers/blob/main/src/transformers/training_args.py#L158
 training_args = TrainingArguments(
-    per_device_train_batch_size=1,  # Keep very small batch size
+    per_device_train_batch_size=4,  # Keep very small batch size
     gradient_accumulation_steps=16,  # Increase accumulation to compensate
     gradient_checkpointing=True,
     max_grad_norm=0.3,
     num_train_epochs=3,  # Reduced to 1 for quick testing 기존 3
-    learning_rate=2e-6,
+    learning_rate=1e-5,
     bf16=True,
-    save_steps=500,
+    save_steps=1000,
     save_total_limit=2,  # Keep last 2 checkpoints
     logging_steps=10,
     output_dir=output_dir,
