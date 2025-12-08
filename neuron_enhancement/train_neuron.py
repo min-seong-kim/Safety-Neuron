@@ -24,7 +24,7 @@ cache_dir="xxxxxx"
 os.makedirs(output_dir,exist_ok=True)
 os.makedirs(cache_dir,exist_ok=True)
 
-model_name = "meta-llama/Llama-3.1-8B-Instruct"
+model_name = "meta-llama/Llama-3.2-3B-Instruct"
 
 
 import argparse
@@ -96,7 +96,7 @@ def retrive_neuron(filename):
     return activate_neuron
 
 def deduplicate(neuron_target, neuron_delete):
-    index_keys = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31]
+    index_keys = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27]
     for key in index_keys:
         neuron_target[0][key] = neuron_target[0][key] - neuron_delete[0][key]
         neuron_target[1][key] = neuron_target[1][key] - neuron_delete[1][key]
@@ -119,7 +119,7 @@ def freeze_safety_neurons(model, pure_safety_neuron):
     frozen_params = 0
     total_params = 0
     
-    for layer_idx in range(32):
+    for layer_idx in range(28):
         layer = model.model.layers[layer_idx]
         
         # Freeze FFN up_proj neurons
@@ -217,7 +217,7 @@ def restore_frozen_neurons(model):
     """
     Restore frozen safety neurons after each backward pass.
     """
-    for layer_idx in range(32):
+    for layer_idx in range(28):
         layer = model.model.layers[layer_idx]
         
         # Restore FFN up_proj
@@ -252,12 +252,12 @@ def restore_frozen_neurons(model):
 
 # Load Safety Neuron (from safety corpus)
 print("Loading Safety Neuron...")
-safety_neuron = retrive_neuron('../neuron_detection/output_neurons/meta-llama_Meta-Llama-3-8B_do_not_answer_real_neurons_500.txt')
+safety_neuron = retrive_neuron('../neuron_detection/output_neurons/meta-llama_Meta-Llama-3.2-3B-Instruct_harmful_prompts_200_real_neurons.txt')
 print(f"✓ Safety Neuron loaded")
 
 # Load Utility Neuron (from Wikipedia corpus)
 print("Loading Utility Neuron...")
-utility_neuron = retrive_neuron('../neuron_detection/output_neurons/meta-llama_Meta-Llama-3-8B_wikipedia_utility_neurons_500.txt')
+utility_neuron = retrive_neuron('../neuron_detection/output_neurons/meta-llama_Meta-Llama-3.2-3B-Instruct_wikipedia_utility_neurons_200.txt')
 print(f"✓ Utility Neuron loaded")
 
 # Deduplicate: Remove Utility Neurons from Safety Neurons to get pure Safety Neurons
@@ -267,7 +267,7 @@ print(f"✓ Pure Safety Neuron extracted")
 
 # Print statistics
 print("\n=== Neuron Statistics ===")
-for layer_idx in range(32):
+for layer_idx in range(28):
     safety_count = len(safety_neuron[0].get(layer_idx, set())) + len(safety_neuron[1].get(layer_idx, set()))
     utility_count = len(utility_neuron[0].get(layer_idx, set())) + len(utility_neuron[1].get(layer_idx, set()))
     pure_count = len(pure_safety_neuron[0].get(layer_idx, set())) + len(pure_safety_neuron[1].get(layer_idx, set()))
@@ -390,8 +390,8 @@ base_model = freeze_safety_neurons(base_model, pure_safety_neuron)
 
 # Configure LoRA for fine-tuning quantized model
 lora_config = LoraConfig(
-    r=16,  # Rank
-    lora_alpha=32,
+    r=8,  # Rank
+    lora_alpha=16,
     target_modules=["q_proj", "v_proj", "k_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
     lora_dropout=0.1,
     bias="none",
@@ -415,8 +415,8 @@ class SafeNeuronFreezeCallback(TrainerCallback):
 
 # Parameters for training arguments details => https://github.com/huggingface/transformers/blob/main/src/transformers/training_args.py#L158
 training_args = TrainingArguments(
-    per_device_train_batch_size=4,  # Keep very small batch size
-    gradient_accumulation_steps=16,  # Increase accumulation to compensate
+    per_device_train_batch_size=2,  # 배치 사이즈 감소: 4 -> 2
+    gradient_accumulation_steps=16,  # Accumulation 감소: 16 -> 8
     gradient_checkpointing=True,
     max_grad_norm=0.3,
     num_train_epochs=3,  # Reduced to 1 for quick testing 기존 3
@@ -438,9 +438,10 @@ training_args = TrainingArguments(
 trainer = SFTTrainer(
     model=base_model,
     train_dataset=dataset,
-    processing_class=tokenizer,  # Use processing_class instead of tokenizer  
+    processing_class=tokenizer,  # Use processing_class instead of tokenizer
     args=training_args,
     callbacks=[SafeNeuronFreezeCallback(base_model.base_model)],  # Add freeze callback
+    # packing=True,  # 텍스트 패킹으로 메모리 효율 향상
     # formatting_func removed since data is already in correct format
 )
 
