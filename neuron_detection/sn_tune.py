@@ -79,6 +79,13 @@ class SafetyDataset(Dataset):
     def __getitem__(self, idx):
         item = self.data[idx]
         # Circuit Breakers: 'prompt' and 'llama3_output' (safe response)
+        
+        if idx == 0:  # 첫 번째 샘플 로그
+            logger.info(f"\n[Dataset Sample #0]")
+            logger.info(f"  Keys: {item.keys()}")
+            logger.info(f"  Prompt (first 100 chars): {item.get('prompt', '')[:100]}...")
+            logger.info(f"  Response (first 100 chars): {item.get('llama3_output', '')[:100]}...")
+        
         harmful_prompt = item.get('prompt', '')
         safe_response = item.get('llama3_output', '')
         
@@ -93,9 +100,14 @@ class SafetyDataset(Dataset):
             return_tensors='pt'
         )
         
+        # Labels: 패딩 토큰을 -100으로 설정 (loss 계산에서 무시됨)
+        labels = encodings['input_ids'].clone()
+        labels[encodings['attention_mask'] == 0] = -100
+        
         return {
             'input_ids': encodings['input_ids'].squeeze(0),
             'attention_mask': encodings['attention_mask'].squeeze(0),
+            'labels': labels.squeeze(0),
         }
 
 
@@ -140,14 +152,24 @@ def load_safety_neurons(output_file):
     
     logger.info(f"Loaded safety neurons from {output_file}")
     
-    # Log summary
+    # Log summary with layer-wise breakdown
+    logger.info(f"\n{'='*70}")
+    logger.info(f"Safety Neurons Loaded - Detailed Breakdown")
+    logger.info(f"{'='*70}")
+    
     total_neurons = 0
     for module_type in ['ffn_up', 'ffn_down', 'q', 'k', 'v']:
         module_total = sum(len(neurons) for neurons in safety_neurons[module_type].values())
-        logger.info(f"  {module_type}: {module_total} neurons across layers")
+        logger.info(f"  {module_type:12} : {module_total:4} neurons")
         total_neurons += module_total
+        
+        # Show which layers have neurons
+        layers_with_neurons = [l for l in safety_neurons[module_type] if safety_neurons[module_type][l]]
+        if layers_with_neurons:
+            logger.info(f"    └─ Layers with neurons: {layers_with_neurons[:5]}{'...' if len(layers_with_neurons) > 5 else ''}")
     
-    logger.info(f"Total safety neurons: {total_neurons}")
+    logger.info(f"\nTotal safety neurons: {total_neurons}")
+    logger.info(f"{'='*70}\n")
     
     return safety_neurons
 
@@ -165,50 +187,47 @@ def freeze_non_safety_neurons(model, safety_neurons):
     """
     total_params = 0
     trainable_params = 0
+    unfrozen_modules = {'ffn_up': 0, 'ffn_down': 0, 'q': 0, 'k': 0, 'v': 0}
     
     for name, param in model.named_parameters():
         total_params += param.numel()
         param.requires_grad = False  # Freeze by default
         
         # Check if this parameter should be trainable
-        # Format: model.layers.{layer_idx}.mlp.{up_proj|down_proj}.weight
-        # Format: model.layers.{layer_idx}.self_attn.{q_proj|k_proj|v_proj}.weight
-        
         if 'mlp.up_proj.weight' in name:
-            # FFN up_proj
             layer_idx = int(name.split('.')[2])
             if layer_idx in safety_neurons['ffn_up'] and safety_neurons['ffn_up'][layer_idx]:
-                # Only unfreeze the neurons in safety_neurons
                 param.requires_grad = True
                 trainable_params += param.numel()
+                unfrozen_modules['ffn_up'] += 1
         
         elif 'mlp.down_proj.weight' in name:
-            # FFN down_proj
             layer_idx = int(name.split('.')[2])
             if layer_idx in safety_neurons['ffn_down'] and safety_neurons['ffn_down'][layer_idx]:
                 param.requires_grad = True
                 trainable_params += param.numel()
+                unfrozen_modules['ffn_down'] += 1
         
         elif 'self_attn.q_proj.weight' in name:
-            # Attention Q
             layer_idx = int(name.split('.')[2])
             if layer_idx in safety_neurons['q'] and safety_neurons['q'][layer_idx]:
                 param.requires_grad = True
                 trainable_params += param.numel()
+                unfrozen_modules['q'] += 1
         
         elif 'self_attn.k_proj.weight' in name:
-            # Attention K
             layer_idx = int(name.split('.')[2])
             if layer_idx in safety_neurons['k'] and safety_neurons['k'][layer_idx]:
                 param.requires_grad = True
                 trainable_params += param.numel()
+                unfrozen_modules['k'] += 1
         
         elif 'self_attn.v_proj.weight' in name:
-            # Attention V
             layer_idx = int(name.split('.')[2])
             if layer_idx in safety_neurons['v'] and safety_neurons['v'][layer_idx]:
                 param.requires_grad = True
                 trainable_params += param.numel()
+                unfrozen_modules['v'] += 1
     
     logger.info(f"\n{'='*70}")
     logger.info(f"Parameter Freezing Summary")
@@ -217,6 +236,11 @@ def freeze_non_safety_neurons(model, safety_neurons):
     logger.info(f"Trainable parameters (safety neurons): {trainable_params:,}")
     logger.info(f"Frozen parameters: {total_params - trainable_params:,}")
     logger.info(f"Trainable ratio: {trainable_params / total_params * 100:.4f}%")
+    
+    logger.info(f"\nUnfrozen modules:")
+    for module_type, count in unfrozen_modules.items():
+        logger.info(f"  {module_type:12} : {count} layers unfrozen")
+    
     logger.info(f"{'='*70}\n")
 
 
@@ -261,17 +285,30 @@ def train_sn_tune(
     
     for epoch in range(num_epochs):
         logger.info(f"\nEpoch {epoch + 1}/{num_epochs}")
+        epoch_loss = 0.0
         
         pbar = tqdm(train_dataloader, desc=f"Training")
         for batch_idx, batch in enumerate(pbar):
             input_ids = batch['input_ids'].to(device)
             attention_mask = batch['attention_mask'].to(device)
+            labels = batch['labels'].to(device)
+            
+            # Log first batch details
+            if batch_idx == 0:
+                logger.info(f"\n[First Batch Info]")
+                logger.info(f"  Batch size: {input_ids.shape[0]}")
+                logger.info(f"  Sequence length: {input_ids.shape[1]}")
+                logger.info(f"  Device: {input_ids.device}")
+                
+                # Count valid labels (not -100)
+                valid_labels = (labels != -100).sum().item()
+                logger.info(f"  Valid labels (non-padding): {valid_labels}/{labels.numel()}")
             
             # Forward pass
             outputs = model(
                 input_ids=input_ids,
                 attention_mask=attention_mask,
-                labels=input_ids,
+                labels=labels,
                 return_dict=True
             )
             loss = outputs.loss
@@ -279,12 +316,50 @@ def train_sn_tune(
             # Backward pass
             optimizer.zero_grad()
             loss.backward()
+            
+            # Log gradient info for first batch
+            if batch_idx == 0:
+                logger.info(f"\n[Gradient Check - Batch 0]")
+                non_zero_grads = 0
+                zero_grads = 0
+                max_grad = 0
+                for name, param in model.named_parameters():
+                    if param.requires_grad and param.grad is not None:
+                        grad_abs_max = param.grad.abs().max().item()
+                        max_grad = max(max_grad, grad_abs_max)
+                        if param.grad.abs().sum() > 0:
+                            non_zero_grads += 1
+                        else:
+                            zero_grads += 1
+                logger.info(f"  Parameters with non-zero gradients: {non_zero_grads}")
+                logger.info(f"  Parameters with zero gradients: {zero_grads}")
+                logger.info(f"  Max gradient magnitude: {max_grad:.6f}")
+            
+            # Gradient clipping to prevent explosion
+            torch.nn.utils.clip_grad_norm_(
+                [p for p in model.parameters() if p.requires_grad],
+                max_norm=1.0
+            )
+            
+            # Check for NaN
+            loss_val = loss.item()
+            if torch.isnan(loss) or torch.isinf(loss):
+                logger.warning(f"NaN/Inf detected at batch {batch_idx + 1}. Skipping this batch.")
+                continue
+            
             optimizer.step()
             
-            total_loss += loss.item()
+            total_loss += loss_val
+            epoch_loss += loss_val
             total_steps += 1
             
-            pbar.set_postfix({'loss': loss.item()})
+            # Log every 5 batches
+            if (batch_idx + 1) % 5 == 0 or batch_idx == 0:
+                avg_batch_loss = epoch_loss / (batch_idx + 1)
+                pbar.set_postfix({'loss': f'{avg_batch_loss:.4f}'})
+                logger.info(f"  Batch {batch_idx + 1}: loss = {loss_val:.4f}")
+        
+        logger.info(f"Epoch {epoch + 1} completed - Epoch Loss: {epoch_loss / len(train_dataloader):.4f}")
     
     avg_loss = total_loss / total_steps
     logger.info(f"\n{'='*70}")
@@ -292,6 +367,15 @@ def train_sn_tune(
     logger.info(f"{'='*70}")
     logger.info(f"Average loss: {avg_loss:.4f}")
     logger.info(f"Total steps: {total_steps}")
+    logger.info(f"Training time: {num_epochs} epoch(s)")
+    
+    # Verify that only safety neurons were modified
+    logger.info(f"\n[Post-Training Verification]")
+    modified_params = 0
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            modified_params += 1
+    logger.info(f"  Parameters that were trained: {modified_params}")
     logger.info(f"{'='*70}\n")
     
     return model
@@ -353,10 +437,10 @@ def main(argv):
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
         device_map="auto",
-        torch_dtype=torch.float16,
+        torch_dtype=torch.float32,  # float32로 변경 (float16의 numerical instability 해결)
     )
     model.eval()
-    logger.info("✓ Model and tokenizer loaded")
+    logger.info("✓ Model and tokenizer loaded (float32)")
     
     # =====================================================================
     # 2. Load safety neurons
@@ -388,6 +472,10 @@ def main(argv):
         num_workers=0
     )
     logger.info(f"✓ DataLoader created: {len(train_dataloader)} batches")
+    logger.info(f"  Total samples: {len(safety_dataset)}")
+    logger.info(f"  Batch size: {BATCH_SIZE}")
+    logger.info(f"  Number of batches: {len(train_dataloader)}")
+    logger.info(f"  Max sequence length: {MAX_SEQ_LENGTH}")
     
     # =====================================================================
     # 5. SN-Tune training

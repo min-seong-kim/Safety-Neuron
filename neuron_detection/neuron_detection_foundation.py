@@ -14,8 +14,8 @@ Step 1: Utility Neuron Detection from Wikipedia
   python detect_utility_neurons.py [num_docs] [model_name]
   
   예시:
-    python detect_utility_neurons.py 1000
-    python detect_utility_neurons.py 500 meta-llama/Llama-3.2-3B-Instruct
+    python neuron_detection_foundation.py 200
+    python neuron_detection_foundation.py 500 meta-llama/Llama-3.2-3B-Instruct
 
 시간/메모리:
   - 입력: Wikipedia 문서 (권장: 1000개)

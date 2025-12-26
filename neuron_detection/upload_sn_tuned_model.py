@@ -99,20 +99,32 @@ def upload_to_huggingface(model_path):
         logger.info(f"  Repository: {repo_id}")
         
         try:
-            # Push model and tokenizer to hub
+            # Initialize API
+            api = HfApi()
+            
+            # Step 3a: Create repository if it doesn't exist
+            logger.info("  Creating repository on hub...")
+            try:
+                api.create_repo(
+                    repo_id=repo_id,
+                    repo_type="model",
+                    exist_ok=True
+                )
+                logger.info("  ✓ Repository created/verified")
+            except Exception as e:
+                logger.warning(f"  Warning creating repo: {e}")
+            
+            # Step 3b: Push model and tokenizer to hub (excluding checkpoint directories)
             logger.info("  Pushing model to hub (this may take a few minutes)...")
-            model.push_to_hub(
+            
+            # Upload entire folder excluding checkpoint directories
+            api.upload_folder(
+                folder_path=model_path,
                 repo_id=repo_id,
+                ignore_patterns=["checkpoint-*", ".git*", ".DS_Store"],
                 commit_message="SN-Tune (Safety Neuron Fine-tuning) model"
             )
-            logger.info("  ✓ Model pushed to hub")
-            
-            logger.info("  Pushing tokenizer to hub...")
-            tokenizer.push_to_hub(
-                repo_id=repo_id,
-                commit_message="Tokenizer for SN-Tune model"
-            )
-            logger.info("  ✓ Tokenizer pushed to hub")
+            logger.info("  ✓ Model pushed to hub (checkpoints excluded)")
             
         except Exception as e:
             logger.error(f"Failed to push to hub: {e}")
