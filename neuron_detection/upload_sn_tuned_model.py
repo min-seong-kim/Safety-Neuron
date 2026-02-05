@@ -5,12 +5,13 @@ Usage:
     python upload_sn_tuned_model.py <model_local_path>
 
 Example:
-    python upload_sn_tuned_model.py ./sn_tuned_model_20251208_223350
+    python upload_sn_tuned_model.py ./gsm8k_sn_tune_after_gsm8k_fullft
 """
 
 import os
 import sys
 import json
+import shutil
 from datetime import datetime
 from pathlib import Path
 from huggingface_hub import HfApi, login
@@ -24,7 +25,7 @@ logger = logging.getLogger(__name__)
 # Configuration
 # =====================================================================
 HF_USERNAME = "kmseong"
-MODEL_NAME_PREFIX = "Llama-3.2-3B-Instruct-SN-Tune"
+MODEL_NAME_PREFIX = "Llama-3.2-3B-Instruct-SN-Tune-after-gsm8k-ft"
 
 
 def get_model_name_with_timestamp():
@@ -47,10 +48,38 @@ def upload_to_huggingface(model_path):
         sys.exit(1)
     
     # Check for required files
-    required_files = ['config.json', 'generation_config.json']
+    required_files = ['config.json', 'generation_config.json', 'tokenizer.model']
+    missing_files = []
     for file in required_files:
-        if not os.path.exists(os.path.join(model_path, file)):
+        file_path = os.path.join(model_path, file)
+        if not os.path.exists(file_path):
+            missing_files.append(file)
             logger.warning(f"Warning: {file} not found in {model_path}")
+    
+    # If tokenizer.model is missing, copy from base model
+    if 'tokenizer.model' in missing_files:
+        logger.info(f"\n✓ tokenizer.model is missing. Attempting to download from base model...")
+        try:
+            base_model_name = "meta-llama/Llama-3.2-3B-Instruct"
+            temp_tokenizer = AutoTokenizer.from_pretrained(base_model_name)
+            
+            # Find and copy tokenizer.model from cache
+            from transformers.utils import TRANSFORMERS_CACHE
+            tokenizer_model_path = None
+            
+            # Try to extract from tokenizer object
+            if hasattr(temp_tokenizer, 'vocab_file') and temp_tokenizer.vocab_file:
+                import shutil
+                src_path = temp_tokenizer.vocab_file
+                dst_path = os.path.join(model_path, 'tokenizer.model')
+                shutil.copy(src_path, dst_path)
+                logger.info(f"✓ Copied tokenizer.model from base model")
+            else:
+                logger.warning(f"Could not find tokenizer.model in base model")
+        except Exception as e:
+            logger.error(f"Failed to copy tokenizer.model: {e}")
+            logger.error(f"Please manually copy tokenizer.model from meta-llama/Llama-3.2-3B-Instruct")
+            sys.exit(1)
     
     # Generate model name with timestamp
     model_name = get_model_name_with_timestamp()
@@ -86,12 +115,36 @@ def upload_to_huggingface(model_path):
             logger.info("  ✓ Tokenizer loaded")
             
             logger.info("  Loading model config...")
-            model = AutoModelForCausalLM.from_pretrained(model_path)
+            # Load without device_map for verification (avoid GPU memory issues)
+            try:
+                model = AutoModelForCausalLM.from_pretrained(
+                    model_path,
+                    device_map=None,  # Don't use device_map during verification
+                    torch_dtype=None,  # Use default dtype
+                )
+            except Exception as e1:
+                # Fallback: try with CPU
+                logger.warning(f"  Failed with device_map=None: {e1}")
+                logger.info("  Retrying with CPU...")
+                model = AutoModelForCausalLM.from_pretrained(
+                    model_path,
+                    device_map="cpu"
+                )
+            
             logger.info("  ✓ Model loaded")
             logger.info(f"  Model type: {type(model).__name__}")
             logger.info(f"  Model size: {model.num_parameters():,} parameters")
         except Exception as e:
             logger.error(f"Failed to load model: {e}")
+            import traceback
+            logger.error(f"Full traceback:")
+            logger.error(traceback.format_exc())
+            logger.info("\n  Diagnosis: Checking model files...")
+            logger.info(f"  Model directory: {model_path}")
+            logger.info(f"  Files present:")
+            import subprocess
+            result = subprocess.run(['ls', '-lh', model_path], capture_output=True, text=True)
+            logger.info(result.stdout)
             sys.exit(1)
         
         # Step 3: Upload to Hugging Face

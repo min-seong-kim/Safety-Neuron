@@ -1,0 +1,19 @@
+{
+  "base_model": "./sn_tuned_model_20260205_010725",
+  "fine_tuning_type": "Full Parameter Fine-tuning",
+  "dataset": "GSM8K",
+  "num_train_samples": 7473,
+  "batch_size": 2,
+  "grad_accum": 4,
+  "learning_rate": 1e-05,
+  "weight_decay": 0.01,
+  "warmup_ratio": 0.1,
+  "epochs": 3,
+  "max_length": 512,
+  "max_grad_norm": 1.0,
+  "lr_scheduler_type": "cosine",
+  "optimizer": "adamw_bnb_8bit",
+  "gradient_checkpointing": true,
+  "dtype": "bf16",
+  "trainer_type": "Trainer"
+}

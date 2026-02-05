@@ -119,19 +119,19 @@ def load_safety_neurons(output_file):
     Load safety neurons from detection output file
     
     Format:
-        Line 0: ffn_up_common (dict)
-        Line 1: ffn_down_common (dict)
-        Line 2: q_common (dict)
-        Line 3: k_common (dict)
-        Line 4: v_common (dict)
+        Line 0: ffn_up_common (JSON: {str(layer_idx): [neuron_indices]})
+        Line 1: ffn_down_common (JSON)
+        Line 2: q_common (JSON)
+        Line 3: k_common (JSON)
+        Line 4: v_common (JSON)
     
     Returns:
         safety_neurons: {
-            'ffn_up': {layer_idx: set(neuron_names)},
-            'ffn_down': {layer_idx: set(neuron_names)},
-            'q': {layer_idx: set(neuron_names)},
-            'k': {layer_idx: set(neuron_names)},
-            'v': {layer_idx: set(neuron_names)},
+            'ffn_up': {layer_idx(int): set(neuron_indices)},
+            'ffn_down': {layer_idx(int): set(neuron_indices)},
+            'q': {layer_idx(int): set(neuron_indices)},
+            'k': {layer_idx(int): set(neuron_indices)},
+            'v': {layer_idx(int): set(neuron_indices)},
         }
     """
     with open(output_file, 'r', encoding='utf-8') as f:
@@ -139,13 +139,23 @@ def load_safety_neurons(output_file):
     
     safety_neurons = {}
     
-    # Parse each line as a dict string
+    # Parse each line as JSON dict and convert string keys to integers
     try:
-        safety_neurons['ffn_up'] = ast.literal_eval(lines[0].strip())
-        safety_neurons['ffn_down'] = ast.literal_eval(lines[1].strip())
-        safety_neurons['q'] = ast.literal_eval(lines[2].strip())
-        safety_neurons['k'] = ast.literal_eval(lines[3].strip())
-        safety_neurons['v'] = ast.literal_eval(lines[4].strip())
+        safety_neurons['ffn_up'] = {
+            int(k): set(v) for k, v in json.loads(lines[0].strip()).items()
+        }
+        safety_neurons['ffn_down'] = {
+            int(k): set(v) for k, v in json.loads(lines[1].strip()).items()
+        }
+        safety_neurons['q'] = {
+            int(k): set(v) for k, v in json.loads(lines[2].strip()).items()
+        }
+        safety_neurons['k'] = {
+            int(k): set(v) for k, v in json.loads(lines[3].strip()).items()
+        }
+        safety_neurons['v'] = {
+            int(k): set(v) for k, v in json.loads(lines[4].strip()).items()
+        }
     except Exception as e:
         logger.error(f"Error parsing safety neurons file: {e}")
         raise
@@ -160,9 +170,13 @@ def load_safety_neurons(output_file):
     total_neurons = 0
     for module_type in ['ffn_up', 'ffn_down', 'q', 'k', 'v']:
         module_total = sum(len(neurons) for neurons in safety_neurons[module_type].values())
-        logger.info(f"  {module_type:12} : {module_total:4} neurons")
+        logger.info(f"  {module_type:12} : {module_total:4} neurons (column indices)")
         total_neurons += module_total
         
+        # Show which layers have neurons
+        layers_with_neurons = [l for l in safety_neurons[module_type] if safety_neurons[module_type][l]]
+        if layers_with_neurons:
+            logger.info(f"    └─ Layers with neurons: {layers_with_neurons[:5]}{'...' if len(layers_with_neurons) > 5 else ''}")
         # Show which layers have neurons
         layers_with_neurons = [l for l in safety_neurons[module_type] if safety_neurons[module_type][l]]
         if layers_with_neurons:
@@ -185,9 +199,19 @@ def freeze_non_safety_neurons(model, safety_neurons):
         model: LLaMA model
         safety_neurons: Dict of safety neuron indices per layer/module
     """
+    logger.info(f"\n{'='*70}")
+    logger.info(f"[3/6] Parameter Freezing Setup")
+    logger.info(f"{'='*70}")
+    
     total_params = 0
     trainable_params = 0
     unfrozen_modules = {'ffn_up': 0, 'ffn_down': 0, 'q': 0, 'k': 0, 'v': 0}
+    unfrozen_layers = {'ffn_up': set(), 'ffn_down': set(), 'q': set(), 'k': set(), 'v': set()}
+    
+    logger.info(f"Safety neurons keys by module:")
+    for module_type in ['ffn_up', 'ffn_down', 'q', 'k', 'v']:
+        layer_keys = sorted([k for k in safety_neurons[module_type].keys()])
+        logger.info(f"  {module_type:12}: {layer_keys[:10]}{'...' if len(layer_keys) > 10 else ''}")
     
     for name, param in model.named_parameters():
         total_params += param.numel()
@@ -200,6 +224,7 @@ def freeze_non_safety_neurons(model, safety_neurons):
                 param.requires_grad = True
                 trainable_params += param.numel()
                 unfrozen_modules['ffn_up'] += 1
+                unfrozen_layers['ffn_up'].add(layer_idx)
         
         elif 'mlp.down_proj.weight' in name:
             layer_idx = int(name.split('.')[2])
@@ -207,6 +232,7 @@ def freeze_non_safety_neurons(model, safety_neurons):
                 param.requires_grad = True
                 trainable_params += param.numel()
                 unfrozen_modules['ffn_down'] += 1
+                unfrozen_layers['ffn_down'].add(layer_idx)
         
         elif 'self_attn.q_proj.weight' in name:
             layer_idx = int(name.split('.')[2])
@@ -214,6 +240,7 @@ def freeze_non_safety_neurons(model, safety_neurons):
                 param.requires_grad = True
                 trainable_params += param.numel()
                 unfrozen_modules['q'] += 1
+                unfrozen_layers['q'].add(layer_idx)
         
         elif 'self_attn.k_proj.weight' in name:
             layer_idx = int(name.split('.')[2])
@@ -221,6 +248,7 @@ def freeze_non_safety_neurons(model, safety_neurons):
                 param.requires_grad = True
                 trainable_params += param.numel()
                 unfrozen_modules['k'] += 1
+                unfrozen_layers['k'].add(layer_idx)
         
         elif 'self_attn.v_proj.weight' in name:
             layer_idx = int(name.split('.')[2])
@@ -228,19 +256,19 @@ def freeze_non_safety_neurons(model, safety_neurons):
                 param.requires_grad = True
                 trainable_params += param.numel()
                 unfrozen_modules['v'] += 1
+                unfrozen_layers['v'].add(layer_idx)
     
-    logger.info(f"\n{'='*70}")
-    logger.info(f"Parameter Freezing Summary")
-    logger.info(f"{'='*70}")
-    logger.info(f"Total parameters: {total_params:,}")
-    logger.info(f"Trainable parameters (safety neurons): {trainable_params:,}")
-    logger.info(f"Frozen parameters: {total_params - trainable_params:,}")
-    logger.info(f"Trainable ratio: {trainable_params / total_params * 100:.4f}%")
+    logger.info(f"\n✓ Freezing complete")
+    logger.info(f"  Total parameters: {total_params:,}")
+    logger.info(f"  Trainable parameters (safety neurons): {trainable_params:,}")
+    logger.info(f"  Frozen parameters: {total_params - trainable_params:,}")
+    logger.info(f"  Trainable ratio: {trainable_params / total_params * 100:.4f}%")
     
-    logger.info(f"\nUnfrozen modules:")
+    logger.info(f"\nUnfrozen modules (layers with safety neurons):")
     for module_type, count in unfrozen_modules.items():
-        logger.info(f"  {module_type:12} : {count} layers unfrozen")
+        logger.info(f"  {module_type:12} : {count} layers unfrozen, layers: {sorted(list(unfrozen_layers[module_type]))}")
     
+    logger.info(f"  Note: Actual trainable columns will be further masked by gradient hooks")
     logger.info(f"{'='*70}\n")
 
 
@@ -384,17 +412,23 @@ def train_sn_tune(
 # =====================================================================
 # Save Fine-tuned Model
 # =====================================================================
-def save_sn_tuned_model(model, save_path):
+def save_sn_tuned_model(model, tokenizer, save_path):
     """
-    Save the SN-tuned model
+    Save the SN-tuned model and tokenizer
     
     Args:
         model: Fine-tuned model
+        tokenizer: Tokenizer
         save_path: Path to save the model
     """
     os.makedirs(save_path, exist_ok=True)
+    logger.info(f"  Saving model to {save_path}...")
     model.save_pretrained(save_path)
-    logger.info(f"Model saved to {save_path}")
+    logger.info(f"  ✓ Model saved")
+    
+    logger.info(f"  Saving tokenizer to {save_path}...")
+    tokenizer.save_pretrained(save_path)
+    logger.info(f"  ✓ Tokenizer saved")
 
 
 # =====================================================================
@@ -493,16 +527,24 @@ def main(argv):
     # =====================================================================
     # 6. Save fine-tuned model
     # =====================================================================
+    logger.info(f"\n{'='*70}")
+    logger.info("[6/6] Saving Fine-tuned Model")
+    logger.info(f"{'='*70}")
+    
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     final_output_dir = f"{output_dir}_{timestamp}"
     
-    logger.info(f"\nSaving fine-tuned model...")
-    save_sn_tuned_model(model, final_output_dir)
+    logger.info(f"Output directory: {final_output_dir}")
+    save_sn_tuned_model(model, tokenizer, final_output_dir)
     
     logger.info(f"\n{'='*70}")
     logger.info("SN-Tune Complete!")
     logger.info(f"{'='*70}")
-    logger.info(f"Fine-tuned model saved to: {final_output_dir}")
+    logger.info(f"✓ Fine-tuned model saved to: {final_output_dir}")
+    logger.info(f"  - Model weights saved")
+    logger.info(f"  - Tokenizer saved")
+    logger.info(f"  - Ready for upload to Hugging Face")
+    logger.info(f"{'='*70}\n")
     logger.info(f"{'='*70}\n")
 
 
