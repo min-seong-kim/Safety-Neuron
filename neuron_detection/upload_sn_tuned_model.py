@@ -5,7 +5,7 @@ Usage:
     python upload_sn_tuned_model.py <model_local_path>
 
 Example:
-    python upload_sn_tuned_model.py ./gsm8k_sn_tune_after_gsm8k_fullft
+    python upload_sn_tuned_model.py ./base_model_safety_tf
 """
 
 import os
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 # Configuration
 # =====================================================================
 HF_USERNAME = "kmseong"
-MODEL_NAME_PREFIX = "Llama-3.2-3B-Instruct-SN-Tune-after-gsm8k-ft"
+MODEL_NAME_PREFIX = "Llama-3.2-3B-SSFT"
 
 
 def get_model_name_with_timestamp():
@@ -56,29 +56,22 @@ def upload_to_huggingface(model_path):
             missing_files.append(file)
             logger.warning(f"Warning: {file} not found in {model_path}")
     
-    # If tokenizer.model is missing, copy from base model
-    if 'tokenizer.model' in missing_files:
-        logger.info(f"\n✓ tokenizer.model is missing. Attempting to download from base model...")
+    # If any tokenizer files are missing, copy from base model
+    if missing_files:
+        logger.info(f"\n⚠ Missing files detected: {missing_files}")
+        logger.info(f"Copying complete tokenizer from base model...")
         try:
             base_model_name = "meta-llama/Llama-3.2-3B-Instruct"
             temp_tokenizer = AutoTokenizer.from_pretrained(base_model_name)
             
-            # Find and copy tokenizer.model from cache
-            from transformers.utils import TRANSFORMERS_CACHE
-            tokenizer_model_path = None
+            # Save tokenizer to the model directory
+            temp_tokenizer.save_pretrained(model_path)
+            logger.info(f"✓ Tokenizer files copied from base model")
             
-            # Try to extract from tokenizer object
-            if hasattr(temp_tokenizer, 'vocab_file') and temp_tokenizer.vocab_file:
-                import shutil
-                src_path = temp_tokenizer.vocab_file
-                dst_path = os.path.join(model_path, 'tokenizer.model')
-                shutil.copy(src_path, dst_path)
-                logger.info(f"✓ Copied tokenizer.model from base model")
-            else:
-                logger.warning(f"Could not find tokenizer.model in base model")
         except Exception as e:
-            logger.error(f"Failed to copy tokenizer.model: {e}")
-            logger.error(f"Please manually copy tokenizer.model from meta-llama/Llama-3.2-3B-Instruct")
+            logger.error(f"Failed to copy tokenizer files: {e}")
+            logger.error(f"Please run SN-Tune again - it should save the tokenizer automatically")
+            logger.error(f"Or manually copy tokenizer files from meta-llama/Llama-3.2-3B-Instruct")
             sys.exit(1)
     
     # Generate model name with timestamp

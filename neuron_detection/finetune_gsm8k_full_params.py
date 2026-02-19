@@ -1,11 +1,11 @@
 """
-GSM8K 데이터셋을 사용하여 SN-Tuned 모델의 전체 파라미터(Full Parameter) 파인튜닝
+GSM8K 데이터셋을 사용하여 SN-Tuned 모델(Llama-3.2-3B 기반)의 전체 파라미터(Full Parameter) 파인튜닝
 
 Trainer + AdamW 8-bit optimizer (bitsandbytes) 사용으로 메모리 효율성 극대화
 
 Example Usage:
 python finetune_gsm8k_full_params.py \
-    --model_path ./sn_tuned_model_20260205_010725 \
+    --model_path /home/gokms0509/Safety-Neuron/neuron_detection/sn_tuned_model_20260209_202808 \
     --output_dir ./gsm8k_sn_tune_after_gsm8k_fullft 
 """
 
@@ -13,6 +13,8 @@ import argparse
 import os
 from dataclasses import dataclass
 from typing import Dict, List, Optional
+from datetime import datetime
+import logging
 
 import torch
 from datasets import load_dataset
@@ -82,23 +84,10 @@ def _select_first_n(ds, n: int):
 
 
 def build_chat_prompt(question: str, tokenizer) -> str:
-    """Llama 3.2 Instruct chat template 사용"""
-    messages = [
-        {
-            "role": "system",
-            "content": "You are a helpful assistant that solves math problems step by step. Always show your reasoning and provide the final numerical answer after ####."
-        },
-        {
-            "role": "user",
-            "content": f"Solve this problem step by step:\n\n{question.strip()}"
-        }
-    ]
-    # chat template 적용 (답변 부분 제외)
-    prompt = tokenizer.apply_chat_template(
-        messages,
-        tokenize=False,
-        add_generation_prompt=True
-    )
+    """베이스 모델용 프롬프트 빌딩 (finetune_gsm8k_SFT.py와 동일)"""
+    system_msg = "You are a helpful assistant that solves math problems step by step. Always show your reasoning and provide the final numerical answer after ####."
+    user_msg = f"Solve this problem step by step:\n\n{question.strip()}"
+    prompt = f"{system_msg}\n\nUser: {user_msg}\n\nAssistant:"
     return prompt
 
 
@@ -159,56 +148,159 @@ class DataCollatorForCausalLMWithPadding:
             "labels": torch.tensor(labels, dtype=torch.long),
         }
 
+def setup_logging(output_dir):
+    """로깅 설정: 파일과 콘솔 모두에 출력"""
+    log_dir = "./logs/safety_neuron_gsm8k"
+    os.makedirs(log_dir, exist_ok=True)
+    
+    # 파일 이름: 현재 날짜 및 시간
+    log_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = os.path.join(log_dir, f"finetune_gsm8k_{log_timestamp}.log")
+    
+    # 로거 설정
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    
+    # 파일 핸들러
+    file_handler = logging.FileHandler(log_file, encoding='utf-8')
+    file_handler.setLevel(logging.DEBUG)
+    
+    # 콘솔 핸들러
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    
+    # 포맷터
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    file_handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter)
+    
+    # 핸들러 추가
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+    
+    return logger, log_file
+
+
 def main():
     """Main fine-tuning pipeline."""
     args = parse_args()
     os.makedirs(args.output_dir, exist_ok=True)
     set_seed(args.seed)
     
-    print(f"\n{'='*70}")
-    print(f"  🚀 Full Parameter GSM8K Fine-tuning (SN-Tuned Model)")
-    print(f"{'='*70}\n")
-    print(f"⚙️  Configuration:")
-    print(f"   ├─ Base model: {args.model_path}")
-    print(f"   ├─ Training samples: {args.num_train_samples}")
-    print(f"   ├─ Batch size: {args.batch_size}")
-    print(f"   ├─ Gradient accumulation: {args.grad_accum}")
-    print(f"   ├─ Epochs: {args.epochs}")
-    print(f"   ├─ Learning rate: {args.learning_rate}")
-    print(f"   ├─ Weight decay: {args.weight_decay}")
-    print(f"   ├─ Optimizer: adamw_bnb_8bit (memory efficient)")
-    print(f"   ├─ Warmup ratio: {args.warmup_ratio}")
-    print(f"   ├─ Max length: {args.max_length}")
-    print(f"   ├─ Dtype: bf16")
-    print(f"   └─ Output dir: {args.output_dir}\n")
+    # 로컬 경로를 절대 경로로 변환 (transformers가 상대 경로를 Hub repo로 인식하는 문제 해결)
+    model_path = os.path.abspath(args.model_path)
+    
+    # 로깅 설정
+    logger, log_file = setup_logging(args.output_dir)
+    
+    logger.info(f"\n{'='*70}")
+    logger.info(f"  🚀 Full Parameter GSM8K Fine-tuning (SN-Tuned Model - Llama 3.2-3B Base)")
+    logger.info(f"{'='*70}\n")
+    logger.info(f"Log file: {log_file}")
+    
+    # 모델 경로 존재 확인
+    if not os.path.exists(model_path):
+        logger.error(f"Model path does not exist: {model_path}")
+        raise FileNotFoundError(f"Model path not found: {model_path}")
+    
+    logger.info(f"⚙️  Configuration:")
+    logger.info(f"   ├─ SN-Tuned model: {model_path}")
+    logger.info(f"   ├─ Base model: meta-llama/Llama-3.2-3B")
+    logger.info(f"   ├─ Training samples: {args.num_train_samples}")
+    logger.info(f"   ├─ Batch size: {args.batch_size}")
+    logger.info(f"   ├─ Gradient accumulation: {args.grad_accum}")
+    logger.info(f"   ├─ Epochs: {args.epochs}")
+    logger.info(f"   ├─ Learning rate: {args.learning_rate}")
+    logger.info(f"   ├─ Weight decay: {args.weight_decay}")
+    logger.info(f"   ├─ Optimizer: adamw_bnb_8bit (memory efficient)")
+    logger.info(f"   ├─ Warmup ratio: {args.warmup_ratio}")
+    logger.info(f"   ├─ Max length: {args.max_length}")
+    logger.info(f"   ├─ Dtype: bf16")
+    logger.info(f"   └─ Output dir: {args.output_dir}\n")
 
     # Load tokenizer
-    print(f"\n{'='*70}")
-    print(f"  [1/4] Loading Tokenizer")
-    print(f"{'='*70}\n")
-    tokenizer = AutoTokenizer.from_pretrained(
-        args.model_path, 
-        use_fast=True,
-        cache_dir=args.cache_dir,
-        trust_remote_code=True,
-        fix_mistral_regex=True  # Fix regex pattern warning
-    )
+    logger.info(f"\n{'='*70}")
+    logger.info(f"  [1/4] Loading Tokenizer")
+    logger.info(f"{'='*70}\n")
+    
+    tokenizer = None
+    
+    # 시도 1: local_files_only=True (권장)
+    try:
+        logger.info("Attempting to load tokenizer (local files only)...")
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_path,
+            local_files_only=True,
+            trust_remote_code=False,
+        )
+        logger.info("✓ Tokenizer loaded from local files")
+    except Exception as e:
+        logger.warning(f"Failed to load tokenizer with local_files_only: {e}")
+        logger.info("Attempting to load from HuggingFace Hub...")
+        
+        # 시도 2: Hub에서 로드 (fallback)
+        try:
+            tokenizer = AutoTokenizer.from_pretrained(model_path)
+            logger.info("✓ Tokenizer loaded from HuggingFace Hub")
+        except Exception as e2:
+            logger.error(f"Failed to load tokenizer: {e2}")
+            raise RuntimeError(f"Could not load tokenizer from {model_path}") from e2
+    
+    if tokenizer is None:
+        raise RuntimeError(f"Tokenizer loading failed for {model_path}")
+    
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
-    print(f"✅ Tokenizer loaded")
+    
+    logger.info(f"✅ Tokenizer loaded successfully")
+    logger.info(f"   ├─ Tokenizer type: {type(tokenizer).__name__}")
+    logger.info(f"   ├─ Vocab size: {len(tokenizer)}")
+    logger.info(f"   └─ Pad token: {tokenizer.pad_token}")
 
     # Load model with bf16
-    print(f"\n{'='*70}")
-    print(f"  [2/4] Loading Model (bf16)")
-    print(f"{'='*70}\n")
+    logger.info(f"\n{'='*70}")
+    logger.info(f"  [2/4] Loading Model (bf16)")
+    logger.info(f"{'='*70}\n")
     dtype = torch.bfloat16 if args.bf16 else (torch.float16 if args.fp16 else None)
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model_path, 
-        dtype=dtype,  # Use dtype instead of torch_dtype (torch_dtype is deprecated)
-        device_map="auto",
-        trust_remote_code=True,
-        cache_dir=args.cache_dir,
-    )
+    
+    model = None
+    load_error = None
+    
+    # 시도 1: local_files_only=True (권장)
+    try:
+        logger.info("Attempting to load model (local files only)...")
+        model = AutoModelForCausalLM.from_pretrained(
+            model_path,
+            torch_dtype=dtype,
+            device_map="auto",
+            local_files_only=True,
+            trust_remote_code=False,
+        )
+        logger.info("✓ Model loaded from local files")
+    except Exception as e:
+        load_error = str(e)
+        logger.warning(f"Failed to load with local_files_only: {e}")
+        logger.info("Attempting to load from HuggingFace Hub...")
+        
+        # 시도 2: Hub에서 로드 (fallback)
+        try:
+            model = AutoModelForCausalLM.from_pretrained(
+                model_path,
+                torch_dtype=dtype,
+                device_map="auto",
+                trust_remote_code=False,
+            )
+            logger.info("✓ Model loaded from HuggingFace Hub")
+        except Exception as e2:
+            logger.error(f"Failed to load model from Hub: {e2}")
+            logger.error(f"Original error: {load_error}")
+            raise RuntimeError(f"Could not load model from {model_path}") from e2
+
+    if model is None:
+        raise RuntimeError(f"Model loading failed for {model_path}")
 
     if args.gradient_checkpointing:
         model.gradient_checkpointing_enable()
@@ -216,16 +308,16 @@ def main():
     
     total_params = sum(p.numel() for p in model.parameters())
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print(f"✅ Model loaded")
-    print(f"   ├─ Model size: {total_params / 1e9:.2f}B parameters")
-    print(f"   ├─ Trainable: {trainable_params / 1e9:.2f}B ({100 * trainable_params / total_params:.2f}%)")
-    print(f"   ├─ Dtype: {model.dtype}")
-    print(f"   └─ Gradient checkpointing: Enabled")
+    logger.info(f"✅ Model loaded successfully")
+    logger.info(f"   ├─ Model size: {total_params / 1e9:.2f}B parameters")
+    logger.info(f"   ├─ Trainable: {trainable_params / 1e9:.2f}B ({100 * trainable_params / total_params:.2f}%)")
+    logger.info(f"   ├─ Dtype: {model.dtype}")
+    logger.info(f"   └─ Gradient checkpointing: Enabled")
 
     # Load dataset
-    print(f"\n{'='*70}")
-    print(f"  [3/4] Loading GSM8K Dataset")
-    print(f"{'='*70}\n")
+    logger.info(f"\n{'='*70}")
+    logger.info(f"  [3/4] Loading GSM8K Dataset")
+    logger.info(f"{'='*70}\n")
     train_ds = load_dataset(
         args.dataset_name, 
         args.dataset_subset, 
@@ -244,15 +336,15 @@ def main():
         )
         eval_ds = _select_first_n(eval_ds, args.num_eval_samples)
     
-    print(f"✅ Datasets loaded")
-    print(f"   ├─ Train: {len(train_ds)} samples")
+    logger.info(f"✅ Datasets loaded")
+    logger.info(f"   ├─ Train: {len(train_ds)} samples")
     if eval_ds is not None:
-        print(f"   └─ Eval: {len(eval_ds)} samples")
+        logger.info(f"   └─ Eval: {len(eval_ds)} samples")
 
     # Preprocess data
-    print(f"\n{'='*70}")
-    print(f"  [3.5/4] Preprocessing Data")
-    print(f"{'='*70}\n")
+    logger.info(f"\n{'='*70}")
+    logger.info(f"  [3.5/4] Preprocessing Data")
+    logger.info(f"{'='*70}\n")
     
     def preprocess(ex):
         prompt = build_chat_prompt(ex["question"], tokenizer)
@@ -275,12 +367,12 @@ def main():
             desc="Tokenizing eval",
         )
     
-    print(f"✅ Data preprocessed")
+    logger.info(f"✅ Data preprocessed")
 
     # Training
-    print(f"\n{'='*70}")
-    print(f"  [4/4] Training with Trainer + AdamW 8-bit")
-    print(f"{'='*70}\n")
+    logger.info(f"\n{'='*70}")
+    logger.info(f"  [4/4] Training with Trainer + AdamW 8-bit")
+    logger.info(f"{'='*70}\n")
     
     data_collator = DataCollatorForCausalLMWithPadding(tokenizer)
     
@@ -319,23 +411,133 @@ def main():
         data_collator=data_collator,
     )
 
-    print("Starting training...")
+    logger.info("Starting training...")
     trainer.train()
     
     # Save model
-    print(f"\n{'='*70}")
-    print(f"  Saving Fine-tuned Model")
-    print(f"{'='*70}\n")
-    trainer.save_model(args.output_dir)
-    tokenizer.save_pretrained(args.output_dir)
+    logger.info(f"\n{'='*70}")
+    logger.info(f"  Saving Fine-tuned Model")
+    logger.info(f"{'='*70}\n")
     
-    print(f"✅ Fine-tuned model saved!")
-    print(f"   └─ Output directory: {args.output_dir}")
+    try:
+        import gc
+        
+        # 1️⃣ 메모리 정리 및 최적화
+        logger.info("Step 1: Preparing model for saving...")
+        gc.collect()  # Python garbage collection
+        torch.cuda.empty_cache()  # Clear GPU cache
+        
+        # 2️⃣ 모델을 CPU로 옮김 (가장 중요!)
+        logger.info("Step 2: Moving model to CPU for safe serialization...")
+        model = model.cpu()
+        gc.collect()
+        torch.cuda.empty_cache()
+        
+        # 3️⃣ 모델 저장 (최대한 안전한 방식)
+        logger.info("Step 3: Saving model weights directly (not via Trainer)...")
+        logger.info(f"   ├─ Using safe_serialization=True (safetensors)")
+        logger.info(f"   ├─ Output directory: {os.path.abspath(args.output_dir)}")
+        
+        # Trainer 거치지 않고 직접 저장 (더 안전)
+        model.save_pretrained(
+            args.output_dir,
+            safe_serialization=True,
+            max_shard_size="4GB",  # 4GB 이하로 분할
+            push_to_hub=False,
+        )
+        logger.info(f"   └─ ✅ Model weights saved successfully")
+        
+        # 4️⃣ Tokenizer 저장
+        logger.info("Step 4: Saving tokenizer...")
+        tokenizer.save_pretrained(
+            args.output_dir,
+            safe_serialization=True
+        )
+        logger.info(f"   └─ ✅ Tokenizer saved")
+        
+        # 5️⃣ Config 및 생성 설정 저장
+        logger.info("Step 5: Saving model config and generation settings...")
+        model.config.save_pretrained(args.output_dir)
+        if hasattr(model, 'generation_config'):
+            model.generation_config.save_pretrained(args.output_dir)
+        logger.info(f"   └─ ✅ Configs saved")
+        
+        # 6️⃣ 저장 검증
+        logger.info("Step 6: Verifying saved model integrity...")
+        required_files = ['config.json', 'tokenizer_config.json', 'tokenizer.json']
+        missing_files = []
+        for fname in required_files:
+            fpath = os.path.join(args.output_dir, fname)
+            if not os.path.exists(fpath):
+                missing_files.append(fname)
+            else:
+                size = os.path.getsize(fpath)
+                if size == 0:
+                    logger.warning(f"   ⚠️  {fname} is empty!")
+                    missing_files.append(fname)
+        
+        if missing_files:
+            raise FileNotFoundError(f"Missing/corrupted files: {missing_files}")
+        
+        # 모델 파일 존재 확인 (safetensors)
+        model_files = [f for f in os.listdir(args.output_dir) 
+                      if f.endswith('.safetensors')]
+        if not model_files:
+            raise FileNotFoundError("No safetensors files found after save!")
+        
+        logger.info(f"   ├─ ✅ Found {len(model_files)} model shard file(s)")
+        
+        # 7️⃣ 파일 크기 로깅 및 최종 확인
+        logger.info(f"\n📦 Saved files:")
+        total_size = 0
+        for fname in sorted(os.listdir(args.output_dir)):
+            fpath = os.path.join(args.output_dir, fname)
+            if os.path.isfile(fpath):
+                size = os.path.getsize(fpath)
+                total_size += size
+                if size > 1e6:  # > 1MB인 파일만 표시
+                    logger.info(f"   ├─ {fname:40} {size/1e9:>8.3f} GB")
+                    
+        logger.info(f"   └─ Total size: {total_size/1e9:.2f} GB ✅")
+        
+        # 8️⃣ 최종 검증: 모델 로드 가능 확인
+        logger.info(f"\nStep 7: Final verification - attempting to load saved model...")
+        try:
+            test_tokenizer = AutoTokenizer.from_pretrained(args.output_dir)
+            # 메모리 절약을 위해 메타 데이터만 로드
+            test_model = AutoModelForCausalLM.from_pretrained(
+                args.output_dir,
+                device_map="cpu",
+                torch_dtype=torch.float32,
+                low_cpu_mem_usage=True,
+            )
+            logger.info(f"   └─ ✅ Model loads successfully - integrity verified!")
+            del test_model
+            del test_tokenizer
+            gc.collect()
+        except Exception as load_err:
+            logger.error(f"   ❌ CRITICAL: Saved model cannot be loaded: {load_err}")
+            logger.error(f"      This means the save operation was incomplete!")
+            raise RuntimeError(f"Model save verification failed: {load_err}") from load_err
+        
+        logger.info(f"\n✅✅✅ Fine-tuned model saved and verified successfully!")
+        logger.info(f"   Output directory: {os.path.abspath(args.output_dir)}")
+        logger.info(f"   Total size: {total_size/1e9:.2f} GB")
+        logger.info(f"   Status: ✅ READY FOR EVALUATION")
+        
+    except Exception as e:
+        logger.error(f"\n❌❌❌ CRITICAL ERROR during model saving: {e}")
+        logger.error(f"   {type(e).__name__}: {str(e)}")
+        logger.error(f"   Output directory may be incomplete: {args.output_dir}")
+        logger.error(f"   Please check the directory contents before using this model!")
+        import traceback
+        logger.error(traceback.format_exc())
+        raise
     
     # Save training config
     import json
     config = {
-        'base_model': args.model_path,
+        'base_model': model_path,
         'fine_tuning_type': 'Full Parameter Fine-tuning',
         'dataset': 'GSM8K',
         'num_train_samples': args.num_train_samples,
@@ -358,11 +560,11 @@ def main():
     with open(config_path, 'w') as f:
         json.dump(config, f, indent=2)
     
-    print(f"✅ Config saved to: {config_path}")
+    logger.info(f"✅ Config saved to: {config_path}")
     
-    print(f"\n{'='*70}")
-    print(f"  ✅ Fine-tuning Complete!")
-    print(f"{'='*70}\n")
+    logger.info(f"\n{'='*70}")
+    logger.info(f"  ✅ Fine-tuning Complete!")
+    logger.info(f"{'='*70}\n")
 
 if __name__ == '__main__':
     main()

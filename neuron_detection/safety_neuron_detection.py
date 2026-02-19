@@ -1,3 +1,7 @@
+'''
+python safety_neuron_detection.py harmful_prompts 200
+'''
+
 import os
 from typing import Dict, Set, List, Tuple
 import sys
@@ -18,7 +22,7 @@ torch.manual_seed(112)
 # ------------------------------------------------------------------
 # Model configuration
 # ------------------------------------------------------------------
-model_name = "meta-llama/Llama-3.2-3B-Instruct"
+model_name = "meta-llama/Llama-3.2-3B"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
@@ -42,8 +46,8 @@ TOTAL_NEURONS = NUM_LAYERS * HIDDEN_DIM
 # ------------------------------------------------------------------
 # 각 layer/module에서 "최상위 몇 %의 뉴런을 활성 뉴런으로 볼 것인가?"
 # 예: 0.005 -> 상위 0.5% (논문: safety neuron은 전체의 <1% 라는 관찰과 일치)
-FFN_ACTIVE_FRACTION = 0.005
-ATTN_ACTIVE_FRACTION = 0.005
+FFN_ACTIVE_FRACTION = 0.01
+ATTN_ACTIVE_FRACTION = 0.01
 
 # quantile 연산 시 최소 샘플 수가 너무 적을 때를 대비한 safeguard
 MIN_NEURONS_FOR_QUANTILE = 10
@@ -93,8 +97,7 @@ def detect_safety_neurons_threshold(
            Dict[int, Set[int]],
            Dict[int, Set[int]]]:
 
-    logger.info(f"\n[Query {prompt_idx}] Starting detection...")
-    logger.debug(f"Prompt (first 100 chars): {prompt[:100]}...")
+    # 로그 제거: 진행상황만 tqdm으로 표시
 
     ffn_up_dict: Dict[int, Set[int]] = {}
     ffn_down_dict: Dict[int, Set[int]] = {}
@@ -111,7 +114,6 @@ def detect_safety_neurons_threshold(
             truncation=True,
             max_length=512,
         )
-        logger.debug(f"Tokenization complete: {inputs['input_ids'].shape}")
 
         device = next(model.parameters()).device
         inputs = {k: v.to(device) for k, v in inputs.items()}
@@ -130,7 +132,6 @@ def detect_safety_neurons_threshold(
             return hook
 
         hooks = []
-        logger.debug(f"Registering hooks for {NUM_LAYERS} layers...")
         for layer_idx in range(NUM_LAYERS):
             layer = model.model.layers[layer_idx]
 
@@ -167,11 +168,9 @@ def detect_safety_neurons_threshold(
                         get_activation_hook(f"layer_{layer_idx}_attn_v")
                     )
                 )
-        logger.debug(f"Registered {len(hooks)} hooks")
 
         try:
             # 3) Forward pass (no grad)
-            logger.debug("Starting forward pass...")
             with torch.no_grad():
                 _ = model(
                     input_ids=inputs["input_ids"],
@@ -179,10 +178,8 @@ def detect_safety_neurons_threshold(
                     output_hidden_states=False,
                     return_dict=True,
                 )
-            logger.debug(f"Forward pass complete. Captured {len(activations_dict)} activations")
 
             # 4) For each layer, compute importance & thresholded Nx
-            logger.debug("Computing importance scores...")
             for layer_idx in range(NUM_LAYERS):
                 # ---------- FFN up_proj ----------
                 ffn_up_key = f"layer_{layer_idx}_ffn_up"
@@ -245,21 +242,8 @@ def detect_safety_neurons_threshold(
                 else:
                     v_dict[layer_idx] = set()
 
-            # 계산 완료 로깅
-            total_up = sum(len(v) for v in ffn_up_dict.values())
-            total_down = sum(len(v) for v in ffn_down_dict.values())
-            total_q = sum(len(v) for v in q_dict.values())
-            total_k = sum(len(v) for v in k_dict.values())
-            total_v = sum(len(v) for v in v_dict.values())
-            total_all = total_up + total_down + total_q + total_k + total_v
-            
-            logger.info(f"[Query {prompt_idx}] Detection complete: {total_all} total neurons")
-            logger.info(f"  FFN up: {total_up}, FFN down: {total_down}")
-            logger.info(f"  Attn Q: {total_q}, Attn K: {total_k}, Attn V: {total_v}")
-
         finally:
             # 5) Remove hooks
-            logger.debug("Removing hooks...")
             for h in hooks:
                 h.remove()
 
@@ -290,12 +274,7 @@ def compute_intersection(neuron_sets_list: List[Dict[int, Set[int]]]) -> Dict[in
       intersection_dict: layer -> set of neurons that appear in EVERY prompt
                          => 진짜 Safety Neuron (N_safe)
     """
-    logger.info("\n" + "="*70)
-    logger.info("Computing Safety Neuron Intersection (Eq. 3)")
-    logger.info("="*70)
-    
     if not neuron_sets_list:
-        logger.warning("No neuron sets to intersect!")
         return {layer_idx: set() for layer_idx in range(NUM_LAYERS)}
 
     intersection_dict: Dict[int, Set[int]] = {}
@@ -310,7 +289,6 @@ def compute_intersection(neuron_sets_list: List[Dict[int, Set[int]]]) -> Dict[in
         # 모든 layer_sets가 비어있으면 이 layer는 공집합
         if not layer_sets or all(not s for s in layer_sets):
             intersection_dict[layer_idx] = set()
-            logger.debug(f"Layer {layer_idx}: No neurons in any query")
             continue
 
         # Eq. (3): 교집합 계산
@@ -318,28 +296,10 @@ def compute_intersection(neuron_sets_list: List[Dict[int, Set[int]]]) -> Dict[in
         non_empty_sets = [s for s in layer_sets if s]
         if non_empty_sets:
             common = set.intersection(*non_empty_sets)
-            
-            # 로깅: 교집합 과정 상세 정보
-            logger.debug(f"Layer {layer_idx}:")
-            logger.debug(f"  Total queries: {len(neuron_sets_list)}")
-            logger.debug(f"  Queries with neurons: {len(non_empty_sets)}")
-            logger.debug(f"  Set sizes: {[len(s) for s in layer_sets]}")
-            logger.debug(f"  Intersection size: {len(common)}")
-            if common:
-                logger.debug(f"  Safety neurons: {sorted(list(common))[:20]}")  # 처음 20개만
         else:
             common = set()
-            logger.debug(f"Layer {layer_idx}: No non-empty sets for intersection")
         
         intersection_dict[layer_idx] = common
-
-    # 최종 결과 요약
-    total_safety_neurons = sum(len(v) for v in intersection_dict.values())
-    layers_with_neurons = sum(1 for v in intersection_dict.values() if v)
-    
-    logger.info(f"\nIntersection Results:")
-    logger.info(f"  Total safety neurons: {total_safety_neurons}")
-    logger.info(f"  Layers with safety neurons: {layers_with_neurons}/{NUM_LAYERS}")
     
     return intersection_dict
 
@@ -347,7 +307,7 @@ def compute_intersection(neuron_sets_list: List[Dict[int, Set[int]]]) -> Dict[in
 def main(argv):
     if len(argv) < 1:
         logger.error("Usage: python safety_neuron_detection.py <dataset_name> [num_prompts]")
-        logger.error("Example: python safety_neuron_detection.py harmful_prompts 50")
+        logger.error("Example: python safety_neuron_detection.py harmful_prompts 200")
 
         corpus_dir = "./corpus_all"
         if os.path.exists(corpus_dir):
@@ -386,16 +346,10 @@ def main(argv):
     # 로거에 핸들러 추가
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
-    logger.setLevel(logging.DEBUG)
-    
-    logger.info(f"\n{'='*70}")
-    logger.info(f"Safety Neuron Detection Started")
-    logger.info(f"{'='*70}")
-    logger.info(f"Log file: {log_file}")
-    logger.info(f"Timestamp: {log_timestamp}")
+    logger.setLevel(logging.INFO)
 
     dataset_name = argv[0]
-    num_prompts = int(argv[1]) if len(argv) > 1 else 50
+    num_prompts = int(argv[1]) if len(argv) > 1 else 200
 
     file_path = f"./corpus_all/{dataset_name}.txt"
     if not os.path.exists(file_path):
@@ -407,13 +361,7 @@ def main(argv):
 
     lines = random.sample(lines, min(num_prompts, len(lines)))
 
-    logger.info(f"\n{'='*70}")
-    logger.info(f"Configuration")
-    logger.info(f"{'='*70}")
-    logger.info(f"Loaded {len(lines)} prompts from dataset: {dataset_name}")
-    logger.info(f"Model: {model_name} ({NUM_LAYERS} layers, {HIDDEN_DIM} hidden_dim)")
-    logger.info(f"FFN_ACTIVE_FRACTION = {FFN_ACTIVE_FRACTION}")
-    logger.info(f"ATTN_ACTIVE_FRACTION = {ATTN_ACTIVE_FRACTION}")
+    print(f"\nProcessing {len(lines)} prompts from '{dataset_name}' on {model_name}...")
 
     # 각 prompt x에 대해 Nx를 수집
     ffn_up_sets: List[Dict[int, Set[int]]] = []
@@ -422,10 +370,6 @@ def main(argv):
     k_sets: List[Dict[int, Set[int]]] = []
     v_sets: List[Dict[int, Set[int]]] = []
 
-    logger.info(f"\n{'='*70}")
-    logger.info(f"Starting Neuron Detection on {len(lines)} Queries")
-    logger.info(f"{'='*70}")
-    
     failed_count = 0
     for idx, prompt in enumerate(tqdm(lines, desc="Detecting neurons")):
         try:
@@ -437,17 +381,10 @@ def main(argv):
             v_sets.append(v)
         except Exception as e:
             failed_count += 1
-            logger.warning(f"Failed prompt {idx}: {str(e)[:100]}")
 
     successful_count = len(ffn_up_sets)
-    logger.info(f"\n{'='*70}")
-    logger.info(f"Query Processing Complete")
-    logger.info(f"{'='*70}")
-    logger.info(f"Successfully processed: {successful_count}/{len(lines)} prompts")
-    logger.info(f"Failed: {failed_count}/{len(lines)} prompts")
 
     # Eq. (3): N_safe = ⋂_x N_x
-    logger.info(f"\nComputing neuron intersections across all prompts...")
     ffn_up_common = compute_intersection(ffn_up_sets)
     ffn_down_common = compute_intersection(ffn_down_sets)
     q_common = compute_intersection(q_sets)
@@ -462,7 +399,6 @@ def main(argv):
         f"{clean_model_name}_{dataset_name}_threshold_neurons_{len(ffn_up_sets)}_{log_timestamp}.txt"
     )
 
-    logger.info(f"\nSaving results to {output_file}")
     with open(output_file, "w", encoding="utf-8") as f:
         # Dict[int, Set[int]] -> str으로 저장
         import json
@@ -471,56 +407,29 @@ def main(argv):
         f.write(json.dumps({str(k): list(v) for k, v in q_common.items()}) + "\n")
         f.write(json.dumps({str(k): list(v) for k, v in k_common.items()}) + "\n")
         f.write(json.dumps({str(k): list(v) for k, v in v_common.items()}) + "\n")
-    
-    logger.info("✓ Results saved successfully")
 
-    # 통계 출력
-    logger.info("\n" + "=" * 70)
-    logger.info("Final Safety Neuron Detection Results")
-    logger.info("=" * 70)
-    logger.info(f"Model: {model_name}")
-    logger.info(f"Dataset: {dataset_name}")
-    logger.info(f"Prompts processed: {successful_count}/{len(lines)}")
-    logger.info(f"Total neurons in model (FFN only, coarse): {TOTAL_NEURONS:,}")
-    logger.info(f"FFN_ACTIVE_FRACTION: {FFN_ACTIVE_FRACTION}")
-    logger.info(f"ATTN_ACTIVE_FRACTION: {ATTN_ACTIVE_FRACTION}\n")
-
+    # 최종 결과 계산
     total_safety_neurons = 0
-    total_ffn_neurons = 0
-    total_attn_neurons = 0
-    
-    logger.info("Safety Neurons by Layer:")
-    logger.info("-" * 70)
-    
     for layer_idx in range(NUM_LAYERS):
         ffn_up_count = len(ffn_up_common.get(layer_idx, set()))
         ffn_down_count = len(ffn_down_common.get(layer_idx, set()))
         q_count = len(q_common.get(layer_idx, set()))
         k_count = len(k_common.get(layer_idx, set()))
         v_count = len(v_common.get(layer_idx, set()))
-        
-        ffn_count = ffn_up_count + ffn_down_count
-        attn_count = q_count + k_count + v_count
-        layer_neurons = ffn_count + attn_count
-        
-        if layer_neurons > 0:
-            logger.info(f"Layer {layer_idx:2d}: {layer_neurons:4d} neurons | FFN: {ffn_count:3d} (up:{ffn_up_count:2d}, down:{ffn_down_count:2d}) | Attn: {attn_count:3d} (Q:{q_count:2d}, K:{k_count:2d}, V:{v_count:2d})")
-            total_safety_neurons += layer_neurons
-            total_ffn_neurons += ffn_count
-            total_attn_neurons += attn_count
+        total_safety_neurons += ffn_up_count + ffn_down_count + q_count + k_count + v_count
 
     actual_sparsity = total_safety_neurons / TOTAL_NEURONS if TOTAL_NEURONS > 0 else 0
     
-    logger.info("-" * 70)
-    logger.info(f"Total safety neurons detected: {total_safety_neurons}")
-    logger.info(f"  FFN: {total_ffn_neurons}")
-    logger.info(f"  Attention: {total_attn_neurons}")
-    logger.info(f"Actual sparsity: {actual_sparsity*100:.4f}%")
-    logger.info(f"Output saved to: {output_file}")
-    logger.info(f"Log file: {log_file}")
-    logger.info("=" * 70)
-    logger.info("Detection Complete!")
-    logger.info("=" * 70 + "\n")
+    # 최종 결과만 출력
+    print(f"\n{'='*70}")
+    print(f"Safety Neuron Detection Results")
+    print(f"{'='*70}")
+    print(f"Total safety neurons: {total_safety_neurons:,}")
+    print(f"Total model neurons (FFN): {TOTAL_NEURONS:,}")
+    print(f"Percentage: {actual_sparsity*100:.4f}%")
+    print(f"\nOutput: {output_file}")
+    print(f"Log: {log_file}")
+    print(f"{'='*70}\n")
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ Safety Neuron Tuning (SN-Tune)
 - Use small learning rate and 1 epoch as per paper
 
 python sn_tune.py \
-  ./output_neurons/meta-llama_Llama-3.2-3B-Instruct_harmful_prompts_200_threshold_neurons_200_20251208_215958.txt \
+  ./output_neurons/meta-llama_Llama-3.2-3B_harmful_prompts_threshold_neurons_200_20260209_133421.txt \
   ./corpus_all/circuit_breakers_train.json \
   ./sn_tuned_model
 
@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 # =====================================================================
 # Configuration
 # =====================================================================
-model_name = "meta-llama/Llama-3.2-3B-Instruct"
+model_name = "meta-llama/Llama-3.2-3B"
 NUM_LAYERS = 28
 
 # SN-Tune hyperparameters
@@ -119,19 +119,19 @@ def load_safety_neurons(output_file):
     Load safety neurons from detection output file
     
     Format:
-        Line 0: ffn_up_common (JSON: {str(layer_idx): [neuron_indices]})
-        Line 1: ffn_down_common (JSON)
-        Line 2: q_common (JSON)
-        Line 3: k_common (JSON)
-        Line 4: v_common (JSON)
+        Line 0: ffn_up_common (dict)
+        Line 1: ffn_down_common (dict)
+        Line 2: q_common (dict)
+        Line 3: k_common (dict)
+        Line 4: v_common (dict)
     
     Returns:
         safety_neurons: {
-            'ffn_up': {layer_idx(int): set(neuron_indices)},
-            'ffn_down': {layer_idx(int): set(neuron_indices)},
-            'q': {layer_idx(int): set(neuron_indices)},
-            'k': {layer_idx(int): set(neuron_indices)},
-            'v': {layer_idx(int): set(neuron_indices)},
+            'ffn_up': {layer_idx: set(neuron_names)},
+            'ffn_down': {layer_idx: set(neuron_names)},
+            'q': {layer_idx: set(neuron_names)},
+            'k': {layer_idx: set(neuron_names)},
+            'v': {layer_idx: set(neuron_names)},
         }
     """
     with open(output_file, 'r', encoding='utf-8') as f:
@@ -139,23 +139,21 @@ def load_safety_neurons(output_file):
     
     safety_neurons = {}
     
-    # Parse each line as JSON dict and convert string keys to integers
+    # Parse each line as a dict string and convert keys from string to int
     try:
-        safety_neurons['ffn_up'] = {
-            int(k): set(v) for k, v in json.loads(lines[0].strip()).items()
-        }
-        safety_neurons['ffn_down'] = {
-            int(k): set(v) for k, v in json.loads(lines[1].strip()).items()
-        }
-        safety_neurons['q'] = {
-            int(k): set(v) for k, v in json.loads(lines[2].strip()).items()
-        }
-        safety_neurons['k'] = {
-            int(k): set(v) for k, v in json.loads(lines[3].strip()).items()
-        }
-        safety_neurons['v'] = {
-            int(k): set(v) for k, v in json.loads(lines[4].strip()).items()
-        }
+        # Keys are stored as strings, need to convert to int
+        ffn_up_raw = ast.literal_eval(lines[0].strip())
+        ffn_down_raw = ast.literal_eval(lines[1].strip())
+        q_raw = ast.literal_eval(lines[2].strip())
+        k_raw = ast.literal_eval(lines[3].strip())
+        v_raw = ast.literal_eval(lines[4].strip())
+        
+        # Convert string keys to int keys
+        safety_neurons['ffn_up'] = {int(k): v for k, v in ffn_up_raw.items()}
+        safety_neurons['ffn_down'] = {int(k): v for k, v in ffn_down_raw.items()}
+        safety_neurons['q'] = {int(k): v for k, v in q_raw.items()}
+        safety_neurons['k'] = {int(k): v for k, v in k_raw.items()}
+        safety_neurons['v'] = {int(k): v for k, v in v_raw.items()}
     except Exception as e:
         logger.error(f"Error parsing safety neurons file: {e}")
         raise
@@ -170,13 +168,9 @@ def load_safety_neurons(output_file):
     total_neurons = 0
     for module_type in ['ffn_up', 'ffn_down', 'q', 'k', 'v']:
         module_total = sum(len(neurons) for neurons in safety_neurons[module_type].values())
-        logger.info(f"  {module_type:12} : {module_total:4} neurons (column indices)")
+        logger.info(f"  {module_type:12} : {module_total:4} neurons")
         total_neurons += module_total
         
-        # Show which layers have neurons
-        layers_with_neurons = [l for l in safety_neurons[module_type] if safety_neurons[module_type][l]]
-        if layers_with_neurons:
-            logger.info(f"    └─ Layers with neurons: {layers_with_neurons[:5]}{'...' if len(layers_with_neurons) > 5 else ''}")
         # Show which layers have neurons
         layers_with_neurons = [l for l in safety_neurons[module_type] if safety_neurons[module_type][l]]
         if layers_with_neurons:
@@ -189,87 +183,153 @@ def load_safety_neurons(output_file):
 
 
 # =====================================================================
-# Freeze Parameters Except Safety Neurons
+# Setup Gradient Masking for Safety Neurons
 # =====================================================================
-def freeze_non_safety_neurons(model, safety_neurons):
+def setup_gradient_masking(model, safety_neurons):
     """
-    Freeze all parameters except those in safety_neurons
+    Setup gradient masking to train only safety neurons.
+    
+    Neuron = specific row/column in weight matrix.
+    We use backward hooks to zero out gradients for non-safety neurons.
     
     Args:
         model: LLaMA model
         safety_neurons: Dict of safety neuron indices per layer/module
+    
+    Returns:
+        hooks: List of registered hooks (for cleanup)
     """
-    logger.info(f"\n{'='*70}")
-    logger.info(f"[3/6] Parameter Freezing Setup")
-    logger.info(f"{'='*70}")
-    
+    hooks = []
     total_params = 0
-    trainable_params = 0
+    trainable_neuron_params = 0
     unfrozen_modules = {'ffn_up': 0, 'ffn_down': 0, 'q': 0, 'k': 0, 'v': 0}
-    unfrozen_layers = {'ffn_up': set(), 'ffn_down': set(), 'q': set(), 'k': set(), 'v': set()}
-    
-    logger.info(f"Safety neurons keys by module:")
-    for module_type in ['ffn_up', 'ffn_down', 'q', 'k', 'v']:
-        layer_keys = sorted([k for k in safety_neurons[module_type].keys()])
-        logger.info(f"  {module_type:12}: {layer_keys[:10]}{'...' if len(layer_keys) > 10 else ''}")
     
     for name, param in model.named_parameters():
         total_params += param.numel()
         param.requires_grad = False  # Freeze by default
         
-        # Check if this parameter should be trainable
+        # Extract layer index from name
+        # e.g., "model.layers.0.mlp.up_proj.weight" -> layer_idx = 0
+        parts = name.split('.')
+        if len(parts) < 4 or parts[0] != 'model' or parts[1] != 'layers':
+            continue
+        
+        try:
+            layer_idx = int(parts[2])
+        except ValueError:
+            continue
+        
+        # Check module type and setup gradient masking
         if 'mlp.up_proj.weight' in name:
-            layer_idx = int(name.split('.')[2])
-            if layer_idx in safety_neurons['ffn_up'] and safety_neurons['ffn_up'][layer_idx]:
+            neuron_indices = safety_neurons['ffn_up'].get(layer_idx, [])
+            if neuron_indices:
                 param.requires_grad = True
-                trainable_params += param.numel()
+                # up_proj: weight shape [intermediate_dim, hidden_dim]
+                # neurons are rows in weight matrix
+                trainable_neuron_params += len(neuron_indices) * param.shape[1]
                 unfrozen_modules['ffn_up'] += 1
-                unfrozen_layers['ffn_up'].add(layer_idx)
+                
+                # Register backward hook for gradient masking
+                def make_hook(indices):
+                    def hook(grad):
+                        mask = torch.zeros_like(grad)
+                        mask[indices, :] = 1.0  # Only keep gradients for safety neurons
+                        return grad * mask
+                    return hook
+                
+                hook_handle = param.register_hook(make_hook(neuron_indices))
+                hooks.append(hook_handle)
         
         elif 'mlp.down_proj.weight' in name:
-            layer_idx = int(name.split('.')[2])
-            if layer_idx in safety_neurons['ffn_down'] and safety_neurons['ffn_down'][layer_idx]:
+            neuron_indices = safety_neurons['ffn_down'].get(layer_idx, [])
+            if neuron_indices:
                 param.requires_grad = True
-                trainable_params += param.numel()
+                # down_proj: weight shape [hidden_dim, intermediate_dim]
+                # neurons are rows in weight matrix (output dimensions)
+                trainable_neuron_params += len(neuron_indices) * param.shape[1]
                 unfrozen_modules['ffn_down'] += 1
-                unfrozen_layers['ffn_down'].add(layer_idx)
+                
+                def make_hook(indices):
+                    def hook(grad):
+                        mask = torch.zeros_like(grad)
+                        mask[indices, :] = 1.0
+                        return grad * mask
+                    return hook
+                
+                hook_handle = param.register_hook(make_hook(neuron_indices))
+                hooks.append(hook_handle)
         
         elif 'self_attn.q_proj.weight' in name:
-            layer_idx = int(name.split('.')[2])
-            if layer_idx in safety_neurons['q'] and safety_neurons['q'][layer_idx]:
+            neuron_indices = safety_neurons['q'].get(layer_idx, [])
+            if neuron_indices:
                 param.requires_grad = True
-                trainable_params += param.numel()
+                # q_proj: weight shape [hidden_dim, hidden_dim]
+                # neurons are rows
+                trainable_neuron_params += len(neuron_indices) * param.shape[1]
                 unfrozen_modules['q'] += 1
-                unfrozen_layers['q'].add(layer_idx)
+                
+                def make_hook(indices):
+                    def hook(grad):
+                        mask = torch.zeros_like(grad)
+                        mask[indices, :] = 1.0
+                        return grad * mask
+                    return hook
+                
+                hook_handle = param.register_hook(make_hook(neuron_indices))
+                hooks.append(hook_handle)
         
         elif 'self_attn.k_proj.weight' in name:
-            layer_idx = int(name.split('.')[2])
-            if layer_idx in safety_neurons['k'] and safety_neurons['k'][layer_idx]:
+            neuron_indices = safety_neurons['k'].get(layer_idx, [])
+            if neuron_indices:
                 param.requires_grad = True
-                trainable_params += param.numel()
+                # k_proj: neurons are rows
+                trainable_neuron_params += len(neuron_indices) * param.shape[1]
                 unfrozen_modules['k'] += 1
-                unfrozen_layers['k'].add(layer_idx)
+                
+                def make_hook(indices):
+                    def hook(grad):
+                        mask = torch.zeros_like(grad)
+                        mask[indices, :] = 1.0
+                        return grad * mask
+                    return hook
+                
+                hook_handle = param.register_hook(make_hook(neuron_indices))
+                hooks.append(hook_handle)
         
         elif 'self_attn.v_proj.weight' in name:
-            layer_idx = int(name.split('.')[2])
-            if layer_idx in safety_neurons['v'] and safety_neurons['v'][layer_idx]:
+            neuron_indices = safety_neurons['v'].get(layer_idx, [])
+            if neuron_indices:
                 param.requires_grad = True
-                trainable_params += param.numel()
+                # v_proj: neurons are rows
+                trainable_neuron_params += len(neuron_indices) * param.shape[1]
                 unfrozen_modules['v'] += 1
-                unfrozen_layers['v'].add(layer_idx)
+                
+                def make_hook(indices):
+                    def hook(grad):
+                        mask = torch.zeros_like(grad)
+                        mask[indices, :] = 1.0
+                        return grad * mask
+                    return hook
+                
+                hook_handle = param.register_hook(make_hook(neuron_indices))
+                hooks.append(hook_handle)
     
-    logger.info(f"\n✓ Freezing complete")
-    logger.info(f"  Total parameters: {total_params:,}")
-    logger.info(f"  Trainable parameters (safety neurons): {trainable_params:,}")
-    logger.info(f"  Frozen parameters: {total_params - trainable_params:,}")
-    logger.info(f"  Trainable ratio: {trainable_params / total_params * 100:.4f}%")
+    logger.info(f"\n{'='*70}")
+    logger.info(f"Gradient Masking Setup Summary")
+    logger.info(f"{'='*70}")
+    logger.info(f"Total parameters: {total_params:,}")
+    logger.info(f"Trainable neuron parameters (effective): {trainable_neuron_params:,}")
+    logger.info(f"Frozen parameters: {total_params - trainable_neuron_params:,}")
+    logger.info(f"Trainable ratio: {trainable_neuron_params / total_params * 100:.4f}%")
+    logger.info(f"Gradient masking hooks registered: {len(hooks)}")
     
-    logger.info(f"\nUnfrozen modules (layers with safety neurons):")
+    logger.info(f"\nLayers with gradient masking:")
     for module_type, count in unfrozen_modules.items():
-        logger.info(f"  {module_type:12} : {count} layers unfrozen, layers: {sorted(list(unfrozen_layers[module_type]))}")
+        logger.info(f"  {module_type:12} : {count} layers")
     
-    logger.info(f"  Note: Actual trainable columns will be further masked by gradient hooks")
     logger.info(f"{'='*70}\n")
+    
+    return hooks
 
 
 # =====================================================================
@@ -422,13 +482,9 @@ def save_sn_tuned_model(model, tokenizer, save_path):
         save_path: Path to save the model
     """
     os.makedirs(save_path, exist_ok=True)
-    logger.info(f"  Saving model to {save_path}...")
     model.save_pretrained(save_path)
-    logger.info(f"  ✓ Model saved")
-    
-    logger.info(f"  Saving tokenizer to {save_path}...")
     tokenizer.save_pretrained(save_path)
-    logger.info(f"  ✓ Tokenizer saved")
+    logger.info(f"Model and tokenizer saved to {save_path}")
 
 
 # =====================================================================
@@ -483,10 +539,10 @@ def main(argv):
     safety_neurons = load_safety_neurons(safety_neurons_file)
     
     # =====================================================================
-    # 3. Freeze non-safety parameters
+    # 3. Setup gradient masking for safety neurons
     # =====================================================================
-    logger.info("\nFreezing non-safety parameters...")
-    freeze_non_safety_neurons(model, safety_neurons)
+    logger.info("\nSetting up gradient masking for safety neurons...")
+    gradient_hooks = setup_gradient_masking(model, safety_neurons)
     
     # =====================================================================
     # 4. Load safety dataset
@@ -527,24 +583,21 @@ def main(argv):
     # =====================================================================
     # 6. Save fine-tuned model
     # =====================================================================
-    logger.info(f"\n{'='*70}")
-    logger.info("[6/6] Saving Fine-tuned Model")
-    logger.info(f"{'='*70}")
-    
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     final_output_dir = f"{output_dir}_{timestamp}"
     
-    logger.info(f"Output directory: {final_output_dir}")
+    logger.info(f"\nSaving fine-tuned model...")
     save_sn_tuned_model(model, tokenizer, final_output_dir)
+    
+    # Clean up gradient hooks
+    for hook in gradient_hooks:
+        hook.remove()
+    logger.info("✓ Gradient hooks cleaned up")
     
     logger.info(f"\n{'='*70}")
     logger.info("SN-Tune Complete!")
     logger.info(f"{'='*70}")
-    logger.info(f"✓ Fine-tuned model saved to: {final_output_dir}")
-    logger.info(f"  - Model weights saved")
-    logger.info(f"  - Tokenizer saved")
-    logger.info(f"  - Ready for upload to Hugging Face")
-    logger.info(f"{'='*70}\n")
+    logger.info(f"Fine-tuned model saved to: {final_output_dir}")
     logger.info(f"{'='*70}\n")
 
 
