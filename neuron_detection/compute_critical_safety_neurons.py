@@ -3,50 +3,17 @@ Step 2: Compute Critical Safety Neurons
 
 목표:
   Critical Safety Neurons = Safety Neurons - (Safety Neurons ∩ Utility Neurons)
-  
-설명:
-  Safety Neurons와 Utility Neurons의 교집합을 제외하고, 
-  Safety에만 필요한 뉴런들만 남긴다.
-  
-  이렇게 하면 downstream fine-tuning(예: GSM8K)에서도 
-  안전성을 잃지 않으면서 성능을 높일 수 있다.
-
-입력:
-  - Safety Neurons file (from neuron_detection_simple.py)
-    예: meta-llama_Llama-3.2-3B-Instruct_harmful_prompts_200_threshold_neurons_200_*.txt
-  
-  - Utility Neurons file (from neuron_detection_foundation.py)
-    예: meta-llama_Llama-3.2-3B-Instruct_utility_neurons_1000_*.txt
-
-출력:
-  - Critical Safety Neurons file
-    예: meta-llama_Llama-3.2-3B-Instruct_critical_safety_neurons_*.txt
-
-수식:
-  N_critical = N_safe - (N_safe ∩ N_utility)
-  
-  where:
-    N_safe = Safety neurons from harmful prompts
-    N_utility = Utility neurons from Wikipedia
-    N_critical = Neurons critical for safety only
-
-사용법:
-  python compute_critical_safety_neurons.py [safety_file] [utility_file]
-  
-  예시:
-    python compute_critical_safety_neurons.py
-    # 자동으로 최신 파일 찾음
     
-    또는
-    
-    python compute_critical_safety_neurons.py \
-      ./output_neurons/meta-llama_Llama-3.2-3B-Instruct_harmful_prompts_200_*.txt \
-      ./output_neurons/meta-llama_Llama-3.2-3B-Instruct_utility_neurons_1000_*.txt
+python compute_critical_safety_neurons.py \
+    ./output_neurons/meta-llama_Llama-3.2-3B_circuit_breakers_train_threshold_neurons_800_20260302_172235.txt \
+    ./output_neurons/meta-llama_Llama-3.2-3B_utility_neurons_800_20260302_221158.txt
 """
 
 import os
 import sys
 import logging
+import json
+import ast
 from typing import Dict, Set
 from datetime import datetime
 
@@ -54,7 +21,15 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def load_neurons_from_file(file_path: str) -> Dict[str, Dict[int, Set[str]]]:
+def _parse_dict_line(raw: str) -> Dict:
+    raw = raw.strip()
+    try:
+        return json.loads(raw)
+    except Exception:
+        return ast.literal_eval(raw)
+
+
+def load_neurons_from_file(file_path: str) -> Dict[str, Dict[int, Set[int]]]:
     """
     Load neuron data from saved file.
     
@@ -80,20 +55,25 @@ def load_neurons_from_file(file_path: str) -> Dict[str, Dict[int, Set[str]]]:
             logger.error(f"Invalid file format (expected 5 lines, got {len(lines)})")
             return None
         
-        # Parse each line as a dictionary
-        ffn_up = eval(lines[0].strip())
-        ffn_down = eval(lines[1].strip())
-        q = eval(lines[2].strip())
-        k = eval(lines[3].strip())
-        v = eval(lines[4].strip())
+        # Parse each line as a dictionary (JSON lines preferred)
+        ffn_up = _parse_dict_line(lines[0])
+        ffn_down = _parse_dict_line(lines[1])
+        q = _parse_dict_line(lines[2])
+        k = _parse_dict_line(lines[3])
+        v = _parse_dict_line(lines[4])
         
-        # Convert layer indices to int and neuron names to set
+        # Convert layer indices to int and neuron indices to set[int]
         for module in [ffn_up, ffn_down, q, k, v]:
-            for layer_idx in list(module.keys()):
-                if not isinstance(layer_idx, int):
-                    module[int(layer_idx)] = module.pop(layer_idx)
-                if isinstance(module[layer_idx], list):
-                    module[layer_idx] = set(module[layer_idx])
+            for original_layer_idx in list(module.keys()):
+                layer_idx = int(original_layer_idx)
+                values = module.pop(original_layer_idx)
+                if isinstance(values, list):
+                    values = set(int(v) for v in values)
+                elif isinstance(values, set):
+                    values = set(int(v) for v in values)
+                else:
+                    values = set()
+                module[layer_idx] = values
         
         return {
             'ffn_up': ffn_up,
@@ -184,9 +164,9 @@ def compute_statistics(safety_neurons: Dict, utility_neurons: Dict, critical_neu
         
         stats['layer_stats'][layer_idx] = layer_stats
         
-        # Total counts
-        for category in ['safety', 'utility', 'critical', 'overlap']:
-            stats[category]['total'] += stats[category]['ffn'] + stats[category]['attn']
+    # Total counts (한 번만 계산)
+    for category in ['safety', 'utility', 'critical', 'overlap']:
+        stats[category]['total'] = stats[category]['ffn'] + stats[category]['attn']
     
     return stats
 
@@ -212,7 +192,7 @@ def main(argv):
         files = os.listdir("./output_neurons")
         
         # Find latest safety neurons file
-        safety_files = [f for f in files if "harmful_prompts" in f and "threshold" in f]
+        safety_files = [f for f in files if "threshold_neurons" in f and "utility_neurons" not in f and "critical_safety_neurons" not in f]
         utility_files = [f for f in files if "utility_neurons" in f]
         
         if not safety_files:
@@ -270,11 +250,12 @@ def main(argv):
     
     logger.info(f"\nSaving Critical Safety Neurons to {critical_output_file}...")
     with open(critical_output_file, "w", encoding="utf-8") as f:
-        f.write(str(critical_neurons['ffn_up']) + "\n")
-        f.write(str(critical_neurons['ffn_down']) + "\n")
-        f.write(str(critical_neurons['q']) + "\n")
-        f.write(str(critical_neurons['k']) + "\n")
-        f.write(str(critical_neurons['v']) + "\n")
+        # safety/foundation 파일과 동일한 JSON lines 포맷
+        f.write(json.dumps({str(k): sorted(list(v)) for k, v in critical_neurons['ffn_up'].items()}) + "\n")
+        f.write(json.dumps({str(k): sorted(list(v)) for k, v in critical_neurons['ffn_down'].items()}) + "\n")
+        f.write(json.dumps({str(k): sorted(list(v)) for k, v in critical_neurons['q'].items()}) + "\n")
+        f.write(json.dumps({str(k): sorted(list(v)) for k, v in critical_neurons['k'].items()}) + "\n")
+        f.write(json.dumps({str(k): sorted(list(v)) for k, v in critical_neurons['v'].items()}) + "\n")
     
     # Print detailed statistics
     logger.info("\n" + "="*80)

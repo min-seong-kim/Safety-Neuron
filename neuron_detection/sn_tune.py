@@ -7,7 +7,7 @@ Safety Neuron Tuning (SN-Tune)
 - Use small learning rate and 1 epoch as per paper
 
 python sn_tune.py \
-  ./output_neurons/meta-llama_Llama-3.2-3B_harmful_prompts_threshold_neurons_200_20260209_133421.txt \
+  ./output_neurons/meta-llama_Llama-3.2-3B-Instruct_critical_safety_neurons_20260303_001544.txt \
   ./corpus_all/circuit_breakers_train.json \
   ./sn_tuned_model
 
@@ -18,7 +18,7 @@ import sys
 import json
 import torch
 import torch.nn as nn
-from torch.optim import AdamW
+from bitsandbytes.optim import AdamW8bit
 from torch.utils.data import Dataset, DataLoader
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from tqdm import tqdm
@@ -36,11 +36,11 @@ model_name = "meta-llama/Llama-3.2-3B"
 NUM_LAYERS = 28
 
 # SN-Tune hyperparameters
-LEARNING_RATE = 1e-6  # Very small LR as per paper
-NUM_EPOCHS = 1  # 1 epoch fine-tuning
+LEARNING_RATE = 1e-5  # Very small LR as per paper
+NUM_EPOCHS = 3  # 1 epoch fine-tuning
 BATCH_SIZE = 2
-MAX_SEQ_LENGTH = 256
-MAX_SAMPLES = 50  # Use only 50 samples for fine-tuning
+MAX_SEQ_LENGTH = 512
+MAX_SAMPLES = 4994  # Use only 50 samples for fine-tuning
 
 # Device
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -358,9 +358,10 @@ def train_sn_tune(
     model.train()
     
     # Only optimize trainable parameters
-    optimizer = AdamW(
+    optimizer = AdamW8bit(
         filter(lambda p: p.requires_grad, model.parameters()),
-        lr=learning_rate
+        lr=learning_rate,
+        weight_decay=0.0
     )
     
     total_loss = 0.0

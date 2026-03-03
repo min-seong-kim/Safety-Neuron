@@ -1,10 +1,11 @@
 '''
-python safety_neuron_detection.py harmful_prompts 200
+python safety_neuron_detection.py 800
 '''
 
 import os
 from typing import Dict, Set, List, Tuple
 import sys
+import json
 from tqdm import tqdm
 import logging
 import random
@@ -46,8 +47,8 @@ TOTAL_NEURONS = NUM_LAYERS * HIDDEN_DIM
 # ------------------------------------------------------------------
 # 각 layer/module에서 "최상위 몇 %의 뉴런을 활성 뉴런으로 볼 것인가?"
 # 예: 0.005 -> 상위 0.5% (논문: safety neuron은 전체의 <1% 라는 관찰과 일치)
-FFN_ACTIVE_FRACTION = 0.01
-ATTN_ACTIVE_FRACTION = 0.01
+FFN_ACTIVE_FRACTION = 0.15
+ATTN_ACTIVE_FRACTION = 0.15
 
 # quantile 연산 시 최소 샘플 수가 너무 적을 때를 대비한 safeguard
 MIN_NEURONS_FOR_QUANTILE = 10
@@ -306,15 +307,8 @@ def compute_intersection(neuron_sets_list: List[Dict[int, Set[int]]]) -> Dict[in
 
 def main(argv):
     if len(argv) < 1:
-        logger.error("Usage: python safety_neuron_detection.py <dataset_name> [num_prompts]")
-        logger.error("Example: python safety_neuron_detection.py harmful_prompts 200")
-
-        corpus_dir = "./corpus_all"
-        if os.path.exists(corpus_dir):
-            logger.error("\nAvailable datasets in corpus_all/:")
-            datasets = [f[:-4] for f in os.listdir(corpus_dir) if f.endswith(".txt")]
-            for ds in sorted(datasets):
-                logger.error(f"  - {ds}")
+        logger.error("Usage: python safety_neuron_detection.py <num_prompts>")
+        logger.error("Example: python safety_neuron_detection.py 800")
         sys.exit(1)
 
     # =====================================================================
@@ -348,20 +342,31 @@ def main(argv):
     logger.addHandler(console_handler)
     logger.setLevel(logging.INFO)
 
-    dataset_name = argv[0]
-    num_prompts = int(argv[1]) if len(argv) > 1 else 200
-
-    file_path = f"./corpus_all/{dataset_name}.txt"
+    num_prompts = int(argv[0])
+    dataset_name = "circuit_breakers_train"
+    file_path = "./corpus_all/circuit_breakers_train.json"
     if not os.path.exists(file_path):
         logger.error(f"Dataset file not found: {file_path}")
         sys.exit(1)
 
     with open(file_path, "r", encoding="utf-8") as f:
-        lines = [ln.strip() for ln in f.readlines() if ln.strip()]
+        records = json.load(f)
+
+    lines = []
+    for item in records:
+        if not isinstance(item, dict):
+            continue
+        prompt = item.get("prompt", "")
+        if isinstance(prompt, str) and prompt.strip():
+            lines.append(prompt.strip())
+
+    if not lines:
+        logger.error(f"No valid 'prompt' entries found in: {file_path}")
+        sys.exit(1)
 
     lines = random.sample(lines, min(num_prompts, len(lines)))
 
-    print(f"\nProcessing {len(lines)} prompts from '{dataset_name}' on {model_name}...")
+    print(f"\nProcessing {len(lines)} prompts from 'corpus_all/circuit_breakers_train.json' on {model_name}...")
 
     # 각 prompt x에 대해 Nx를 수집
     ffn_up_sets: List[Dict[int, Set[int]]] = []
@@ -401,7 +406,6 @@ def main(argv):
 
     with open(output_file, "w", encoding="utf-8") as f:
         # Dict[int, Set[int]] -> str으로 저장
-        import json
         f.write(json.dumps({str(k): list(v) for k, v in ffn_up_common.items()}) + "\n")
         f.write(json.dumps({str(k): list(v) for k, v in ffn_down_common.items()}) + "\n")
         f.write(json.dumps({str(k): list(v) for k, v in q_common.items()}) + "\n")

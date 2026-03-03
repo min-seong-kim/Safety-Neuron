@@ -14,8 +14,7 @@ Step 1: Utility Neuron Detection from Wikipedia
   python detect_utility_neurons.py [num_docs] [model_name]
   
   예시:
-    python neuron_detection_foundation.py 200
-    python neuron_detection_foundation.py 500 meta-llama/Llama-3.2-3B-Instruct
+    python foundation_neuron_detection.py 800
 
 시간/메모리:
   - 입력: Wikipedia 문서 (권장: 1000개)
@@ -28,6 +27,7 @@ import sys
 import torch
 import random
 import logging
+import json
 from typing import Dict, Set, List, Tuple
 from datetime import datetime
 from tqdm import tqdm
@@ -44,7 +44,7 @@ torch.manual_seed(112)
 # ------------------------------------------------------------------
 # Model configuration
 # ------------------------------------------------------------------
-model_name = "meta-llama/Llama-3.2-3B-Instruct"
+model_name = "meta-llama/Llama-3.2-3B"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
@@ -61,13 +61,13 @@ HIDDEN_DIM = 3072
 TOTAL_NEURONS = NUM_LAYERS * HIDDEN_DIM
 
 # Threshold hyperparameters
-FFN_ACTIVE_FRACTION = 0.005
-ATTN_ACTIVE_FRACTION = 0.005
+FFN_ACTIVE_FRACTION = 0.05
+ATTN_ACTIVE_FRACTION = 0.05
 MIN_NEURONS_FOR_QUANTILE = 10
 
 
 def select_by_threshold(importance: torch.Tensor,
-                        active_fraction: float) -> Set[str]:
+                        active_fraction: float) -> Set[int]:
     """
     Given a 1D importance vector [D], select indices whose importance >= epsilon.
     """
@@ -83,16 +83,16 @@ def select_by_threshold(importance: torch.Tensor,
     active_mask = importance >= epsilon
     indices = torch.nonzero(active_mask, as_tuple=False).view(-1)
 
-    return {f"neuron_{idx.item()}" for idx in indices}
+    return {idx.item() for idx in indices}
 
 
 def detect_safety_neurons_threshold(
     prompt: str,
-) -> Tuple[Dict[int, Set[str]],
-           Dict[int, Set[str]],
-           Dict[int, Set[str]],
-           Dict[int, Set[str]],
-           Dict[int, Set[str]]]:
+) -> Tuple[Dict[int, Set[int]],
+           Dict[int, Set[int]],
+           Dict[int, Set[int]],
+           Dict[int, Set[int]],
+           Dict[int, Set[int]]]:
     """
     Neuron detection based on activation magnitude thresholding.
     
@@ -100,11 +100,11 @@ def detect_safety_neurons_threshold(
         (ffn_up_dict, ffn_down_dict, q_dict, k_dict, v_dict)
     """
 
-    ffn_up_dict: Dict[int, Set[str]] = {}
-    ffn_down_dict: Dict[int, Set[str]] = {}
-    q_dict: Dict[int, Set[str]] = {}
-    k_dict: Dict[int, Set[str]] = {}
-    v_dict: Dict[int, Set[str]] = {}
+    ffn_up_dict: Dict[int, Set[int]] = {}
+    ffn_down_dict: Dict[int, Set[int]] = {}
+    q_dict: Dict[int, Set[int]] = {}
+    k_dict: Dict[int, Set[int]] = {}
+    v_dict: Dict[int, Set[int]] = {}
 
     try:
         inputs = tokenizer(
@@ -251,14 +251,14 @@ def detect_safety_neurons_threshold(
     return ffn_up_dict, ffn_down_dict, q_dict, k_dict, v_dict
 
 
-def compute_intersection(neuron_sets_list: List[Dict[int, Set[str]]]) -> Dict[int, Set[str]]:
+def compute_intersection(neuron_sets_list: List[Dict[int, Set[int]]]) -> Dict[int, Set[int]]:
     """
     Compute intersection of neuron sets across all documents.
     """
     if not neuron_sets_list:
         return {}
 
-    intersection_dict: Dict[int, Set[str]] = {}
+    intersection_dict: Dict[int, Set[int]] = {}
     all_layers = range(NUM_LAYERS)
 
     for layer_idx in all_layers:
@@ -355,11 +355,11 @@ def main(argv):
     
     # Step 2: Detect neurons for each document
     logger.info("\nDetecting foundation neurons for each Wikipedia document...")
-    ffn_up_sets: List[Dict[int, Set[str]]] = []
-    ffn_down_sets: List[Dict[int, Set[str]]] = []
-    q_sets: List[Dict[int, Set[str]]] = []
-    k_sets: List[Dict[int, Set[str]]] = []
-    v_sets: List[Dict[int, Set[str]]] = []
+    ffn_up_sets: List[Dict[int, Set[int]]] = []
+    ffn_down_sets: List[Dict[int, Set[int]]] = []
+    q_sets: List[Dict[int, Set[int]]] = []
+    k_sets: List[Dict[int, Set[int]]] = []
+    v_sets: List[Dict[int, Set[int]]] = []
     
     for idx, doc in enumerate(tqdm(wikipedia_docs, desc="Detecting neurons")):
         try:
@@ -393,11 +393,12 @@ def main(argv):
     
     logger.info(f"Saving results to {output_file}")
     with open(output_file, "w", encoding="utf-8") as f:
-        f.write(str(ffn_up_foundation) + "\n")
-        f.write(str(ffn_down_foundation) + "\n")
-        f.write(str(q_foundation) + "\n")
-        f.write(str(k_foundation) + "\n")
-        f.write(str(v_foundation) + "\n")
+        # safety_neuron_detection.py와 동일한 JSON line 포맷
+        f.write(json.dumps({str(k): list(v) for k, v in ffn_up_foundation.items()}) + "\n")
+        f.write(json.dumps({str(k): list(v) for k, v in ffn_down_foundation.items()}) + "\n")
+        f.write(json.dumps({str(k): list(v) for k, v in q_foundation.items()}) + "\n")
+        f.write(json.dumps({str(k): list(v) for k, v in k_foundation.items()}) + "\n")
+        f.write(json.dumps({str(k): list(v) for k, v in v_foundation.items()}) + "\n")
     
     # Statistics
     logger.info("\n" + "="*70)

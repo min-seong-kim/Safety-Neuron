@@ -5,7 +5,7 @@ Usage:
     python upload_sn_tuned_model.py <model_local_path>
 
 Example:
-    python upload_sn_tuned_model.py ./base_model_safety_tf
+    python upload_sn_tuned_model.py ./gsm8k_fullft_after_rsn-tune
 """
 
 import os
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 # Configuration
 # =====================================================================
 HF_USERNAME = "kmseong"
-MODEL_NAME_PREFIX = "Llama-3.2-3B-SSFT"
+MODEL_NAME_PREFIX = "Llama-3.2-3B-GSM8k-after-RSN-Tune-high-ratio"
 
 
 def get_model_name_with_timestamp():

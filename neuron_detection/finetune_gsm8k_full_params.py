@@ -5,8 +5,8 @@ Trainer + AdamW 8-bit optimizer (bitsandbytes) 사용으로 메모리 효율성 
 
 Example Usage:
 python finetune_gsm8k_full_params.py \
-    --model_path /home/gokms0509/Safety-Neuron/neuron_detection/sn_tuned_model_20260209_202808 \
-    --output_dir ./gsm8k_sn_tune_after_gsm8k_fullft 
+    --model_path /home/gokms0509/Safety-Neuron/neuron_detection/sn_tuned_model_20260303_024905 \
+    --output_dir ./gsm8k_fullft_after_rsn-tune 
 """
 
 import argparse
