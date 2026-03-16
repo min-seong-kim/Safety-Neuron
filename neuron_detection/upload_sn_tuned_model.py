@@ -2,67 +2,84 @@
 Upload SN-Tuned Model to Hugging Face Hub
 
 Usage:
-    python upload_sn_tuned_model.py <model_local_path>
+    python upload_sn_tuned_model.py <model_local_path> --repo_id <username/model_name> [--hf_token <token>]
 
 Example:
-    python upload_sn_tuned_model.py ./gsm8k_fullft_after_rsn-tune
+    python upload_sn_tuned_model.py ./gsm8k_fullft_after_rsn-tune --repo_id kmseong/my-sn-model --hf_token hf_xxx
 """
 
+import argparse
 import os
 import sys
-import json
-import shutil
 from datetime import datetime
-from pathlib import Path
-from huggingface_hub import HfApi, login
+from huggingface_hub import HfApi
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# =====================================================================
-# Configuration
-# =====================================================================
-HF_USERNAME = "kmseong"
-MODEL_NAME_PREFIX = "Llama-3.2-3B-GSM8k-after-RSN-Tune-high-ratio"
+def parse_args(argv):
+    p = argparse.ArgumentParser(description="Upload SN-tuned model to Hugging Face Hub")
+    p.add_argument("model_path", type=str, help="Local model directory path")
+    p.add_argument(
+        "--repo_id",
+        type=str,
+        required=True,
+        help="Target Hugging Face repository id, e.g. kmseong/my-model",
+    )
+    p.add_argument(
+        "--hf_token",
+        type=str,
+        default=None,
+        help="Hugging Face access token. If omitted, use HF_TOKEN/HUGGINGFACE_TOKEN or cached login.",
+    )
+    return p.parse_args(argv)
 
 
-def get_model_name_with_timestamp():
-    """Generate model name with timestamp"""
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return f"{MODEL_NAME_PREFIX}_{timestamp}"
-
-
-def upload_to_huggingface(model_path):
+def upload_to_huggingface(model_path, repo_id, hf_token=None):
     """
     Upload SN-tuned model to Hugging Face Hub
     
     Args:
         model_path: Local path to the model directory
+        repo_id: Target Hugging Face repo id (username/model_name)
+        hf_token: Optional Hugging Face token
     """
     
+    # Resolve token once and reuse for all hub operations.
+    effective_token = hf_token or os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACE_TOKEN")
+
     # Verify model path exists
     if not os.path.exists(model_path):
         logger.error(f"Model path not found: {model_path}")
         sys.exit(1)
     
-    # Check for required files
-    required_files = ['config.json', 'generation_config.json', 'tokenizer.model']
+    # Check core model files
+    required_files = ['config.json']
     missing_files = []
     for file in required_files:
         file_path = os.path.join(model_path, file)
         if not os.path.exists(file_path):
             missing_files.append(file)
             logger.warning(f"Warning: {file} not found in {model_path}")
+
+    # Llama tokenizer can be tokenizer.json or tokenizer.model depending on conversion.
+    has_tokenizer_asset = any(
+        os.path.exists(os.path.join(model_path, candidate))
+        for candidate in ["tokenizer.json", "tokenizer.model"]
+    )
+    if not has_tokenizer_asset:
+        missing_files.append("tokenizer.json|tokenizer.model")
+        logger.warning(f"Warning: tokenizer.json/tokenizer.model not found in {model_path}")
     
-    # If any tokenizer files are missing, copy from base model
+    # If tokenizer files are missing, copy from base model.
     if missing_files:
         logger.info(f"\n⚠ Missing files detected: {missing_files}")
         logger.info(f"Copying complete tokenizer from base model...")
         try:
             base_model_name = "meta-llama/Llama-3.2-3B-Instruct"
-            temp_tokenizer = AutoTokenizer.from_pretrained(base_model_name)
+            temp_tokenizer = AutoTokenizer.from_pretrained(base_model_name, token=effective_token)
             
             # Save tokenizer to the model directory
             temp_tokenizer.save_pretrained(model_path)
@@ -74,9 +91,7 @@ def upload_to_huggingface(model_path):
             logger.error(f"Or manually copy tokenizer files from meta-llama/Llama-3.2-3B-Instruct")
             sys.exit(1)
     
-    # Generate model name with timestamp
-    model_name = get_model_name_with_timestamp()
-    repo_id = f"{HF_USERNAME}/{model_name}"
+    model_name = repo_id.split("/")[-1]
     
     logger.info(f"\n{'='*70}")
     logger.info("Uploading SN-Tuned Model to Hugging Face Hub")
@@ -89,15 +104,15 @@ def upload_to_huggingface(model_path):
         # Step 1: Authenticate with Hugging Face
         logger.info("\n[Step 1] Authenticating with Hugging Face...")
         try:
-            # Try to use existing cached token
-            api = HfApi()
-            # This will use the token from ~/.huggingface/token if it exists
-            logger.info("✓ Using cached Hugging Face token")
+            api = HfApi(token=effective_token)
+            whoami = api.whoami(token=effective_token)
+            logger.info(f"✓ Authenticated as: {whoami.get('name', 'unknown')}")
         except Exception as e:
             logger.error(f"Authentication failed: {e}")
             logger.info("\nPlease login to Hugging Face:")
-            logger.info("  Run: huggingface-cli login")
-            logger.info("  Or set HUGGINGFACE_TOKEN environment variable")
+            logger.info("  1) Pass --hf_token <token>")
+            logger.info("  2) Or set HF_TOKEN/HUGGINGFACE_TOKEN")
+            logger.info("  3) Or run: huggingface-cli login")
             sys.exit(1)
         
         # Step 2: Load model and tokenizer locally to verify
@@ -145,16 +160,14 @@ def upload_to_huggingface(model_path):
         logger.info(f"  Repository: {repo_id}")
         
         try:
-            # Initialize API
-            api = HfApi()
-            
             # Step 3a: Create repository if it doesn't exist
             logger.info("  Creating repository on hub...")
             try:
                 api.create_repo(
                     repo_id=repo_id,
                     repo_type="model",
-                    exist_ok=True
+                    exist_ok=True,
+                    token=effective_token,
                 )
                 logger.info("  ✓ Repository created/verified")
             except Exception as e:
@@ -168,7 +181,8 @@ def upload_to_huggingface(model_path):
                 folder_path=model_path,
                 repo_id=repo_id,
                 ignore_patterns=["checkpoint-*", ".git*", ".DS_Store"],
-                commit_message="SN-Tune (Safety Neuron Fine-tuning) model"
+                commit_message="SN-Tune (Safety Neuron Fine-tuning) model",
+                token=effective_token,
             )
             logger.info("  ✓ Model pushed to hub (checkpoints excluded)")
             
@@ -250,12 +264,12 @@ See the base model (meta-llama/Llama-3.2-3B-Instruct) for more details.
             logger.info("  ✓ README.md created")
             
             # Push README to hub
-            api = HfApi()
             api.upload_file(
                 path_or_fileobj=readme_path,
                 path_in_repo="README.md",
                 repo_id=repo_id,
-                commit_message="Add model card"
+                commit_message="Add model card",
+                token=effective_token,
             )
             logger.info("  ✓ README.md pushed to hub")
             
@@ -282,18 +296,8 @@ See the base model (meta-llama/Llama-3.2-3B-Instruct) for more details.
 
 
 def main(argv):
-    if len(argv) < 1:
-        logger.error("Usage: python upload_sn_tuned_model.py <model_local_path>")
-        logger.error("\nExample:")
-        logger.error("  python upload_sn_tuned_model.py ./sn_tuned_model_20251208_223350")
-        logger.error("\nNote:")
-        logger.error("  - Make sure you have huggingface_hub installed")
-        logger.error("  - Authenticate with: huggingface-cli login")
-        logger.error("  - Or set HUGGINGFACE_TOKEN environment variable")
-        sys.exit(1)
-    
-    model_path = argv[0]
-    upload_to_huggingface(model_path)
+    args = parse_args(argv)
+    upload_to_huggingface(args.model_path, args.repo_id, args.hf_token)
 
 
 if __name__ == "__main__":

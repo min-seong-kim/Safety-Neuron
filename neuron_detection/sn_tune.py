@@ -6,11 +6,17 @@ Safety Neuron Tuning (SN-Tune)
 - Fine-tune only safety neurons on safety dataset (Circuit Breakers)
 - Use small learning rate and 1 epoch as per paper
 
+# SN-Tune
 python sn_tune.py \
-  ./output_neurons/meta-llama_Llama-3.2-3B-Instruct_critical_safety_neurons_20260303_001544.txt \
+  ./output_neurons/safety-neuron_threshold_20260310_105043.txt \
   ./corpus_all/circuit_breakers_train.json \
-  ./sn_tuned_model
+  ./only_sn_tuned_model
 
+# RSN-Tune
+python sn_tune.py \
+  ./output_neurons/critical-safety-neuron_20260310_135913.txt \
+  ./corpus_all/circuit_breakers_train.json \
+  ./only_rsn_tuned_model
 """
 
 import os
@@ -26,8 +32,39 @@ import logging
 from datetime import datetime
 import ast
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+def setup_logging(log_dir="./logs/sn_tuning"):
+    try:
+        os.makedirs(log_dir, exist_ok=True)
+    except PermissionError:
+        log_dir = "./logs/sn_tuning"
+        os.makedirs(log_dir, exist_ok=True)
+    log_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = os.path.join(log_dir, f"sn_tune_{log_timestamp}.log")
+
+    logger.setLevel(logging.DEBUG)
+    logger.propagate = False
+
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
+    file_handler = logging.FileHandler(log_file, encoding="utf-8")
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(formatter)
+
+    logger.handlers.clear()
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+
+    return log_file
 
 # =====================================================================
 # Configuration
@@ -70,6 +107,7 @@ class SafetyDataset(Dataset):
         
         self.tokenizer = tokenizer
         self.max_length = max_length
+        self._logged_first = False
         
         logger.info(f"Loaded {len(self.data)} samples from {json_path}")
     
@@ -80,8 +118,9 @@ class SafetyDataset(Dataset):
         item = self.data[idx]
         # Circuit Breakers: 'prompt' and 'llama3_output' (safe response)
         
-        if idx == 0:  # 첫 번째 샘플 로그
-            logger.info(f"\n[Dataset Sample #0]")
+        if not self._logged_first:  # 첫 번째 접근 샘플 로그 (shuffle 영향 방지)
+            self._logged_first = True
+            logger.info(f"\n[Dataset Sample #first]")
             logger.info(f"  Keys: {item.keys()}")
             logger.info(f"  Prompt (first 100 chars): {item.get('prompt', '')[:100]}...")
             logger.info(f"  Response (first 100 chars): {item.get('llama3_output', '')[:100]}...")
@@ -500,6 +539,8 @@ def main(argv):
     safety_neurons_file = argv[0]
     safety_dataset_json = argv[1]
     output_dir = argv[2] if len(argv) > 2 else "./sn_tuned_model"
+
+    log_file = setup_logging()
     
     # Verify files exist
     if not os.path.exists(safety_neurons_file):
@@ -516,6 +557,7 @@ def main(argv):
     logger.info(f"Safety neurons file: {safety_neurons_file}")
     logger.info(f"Safety dataset file: {safety_dataset_json}")
     logger.info(f"Output directory: {output_dir}\n")
+    logger.info(f"Log file: {log_file}\n")
     
     # =====================================================================
     # 1. Load model and tokenizer

@@ -5,8 +5,8 @@ Step 2: Compute Critical Safety Neurons
   Critical Safety Neurons = Safety Neurons - (Safety Neurons ∩ Utility Neurons)
     
 python compute_critical_safety_neurons.py \
-    ./output_neurons/meta-llama_Llama-3.2-3B_circuit_breakers_train_threshold_neurons_800_20260302_172235.txt \
-    ./output_neurons/meta-llama_Llama-3.2-3B_utility_neurons_800_20260302_221158.txt
+    ./output_neurons/safety-neuron_threshold_20260310_105043.txt \
+    ./output_neurons/utility_neurons_20260302_013620.txt
 """
 
 import os
@@ -16,9 +16,78 @@ import json
 import ast
 from typing import Dict, Set
 from datetime import datetime
+from transformers import AutoConfig
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_MODEL_NAME = "meta-llama/Llama-3.2-3B"
+
+
+def setup_logging() -> str:
+    """Configure file + console logging and return log file path."""
+    log_dir = os.path.join(SCRIPT_DIR, "logs", "critical_safety_neuron")
+    os.makedirs(log_dir, exist_ok=True)
+
+    log_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = os.path.join(log_dir, f"compute_critical_safety_neurons_{log_timestamp}.log")
+
+    file_handler = logging.FileHandler(log_file, encoding='utf-8')
+    file_handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    file_handler.setFormatter(formatter)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(formatter)
+
+    logger.handlers.clear()
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+    logger.setLevel(logging.INFO)
+    logger.propagate = False
+
+    logger.info(f"Log directory: {log_dir}")
+    logger.info(f"Log file: {log_file}")
+    return log_file
+
+
+def calculate_model_total_neurons(model_name: str = DEFAULT_MODEL_NAME) -> int:
+    """Model-wide neuron denominator: q/k/v/o + gate/up/down output channels."""
+    try:
+        cfg = AutoConfig.from_pretrained(model_name)
+        num_layers = cfg.num_hidden_layers
+        hidden_size = cfg.hidden_size
+        intermediate_size = cfg.intermediate_size
+        num_heads = cfg.num_attention_heads
+        num_kv_heads = getattr(cfg, "num_key_value_heads", num_heads)
+        head_dim = hidden_size // num_heads
+        kv_dim = num_kv_heads * head_dim
+        logger.info(f"Using model config for denominator: {model_name}")
+    except Exception as e:
+        # Fallback for Llama-3.2-3B architecture
+        logger.warning(f"Failed to load AutoConfig ({e}); using Llama-3.2-3B fallback config")
+        num_layers = 28
+        hidden_size = 3072
+        intermediate_size = 8192
+        num_heads = 24
+        num_kv_heads = 8
+        head_dim = hidden_size // num_heads
+        kv_dim = num_kv_heads * head_dim
+
+    return num_layers * (
+        hidden_size +        # q
+        kv_dim +             # k
+        kv_dim +             # v
+        hidden_size +        # o
+        intermediate_size +  # gate
+        intermediate_size +  # up
+        hidden_size          # down
+    )
 
 
 def _parse_dict_line(raw: str) -> Dict:
@@ -181,36 +250,48 @@ def main(argv):
     If files are not provided, the script will search for the latest ones in ./output_neurons/
     """
     
+    log_file = setup_logging()
+
+    output_dir = os.path.join(SCRIPT_DIR, "output_neurons")
+
     # Find files if not provided
     if len(argv) < 2:
-        logger.info("Searching for neuron detection files in ./output_neurons/...")
+        logger.info(f"Searching for neuron detection files in {output_dir}...")
         
-        if not os.path.exists("./output_neurons"):
-            logger.error("Directory ./output_neurons/ does not exist")
+        if not os.path.exists(output_dir):
+            logger.error(f"Directory does not exist: {output_dir}")
             sys.exit(1)
         
-        files = os.listdir("./output_neurons")
+        files = os.listdir(output_dir)
         
         # Find latest safety neurons file
-        safety_files = [f for f in files if "threshold_neurons" in f and "utility_neurons" not in f and "critical_safety_neurons" not in f]
+        safety_files = [
+            f for f in files
+            if (
+                ("threshold_neurons" in f or "safety-neuron_threshold" in f)
+                and "utility_neurons" not in f
+                and "critical_safety_neurons" not in f
+                and "critical-safety-neuron" not in f
+            )
+        ]
         utility_files = [f for f in files if "utility_neurons" in f]
         
         if not safety_files:
-            logger.error("No safety neuron files found in ./output_neurons/")
+            logger.error(f"No safety neuron files found in {output_dir}")
             logger.error("Please run: python neuron_detection_simple.py harmful_prompts 200")
             sys.exit(1)
         
         if not utility_files:
-            logger.error("No utility neuron files found in ./output_neurons/")
+            logger.error(f"No utility neuron files found in {output_dir}")
             logger.error("Please run: python neuron_detection_foundation.py 1000")
             sys.exit(1)
         
         # Get latest files (by modification time)
-        safety_file = sorted(safety_files, key=lambda f: os.path.getmtime(f"./output_neurons/{f}"))[-1]
-        utility_file = sorted(utility_files, key=lambda f: os.path.getmtime(f"./output_neurons/{f}"))[-1]
+        safety_file = sorted(safety_files, key=lambda f: os.path.getmtime(os.path.join(output_dir, f)))[-1]
+        utility_file = sorted(utility_files, key=lambda f: os.path.getmtime(os.path.join(output_dir, f)))[-1]
         
-        safety_file = f"./output_neurons/{safety_file}"
-        utility_file = f"./output_neurons/{utility_file}"
+        safety_file = os.path.join(output_dir, safety_file)
+        utility_file = os.path.join(output_dir, utility_file)
         
         logger.info(f"Using safety file: {safety_file}")
         logger.info(f"Using utility file: {utility_file}")
@@ -244,9 +325,9 @@ def main(argv):
     stats = compute_statistics(safety_neurons, utility_neurons, critical_neurons)
     
     # Save Critical Safety Neurons
-    os.makedirs("./output_neurons", exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    critical_output_file = f"./output_neurons/meta-llama_Llama-3.2-3B-Instruct_critical_safety_neurons_{timestamp}.txt"
+    critical_output_file = os.path.join(output_dir, f"critical-safety-neuron_{timestamp}.txt")
     
     logger.info(f"\nSaving Critical Safety Neurons to {critical_output_file}...")
     with open(critical_output_file, "w", encoding="utf-8") as f:
@@ -311,8 +392,14 @@ def main(argv):
     logger.info(f"  • Utility neurons: {utility_total}")
     logger.info(f"  • Overlapping neurons: {overlap_total}")
     logger.info(f"  • Critical neurons (Safety - Overlap): {critical_total}")
+
+    total_model_neurons = calculate_model_total_neurons(DEFAULT_MODEL_NAME)
+    critical_pct_total = (critical_total / total_model_neurons * 100) if total_model_neurons > 0 else 0.0
+    logger.info(f"  • Total model neurons (q/k/v/o + gate/up/down): {total_model_neurons:,}")
+    logger.info(f"  • Critical neurons over total model neurons: {critical_pct_total:.4f}%")
     
     logger.info(f"\n✅ Critical Safety Neurons saved to: {critical_output_file}")
+    logger.info(f"📝 Log saved to: {log_file}")
     logger.info("="*80)
     
     # Next steps

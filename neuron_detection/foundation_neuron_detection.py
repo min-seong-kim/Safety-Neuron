@@ -38,6 +38,8 @@ from datasets import load_dataset
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 random.seed(112)
 torch.manual_seed(112)
 
@@ -61,9 +63,34 @@ HIDDEN_DIM = 3072
 TOTAL_NEURONS = NUM_LAYERS * HIDDEN_DIM
 
 # Threshold hyperparameters
-FFN_ACTIVE_FRACTION = 0.05
-ATTN_ACTIVE_FRACTION = 0.05
+FFN_ACTIVE_FRACTION = 0.1
+ATTN_ACTIVE_FRACTION = 0.1
 MIN_NEURONS_FOR_QUANTILE = 10
+
+
+def calculate_model_total_neurons() -> int:
+    """
+    Same denominator as safety_neuron_detection.py:
+    q/k/v/o + gate/up/down output channels across all layers.
+    """
+    cfg = model.config
+    num_layers = cfg.num_hidden_layers
+    hidden_size = cfg.hidden_size
+    intermediate_size = cfg.intermediate_size
+    num_heads = cfg.num_attention_heads
+    num_kv_heads = getattr(cfg, "num_key_value_heads", num_heads)
+    head_dim = hidden_size // num_heads
+    kv_dim = num_kv_heads * head_dim
+
+    return num_layers * (
+        hidden_size +        # q
+        kv_dim +             # k
+        kv_dim +             # v
+        hidden_size +        # o
+        intermediate_size +  # gate
+        intermediate_size +  # up
+        hidden_size          # down
+    )
 
 
 def select_by_threshold(importance: torch.Tensor,
@@ -251,15 +278,18 @@ def detect_safety_neurons_threshold(
     return ffn_up_dict, ffn_down_dict, q_dict, k_dict, v_dict
 
 
-def compute_intersection(neuron_sets_list: List[Dict[int, Set[int]]]) -> Dict[int, Set[int]]:
+def compute_intersection(neuron_sets_list: List[Dict[int, Set[int]]], module_name: str = "module") -> Dict[int, Set[int]]:
     """
     Compute intersection of neuron sets across all documents.
     """
     if not neuron_sets_list:
-        return {}
+        logger.info(f"[compute_intersection][{module_name}] no neuron sets; reduced=0")
+        return {layer_idx: set() for layer_idx in range(NUM_LAYERS)}
 
     intersection_dict: Dict[int, Set[int]] = {}
     all_layers = range(NUM_LAYERS)
+    before_union_total = 0
+    after_intersection_total = 0
 
     for layer_idx in all_layers:
         layer_sets = []
@@ -270,8 +300,23 @@ def compute_intersection(neuron_sets_list: List[Dict[int, Set[int]]]) -> Dict[in
             intersection_dict[layer_idx] = set()
             continue
 
-        common = set.intersection(*layer_sets) if layer_sets else set()
+        non_empty_sets = [s for s in layer_sets if s]
+        if non_empty_sets:
+            union_set = set.union(*non_empty_sets)
+            common = set.intersection(*non_empty_sets)
+        else:
+            union_set = set()
+            common = set()
+
+        before_union_total += len(union_set)
+        after_intersection_total += len(common)
         intersection_dict[layer_idx] = common
+
+    reduced = before_union_total - after_intersection_total
+    logger.info(
+        f"[compute_intersection][{module_name}] prompts={len(neuron_sets_list)}, "
+        f"before(union)={before_union_total}, after(intersection)={after_intersection_total}, reduced={reduced}"
+    )
 
     return intersection_dict
 
@@ -286,19 +331,19 @@ def load_wikipedia_data(num_samples: int = 1000) -> List[str]:
     Returns:
         List of text samples from Wikipedia
     """
-    print(f"Loading Wikipedia dataset (subset: 20231101.en)...")
+    logger.info("Loading Wikipedia dataset (subset: 20231101.en)...")
     try:
         dataset = load_dataset(
             "wikimedia/wikipedia",
             "20231101.en",
             split="train",
             streaming=False,
-            cache_dir="./wikipedia_cache"
+            cache_dir=os.path.join(SCRIPT_DIR, "wikipedia_cache")
         )
         
         # Extract text and sample
         texts = []
-        print(f"Sampling {num_samples} documents from Wikipedia...")
+        logger.info(f"Sampling {num_samples} documents from Wikipedia...")
         
         # Get random indices
         total_size = len(dataset)
@@ -315,7 +360,7 @@ def load_wikipedia_data(num_samples: int = 1000) -> List[str]:
                 logger.warning(f"Error processing sample {idx}: {e}")
                 continue
         
-        print(f"Successfully loaded {len(texts)} Wikipedia samples")
+        logger.info(f"Successfully loaded {len(texts)} Wikipedia samples")
         return texts
         
     except Exception as e:
@@ -335,8 +380,37 @@ def main(argv):
         python neuron_detection_foundation.py 1000
         python neuron_detection_foundation.py 500 meta-llama/Llama-3.2-3B-Instruct
     """
-    
+
+    # =====================================================================
+    # 로깅 설정: 파일 핸들러 추가
+    # =====================================================================
+    log_dir = os.path.join(SCRIPT_DIR, "logs", "foundation_neuron_detection")
+    os.makedirs(log_dir, exist_ok=True)
+    log_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = os.path.join(log_dir, f"foundation_neuron_detection_{log_timestamp}.log")
+
+    file_handler = logging.FileHandler(log_file, encoding='utf-8')
+    file_handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    file_handler.setFormatter(formatter)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(formatter)
+
+    logger.handlers.clear()
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+    logger.setLevel(logging.INFO)
+    logger.propagate = False
+
     num_docs = int(argv[0]) if len(argv) > 0 else 1000
+
+    logger.info(f"Log directory: {log_dir}")
+    logger.info(f"Log file: {log_file}")
     
     logger.info("="*70)
     logger.info("Foundation Neuron Detection from Wikipedia")
@@ -376,20 +450,18 @@ def main(argv):
     
     # Step 3: Compute intersection (Foundation Neurons)
     logger.info("\nComputing foundation neuron intersections...")
-    ffn_up_foundation = compute_intersection(ffn_up_sets)
-    ffn_down_foundation = compute_intersection(ffn_down_sets)
-    q_foundation = compute_intersection(q_sets)
-    k_foundation = compute_intersection(k_sets)
-    v_foundation = compute_intersection(v_sets)
+    ffn_up_foundation = compute_intersection(ffn_up_sets, module_name="ffn_up")
+    ffn_down_foundation = compute_intersection(ffn_down_sets, module_name="ffn_down")
+    q_foundation = compute_intersection(q_sets, module_name="q")
+    k_foundation = compute_intersection(k_sets, module_name="k")
+    v_foundation = compute_intersection(v_sets, module_name="v")
     
     # Step 4: Save results
-    os.makedirs("./output_neurons", exist_ok=True)
+    output_dir = os.path.join(SCRIPT_DIR, "output_neurons")
+    os.makedirs(output_dir, exist_ok=True)
     clean_model_name = model_name.replace("/", "_")
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_file = (
-        f"./output_neurons/"
-        f"{clean_model_name}_utility_neurons_{len(ffn_up_sets)}_{timestamp}.txt"
-    )
+    output_file = os.path.join(output_dir, f"{clean_model_name}_utility_neurons_{len(ffn_up_sets)}_{timestamp}.txt")
     
     logger.info(f"Saving results to {output_file}")
     with open(output_file, "w", encoding="utf-8") as f:
@@ -428,10 +500,13 @@ def main(argv):
             total_ffn_neurons += ffn_count
             total_attn_neurons += attn_count
     
-    foundation_sparsity = total_foundation_neurons / TOTAL_NEURONS if TOTAL_NEURONS > 0 else 0
+    total_model_neurons = calculate_model_total_neurons()
+    foundation_sparsity = total_foundation_neurons / total_model_neurons if total_model_neurons > 0 else 0
     logger.info(f"\nTotal foundation neurons detected: {total_foundation_neurons} (FFN: {total_ffn_neurons}, Attention: {total_attn_neurons})")
+    logger.info(f"Total model neurons (q/k/v/o + gate/up/down): {total_model_neurons:,}")
     logger.info(f"Foundation sparsity: {foundation_sparsity*100:.4f}%")
     logger.info(f"Output saved to: {output_file}")
+    logger.info(f"Log: {log_file}")
     logger.info("="*70)
     
     # Print next steps

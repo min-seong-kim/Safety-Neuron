@@ -1,16 +1,23 @@
 """
-GSM8K 데이터셋을 사용하여 SN-Tuned 모델(Llama-3.2-3B 기반)의 전체 파라미터(Full Parameter) 파인튜닝
+GSM8K 데이터셋을 사용하여 SN-Tuned 모델의 GSM8K finetuning (Safety Neuron Freeze)
+
+Safety neuron은 freeze하고 나머지 파라미터만 학습하여 safety 성능 유지
 
 Trainer + AdamW 8-bit optimizer (bitsandbytes) 사용으로 메모리 효율성 극대화
 
 Example Usage:
-python finetune_gsm8k_full_params.py \
+python finetune_gsm8k_freeze_sn.py \
     --model_path /home/gokms0509/Safety-Neuron/neuron_detection/only_rsn_tuned_model_20260313_020657 \
-    --output_dir ./gsm8k_fullft_after_rsn-tune 
+    --safety_neurons_file /home/gokms0509/Safety-Neuron/neuron_detection/output_neurons/critical-safety-neuron_20260310_135913.txt \
+    --output_dir ./gsm8k_ft_freeze_rsn
 """
 
 import argparse
+import ast
 import os
+import gc
+import json
+import traceback
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 from datetime import datetime
@@ -28,13 +35,17 @@ from transformers import (
 
 
 def parse_args():
-    p = argparse.ArgumentParser(description='Full Parameter Finetune SN-Tuned Model on GSM8K')
+    p = argparse.ArgumentParser(description='GSM8K Finetuning with Safety Neuron Freezing')
     
     # model
     p.add_argument('--model_path', type=str, 
-                    default=None,
-                    required=True,
+                    default="kmseong/Llama-3.2-3B-only-sn-tuned",
                     help='HuggingFace model ID or local path (SN-Tuned model)')
+    
+    # safety neurons
+    p.add_argument('--safety_neurons_file', type=str,
+                    required=True,
+                    help='Path to safety neurons txt file')
     
     # data
     p.add_argument("--dataset_name", type=str, default="openai/gsm8k")
@@ -65,7 +76,7 @@ def parse_args():
     p.add_argument("--gradient_checkpointing", action="store_true", default=False)
     
     # logging/saving
-    p.add_argument("--output_dir", type=str, default='./gsm8k_sn_tune_full_finetune')
+    p.add_argument("--output_dir", type=str, default='./gsm8k_freeze_sn_finetune')
     p.add_argument("--logging_steps", type=int, default=10)
     p.add_argument("--save_steps", type=int, default=500)
     p.add_argument("--save_total_limit", type=int, default=2)
@@ -76,6 +87,7 @@ def parse_args():
     
     return p.parse_args()
 
+
 def _select_first_n(ds, n: int):
     if n is None or n <= 0:
         return ds
@@ -84,7 +96,7 @@ def _select_first_n(ds, n: int):
 
 
 def build_chat_prompt(question: str, tokenizer) -> str:
-    """베이스 모델용 프롬프트 빌딩 (finetune_gsm8k_SFT.py와 동일)"""
+    """베이스 모델용 프롬프트 빌딩"""
     system_msg = "You are a helpful assistant that solves math problems step by step. Always show your reasoning and provide the final numerical answer after ####."
     user_msg = f"Solve this problem step by step:\n\n{question.strip()}"
     prompt = f"{system_msg}\n\nUser: {user_msg}\n\nAssistant:"
@@ -136,8 +148,8 @@ class DataCollatorForCausalLMWithPadding:
 
         input_ids, attention_mask, labels = [], [], []
         for f in features:
-            l = len(f["input_ids"])
-            pad_len = max_len - l
+            seq_len = len(f["input_ids"])
+            pad_len = max_len - seq_len
             input_ids.append(f["input_ids"] + [pad_id] * pad_len)
             attention_mask.append(f["attention_mask"] + [0] * pad_len)
             labels.append(f["labels"] + [-100] * pad_len)
@@ -148,6 +160,221 @@ class DataCollatorForCausalLMWithPadding:
             "labels": torch.tensor(labels, dtype=torch.long),
         }
 
+
+# =====================================================================
+# Load Safety Neurons from Detection Output
+# =====================================================================
+def load_safety_neurons(output_file, logger):
+    """
+    Load safety neurons from detection output file
+    
+    Format:
+        Line 0: ffn_up_common (dict)
+        Line 1: ffn_down_common (dict)
+        Line 2: q_common (dict)
+        Line 3: k_common (dict)
+        Line 4: v_common (dict)
+    
+    Returns:
+        safety_neurons: {
+            'ffn_up': {layer_idx: set(neuron_names)},
+            'ffn_down': {layer_idx: set(neuron_names)},
+            'q': {layer_idx: set(neuron_names)},
+            'k': {layer_idx: set(neuron_names)},
+            'v': {layer_idx: set(neuron_names)},
+        }
+    """
+    with open(output_file, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+    
+    safety_neurons = {}
+    
+    # Parse each line as a dict string and convert keys from string to int
+    try:
+        # Keys are stored as strings, need to convert to int
+        ffn_up_raw = ast.literal_eval(lines[0].strip())
+        ffn_down_raw = ast.literal_eval(lines[1].strip())
+        q_raw = ast.literal_eval(lines[2].strip())
+        k_raw = ast.literal_eval(lines[3].strip())
+        v_raw = ast.literal_eval(lines[4].strip())
+        
+        # Convert string keys to int keys
+        safety_neurons['ffn_up'] = {int(k): v for k, v in ffn_up_raw.items()}
+        safety_neurons['ffn_down'] = {int(k): v for k, v in ffn_down_raw.items()}
+        safety_neurons['q'] = {int(k): v for k, v in q_raw.items()}
+        safety_neurons['k'] = {int(k): v for k, v in k_raw.items()}
+        safety_neurons['v'] = {int(k): v for k, v in v_raw.items()}
+    except Exception as e:
+        logger.error(f"Error parsing safety neurons file: {e}")
+        raise
+    
+    logger.info(f"Loaded safety neurons from {output_file}")
+    
+    # Log summary with layer-wise breakdown
+    logger.info(f"\n{'='*70}")
+    logger.info(f"Safety Neurons Loaded - Detailed Breakdown")
+    logger.info(f"{'='*70}")
+    
+    total_neurons = 0
+    for module_type in ['ffn_up', 'ffn_down', 'q', 'k', 'v']:
+        module_total = sum(len(neurons) for neurons in safety_neurons[module_type].values())
+        logger.info(f"  {module_type:12} : {module_total:4} neurons")
+        total_neurons += module_total
+        
+        # Show which layers have neurons
+        layers_with_neurons = [l for l in safety_neurons[module_type] if safety_neurons[module_type][l]]
+        if layers_with_neurons:
+            logger.info(f"    └─ Layers with neurons: {layers_with_neurons[:5]}{'...' if len(layers_with_neurons) > 5 else ''}")
+    
+    logger.info(f"\nTotal safety neurons: {total_neurons}")
+    logger.info(f"{'='*70}\n")
+    
+    return safety_neurons
+
+
+# =====================================================================
+# Freeze Safety Neurons (반대로 작동: safety neuron만 freeze)
+# =====================================================================
+def setup_safety_neuron_freezing(model, safety_neurons, logger):
+    """
+    Freeze safety neurons and train only the remaining parameters.
+    
+    This is the REVERSE of sn_tune.py's setup_gradient_masking:
+    - sn_tune.py: freeze all, train only safety neurons
+    - This function: train all, freeze only safety neurons
+    
+    Args:
+        model: LLaMA model
+        safety_neurons: Dict of safety neuron indices per layer/module
+        logger: Logger instance
+    """
+    total_params = 0
+    frozen_neuron_params = 0
+    trainable_params = 0
+    frozen_modules = {'ffn_up': 0, 'ffn_down': 0, 'q': 0, 'k': 0, 'v': 0}
+    
+    # Step 1: Enable gradients for all parameters by default
+    for param in model.parameters():
+        param.requires_grad = True
+    
+    # Step 2: Freeze safety neurons
+    for name, param in model.named_parameters():
+        total_params += param.numel()
+        
+        # Extract layer index from name
+        # e.g., "model.layers.0.mlp.up_proj.weight" -> layer_idx = 0
+        parts = name.split('.')
+        if len(parts) < 4 or parts[0] != 'model' or parts[1] != 'layers':
+            continue
+        
+        try:
+            layer_idx = int(parts[2])
+        except ValueError:
+            continue
+        
+        # Check module type and freeze safety neurons
+        if 'mlp.up_proj.weight' in name:
+            neuron_indices = safety_neurons['ffn_up'].get(layer_idx, [])
+            if neuron_indices:
+                # up_proj: weight shape [intermediate_dim, hidden_dim]
+                # neurons are rows in weight matrix
+                frozen_neuron_params += len(neuron_indices) * param.shape[1]
+                frozen_modules['ffn_up'] += 1
+                
+                # Register backward hook to zero out gradients for safety neurons
+                def make_hook(indices):
+                    def hook(grad):
+                        grad = grad.clone()
+                        grad[indices, :] = 0.0  # Zero out safety neuron gradients
+                        return grad
+                    return hook
+                
+                param.register_hook(make_hook(neuron_indices))
+        
+        elif 'mlp.down_proj.weight' in name:
+            neuron_indices = safety_neurons['ffn_down'].get(layer_idx, [])
+            if neuron_indices:
+                # down_proj: weight shape [hidden_dim, intermediate_dim]
+                # neurons are rows in weight matrix (output dimensions)
+                frozen_neuron_params += len(neuron_indices) * param.shape[1]
+                frozen_modules['ffn_down'] += 1
+                
+                def make_hook(indices):
+                    def hook(grad):
+                        grad = grad.clone()
+                        grad[indices, :] = 0.0
+                        return grad
+                    return hook
+                
+                param.register_hook(make_hook(neuron_indices))
+        
+        elif 'self_attn.q_proj.weight' in name:
+            neuron_indices = safety_neurons['q'].get(layer_idx, [])
+            if neuron_indices:
+                # q_proj: weight shape [hidden_dim, hidden_dim]
+                # neurons are rows
+                frozen_neuron_params += len(neuron_indices) * param.shape[1]
+                frozen_modules['q'] += 1
+                
+                def make_hook(indices):
+                    def hook(grad):
+                        grad = grad.clone()
+                        grad[indices, :] = 0.0
+                        return grad
+                    return hook
+                
+                param.register_hook(make_hook(neuron_indices))
+        
+        elif 'self_attn.k_proj.weight' in name:
+            neuron_indices = safety_neurons['k'].get(layer_idx, [])
+            if neuron_indices:
+                frozen_neuron_params += len(neuron_indices) * param.shape[1]
+                frozen_modules['k'] += 1
+                
+                def make_hook(indices):
+                    def hook(grad):
+                        grad = grad.clone()
+                        grad[indices, :] = 0.0
+                        return grad
+                    return hook
+                
+                param.register_hook(make_hook(neuron_indices))
+        
+        elif 'self_attn.v_proj.weight' in name:
+            neuron_indices = safety_neurons['v'].get(layer_idx, [])
+            if neuron_indices:
+                frozen_neuron_params += len(neuron_indices) * param.shape[1]
+                frozen_modules['v'] += 1
+                
+                def make_hook(indices):
+                    def hook(grad):
+                        grad = grad.clone()
+                        grad[indices, :] = 0.0
+                        return grad
+                    return hook
+                
+                param.register_hook(make_hook(neuron_indices))
+    
+    # Calculate trainable parameters
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    
+    logger.info(f"\n{'='*70}")
+    logger.info(f"Safety Neuron Freezing Setup Summary")
+    logger.info(f"{'='*70}")
+    logger.info(f"Total parameters: {total_params:,}")
+    logger.info(f"Frozen safety neuron parameters (effective): {frozen_neuron_params:,}")
+    logger.info(f"Trainable parameters: {trainable_params:,}")
+    logger.info(f"Trainable ratio: {trainable_params / total_params * 100:.4f}%")
+    logger.info(f"Frozen safety neuron ratio: {frozen_neuron_params / total_params * 100:.4f}%")
+    
+    logger.info(f"\nLayers with frozen safety neurons:")
+    for module_type, count in frozen_modules.items():
+        if count > 0:
+            logger.info(f"  {module_type:12} : {count} layers")
+    
+    logger.info(f"{'='*70}\n")
+
+
 def setup_logging(output_dir):
     """로깅 설정: 파일과 콘솔 모두에 출력"""
     log_dir = "./logs/safety_neuron_gsm8k"
@@ -155,7 +382,7 @@ def setup_logging(output_dir):
     
     # 파일 이름: 현재 날짜 및 시간
     log_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_file = os.path.join(log_dir, f"finetune_gsm8k_{log_timestamp}.log")
+    log_file = os.path.join(log_dir, f"finetune_gsm8k_freeze_sn_{log_timestamp}.log")
     
     # 로거 설정
     logger = logging.getLogger(__name__)
@@ -190,25 +417,22 @@ def main():
     os.makedirs(args.output_dir, exist_ok=True)
     set_seed(args.seed)
     
-    # 로컬 경로를 절대 경로로 변환 (transformers가 상대 경로를 Hub repo로 인식하는 문제 해결)
-    model_path = os.path.abspath(args.model_path)
-    
     # 로깅 설정
     logger, log_file = setup_logging(args.output_dir)
     
     logger.info(f"\n{'='*70}")
-    logger.info(f"  🚀 Full Parameter GSM8K Fine-tuning (SN-Tuned Model - Llama 3.2-3B Base)")
+    logger.info(f"  🚀 GSM8K Fine-tuning with Safety Neuron Freezing")
     logger.info(f"{'='*70}\n")
     logger.info(f"Log file: {log_file}")
     
-    # 모델 경로 존재 확인
-    if not os.path.exists(model_path):
-        logger.error(f"Model path does not exist: {model_path}")
-        raise FileNotFoundError(f"Model path not found: {model_path}")
+    # Safety neurons 파일 존재 확인
+    if not os.path.exists(args.safety_neurons_file):
+        logger.error(f"Safety neurons file not found: {args.safety_neurons_file}")
+        raise FileNotFoundError(f"Safety neurons file not found: {args.safety_neurons_file}")
     
     logger.info(f"⚙️  Configuration:")
-    logger.info(f"   ├─ SN-Tuned model: {model_path}")
-    logger.info(f"   ├─ Base model: meta-llama/Llama-3.2-3B")
+    logger.info(f"   ├─ SN-Tuned model: {args.model_path}")
+    logger.info(f"   ├─ Safety neurons file: {args.safety_neurons_file}")
     logger.info(f"   ├─ Training samples: {args.num_train_samples}")
     logger.info(f"   ├─ Batch size: {args.batch_size}")
     logger.info(f"   ├─ Gradient accumulation: {args.grad_accum}")
@@ -219,38 +443,15 @@ def main():
     logger.info(f"   ├─ Warmup ratio: {args.warmup_ratio}")
     logger.info(f"   ├─ Max length: {args.max_length}")
     logger.info(f"   ├─ Dtype: bf16")
+    logger.info(f"   ├─ Strategy: Freeze safety neurons, train others")
     logger.info(f"   └─ Output dir: {args.output_dir}\n")
 
     # Load tokenizer
     logger.info(f"\n{'='*70}")
-    logger.info(f"  [1/4] Loading Tokenizer")
+    logger.info(f"  [1/5] Loading Tokenizer")
     logger.info(f"{'='*70}\n")
     
-    tokenizer = None
-    
-    # 시도 1: local_files_only=True (권장)
-    try:
-        logger.info("Attempting to load tokenizer (local files only)...")
-        tokenizer = AutoTokenizer.from_pretrained(
-            model_path,
-            local_files_only=True,
-            trust_remote_code=False,
-        )
-        logger.info("✓ Tokenizer loaded from local files")
-    except Exception as e:
-        logger.warning(f"Failed to load tokenizer with local_files_only: {e}")
-        logger.info("Attempting to load from HuggingFace Hub...")
-        
-        # 시도 2: Hub에서 로드 (fallback)
-        try:
-            tokenizer = AutoTokenizer.from_pretrained(model_path)
-            logger.info("✓ Tokenizer loaded from HuggingFace Hub")
-        except Exception as e2:
-            logger.error(f"Failed to load tokenizer: {e2}")
-            raise RuntimeError(f"Could not load tokenizer from {model_path}") from e2
-    
-    if tokenizer is None:
-        raise RuntimeError(f"Tokenizer loading failed for {model_path}")
+    tokenizer = AutoTokenizer.from_pretrained(args.model_path)
     
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
@@ -262,61 +463,42 @@ def main():
 
     # Load model with bf16
     logger.info(f"\n{'='*70}")
-    logger.info(f"  [2/4] Loading Model (bf16)")
+    logger.info(f"  [2/5] Loading Model (bf16)")
     logger.info(f"{'='*70}\n")
     dtype = torch.bfloat16 if args.bf16 else (torch.float16 if args.fp16 else None)
     
-    model = None
-    load_error = None
-    
-    # 시도 1: local_files_only=True (권장)
-    try:
-        logger.info("Attempting to load model (local files only)...")
-        model = AutoModelForCausalLM.from_pretrained(
-            model_path,
-            torch_dtype=dtype,
-            device_map="auto",
-            local_files_only=True,
-            trust_remote_code=False,
-        )
-        logger.info("✓ Model loaded from local files")
-    except Exception as e:
-        load_error = str(e)
-        logger.warning(f"Failed to load with local_files_only: {e}")
-        logger.info("Attempting to load from HuggingFace Hub...")
-        
-        # 시도 2: Hub에서 로드 (fallback)
-        try:
-            model = AutoModelForCausalLM.from_pretrained(
-                model_path,
-                torch_dtype=dtype,
-                device_map="auto",
-                trust_remote_code=False,
-            )
-            logger.info("✓ Model loaded from HuggingFace Hub")
-        except Exception as e2:
-            logger.error(f"Failed to load model from Hub: {e2}")
-            logger.error(f"Original error: {load_error}")
-            raise RuntimeError(f"Could not load model from {model_path}") from e2
-
-    if model is None:
-        raise RuntimeError(f"Model loading failed for {model_path}")
+    model = AutoModelForCausalLM.from_pretrained(
+        args.model_path,
+        torch_dtype=dtype,
+        device_map="auto",
+        trust_remote_code=False,
+    )
 
     if args.gradient_checkpointing:
         model.gradient_checkpointing_enable()
         model.config.use_cache = False
     
     total_params = sum(p.numel() for p in model.parameters())
-    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     logger.info(f"✅ Model loaded successfully")
     logger.info(f"   ├─ Model size: {total_params / 1e9:.2f}B parameters")
-    logger.info(f"   ├─ Trainable: {trainable_params / 1e9:.2f}B ({100 * trainable_params / total_params:.2f}%)")
     logger.info(f"   ├─ Dtype: {model.dtype}")
-    logger.info(f"   └─ Gradient checkpointing: Enabled")
+    logger.info(f"   └─ Gradient checkpointing: {'Enabled' if args.gradient_checkpointing else 'Disabled'}")
+
+    # Load safety neurons and setup freezing
+    logger.info(f"\n{'='*70}")
+    logger.info(f"  [3/5] Loading Safety Neurons and Setting up Freezing")
+    logger.info(f"{'='*70}\n")
+    
+    safety_neurons = load_safety_neurons(args.safety_neurons_file, logger)
+    setup_safety_neuron_freezing(model, safety_neurons, logger)
+    
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    logger.info(f"✅ Safety neuron freezing setup complete")
+    logger.info(f"   ├─ Trainable: {trainable_params / 1e9:.2f}B ({100 * trainable_params / total_params:.2f}%)")
 
     # Load dataset
     logger.info(f"\n{'='*70}")
-    logger.info(f"  [3/4] Loading GSM8K Dataset")
+    logger.info(f"  [4/5] Loading GSM8K Dataset")
     logger.info(f"{'='*70}\n")
     train_ds = load_dataset(
         args.dataset_name, 
@@ -343,7 +525,7 @@ def main():
 
     # Preprocess data
     logger.info(f"\n{'='*70}")
-    logger.info(f"  [3.5/4] Preprocessing Data")
+    logger.info(f"  [4.5/5] Preprocessing Data")
     logger.info(f"{'='*70}\n")
     
     def preprocess(ex):
@@ -371,7 +553,7 @@ def main():
 
     # Training
     logger.info(f"\n{'='*70}")
-    logger.info(f"  [4/4] Training with Trainer + AdamW 8-bit")
+    logger.info(f"  [5/5] Training with Trainer + AdamW 8-bit")
     logger.info(f"{'='*70}\n")
     
     data_collator = DataCollatorForCausalLMWithPadding(tokenizer)
@@ -420,29 +602,29 @@ def main():
     logger.info(f"{'='*70}\n")
     
     try:
-        import gc
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        final_output_dir = f"{args.output_dir}_{timestamp}"
         
         # 1️⃣ 메모리 정리 및 최적화
         logger.info("Step 1: Preparing model for saving...")
-        gc.collect()  # Python garbage collection
-        torch.cuda.empty_cache()  # Clear GPU cache
+        gc.collect()
+        torch.cuda.empty_cache()
         
-        # 2️⃣ 모델을 CPU로 옮김 (가장 중요!)
+        # 2️⃣ 모델을 CPU로 옮김
         logger.info("Step 2: Moving model to CPU for safe serialization...")
         model = model.cpu()
         gc.collect()
         torch.cuda.empty_cache()
         
-        # 3️⃣ 모델 저장 (최대한 안전한 방식)
-        logger.info("Step 3: Saving model weights directly (not via Trainer)...")
+        # 3️⃣ 모델 저장
+        logger.info("Step 3: Saving model weights...")
         logger.info(f"   ├─ Using safe_serialization=True (safetensors)")
-        logger.info(f"   ├─ Output directory: {os.path.abspath(args.output_dir)}")
+        logger.info(f"   ├─ Output directory: {os.path.abspath(final_output_dir)}")
         
-        # Trainer 거치지 않고 직접 저장 (더 안전)
         model.save_pretrained(
-            args.output_dir,
+            final_output_dir,
             safe_serialization=True,
-            max_shard_size="4GB",  # 4GB 이하로 분할
+            max_shard_size="4GB",
             push_to_hub=False,
         )
         logger.info(f"   └─ ✅ Model weights saved successfully")
@@ -450,16 +632,16 @@ def main():
         # 4️⃣ Tokenizer 저장
         logger.info("Step 4: Saving tokenizer...")
         tokenizer.save_pretrained(
-            args.output_dir,
+            final_output_dir,
             safe_serialization=True
         )
         logger.info(f"   └─ ✅ Tokenizer saved")
         
-        # 5️⃣ Config 및 생성 설정 저장
+        # 5️⃣ Config 저장
         logger.info("Step 5: Saving model config and generation settings...")
-        model.config.save_pretrained(args.output_dir)
+        model.config.save_pretrained(final_output_dir)
         if hasattr(model, 'generation_config'):
-            model.generation_config.save_pretrained(args.output_dir)
+            model.generation_config.save_pretrained(final_output_dir)
         logger.info(f"   └─ ✅ Configs saved")
         
         # 6️⃣ 저장 검증
@@ -467,78 +649,75 @@ def main():
         required_files = ['config.json', 'tokenizer_config.json', 'tokenizer.json']
         missing_files = []
         for fname in required_files:
-            fpath = os.path.join(args.output_dir, fname)
+            fpath = os.path.join(final_output_dir, fname)
             if not os.path.exists(fpath):
                 missing_files.append(fname)
             else:
-                size = os.path.getsize(fpath)
-                if size == 0:
-                    logger.warning(f"   ⚠️  {fname} is empty!")
-                    missing_files.append(fname)
+                fsize = os.path.getsize(fpath) / 1024
+                logger.info(f"   ├─ {fname}: {fsize:.2f} KB ✅")
         
         if missing_files:
             raise FileNotFoundError(f"Missing/corrupted files: {missing_files}")
         
-        # 모델 파일 존재 확인 (safetensors)
-        model_files = [f for f in os.listdir(args.output_dir) 
+        # 모델 파일 존재 확인
+        model_files = [f for f in os.listdir(final_output_dir) 
                       if f.endswith('.safetensors')]
         if not model_files:
             raise FileNotFoundError("No safetensors files found after save!")
         
         logger.info(f"   ├─ ✅ Found {len(model_files)} model shard file(s)")
         
-        # 7️⃣ 파일 크기 로깅 및 최종 확인
+        # 7️⃣ 파일 크기 로깅
         logger.info(f"\n📦 Saved files:")
         total_size = 0
-        for fname in sorted(os.listdir(args.output_dir)):
-            fpath = os.path.join(args.output_dir, fname)
+        for fname in sorted(os.listdir(final_output_dir)):
+            fpath = os.path.join(final_output_dir, fname)
             if os.path.isfile(fpath):
-                size = os.path.getsize(fpath)
-                total_size += size
-                if size > 1e6:  # > 1MB인 파일만 표시
-                    logger.info(f"   ├─ {fname:40} {size/1e9:>8.3f} GB")
+                fsize = os.path.getsize(fpath)
+                total_size += fsize
+                logger.info(f"   ├─ {fname}: {fsize/1e9:.2f} GB")
                     
         logger.info(f"   └─ Total size: {total_size/1e9:.2f} GB ✅")
         
-        # 8️⃣ 최종 검증: 모델 로드 가능 확인
+        # 8️⃣ 최종 검증
         logger.info(f"\nStep 7: Final verification - attempting to load saved model...")
         try:
-            test_tokenizer = AutoTokenizer.from_pretrained(args.output_dir)
-            # 메모리 절약을 위해 메타 데이터만 로드
+            test_tokenizer = AutoTokenizer.from_pretrained(final_output_dir)
             test_model = AutoModelForCausalLM.from_pretrained(
-                args.output_dir,
+                final_output_dir,
+                torch_dtype=torch.bfloat16,
                 device_map="cpu",
-                torch_dtype=torch.float32,
-                low_cpu_mem_usage=True,
+                local_files_only=True,
             )
-            logger.info(f"   └─ ✅ Model loads successfully - integrity verified!")
-            del test_model
             del test_tokenizer
+            del test_model
             gc.collect()
+            logger.info(f"   └─ ✅ Model verified successfully!")
         except Exception as load_err:
-            logger.error(f"   ❌ CRITICAL: Saved model cannot be loaded: {load_err}")
-            logger.error(f"      This means the save operation was incomplete!")
-            raise RuntimeError(f"Model save verification failed: {load_err}") from load_err
+            logger.error(f"   └─ ❌ Failed to load saved model: {load_err}")
+            logger.error(f"      This may indicate corruption - please verify manually")
+            raise
         
         logger.info(f"\n✅✅✅ Fine-tuned model saved and verified successfully!")
-        logger.info(f"   Output directory: {os.path.abspath(args.output_dir)}")
+        logger.info(f"   Output directory: {os.path.abspath(final_output_dir)}")
         logger.info(f"   Total size: {total_size/1e9:.2f} GB")
         logger.info(f"   Status: ✅ READY FOR EVALUATION")
         
     except Exception as e:
         logger.error(f"\n❌❌❌ CRITICAL ERROR during model saving: {e}")
         logger.error(f"   {type(e).__name__}: {str(e)}")
-        logger.error(f"   Output directory may be incomplete: {args.output_dir}")
+        logger.error(f"   Output directory may be incomplete: {final_output_dir}")
         logger.error(f"   Please check the directory contents before using this model!")
         import traceback
         logger.error(traceback.format_exc())
         raise
     
     # Save training config
-    import json
+    logger.info(f"\nSaving training configuration...")
     config = {
-        'base_model': model_path,
-        'fine_tuning_type': 'Full Parameter Fine-tuning',
+        'base_model': args.model_path,
+        'fine_tuning_type': 'GSM8K Fine-tuning with Safety Neuron Freezing',
+        'safety_neurons_file': args.safety_neurons_file,
         'dataset': 'GSM8K',
         'num_train_samples': args.num_train_samples,
         'batch_size': args.batch_size,
@@ -551,12 +730,13 @@ def main():
         'max_grad_norm': args.max_grad_norm,
         'lr_scheduler_type': args.lr_scheduler_type,
         'optimizer': 'adamw_bnb_8bit',
-        'gradient_checkpointing': True,
+        'gradient_checkpointing': args.gradient_checkpointing,
         'dtype': 'bf16',
         'trainer_type': 'Trainer',
+        'strategy': 'Freeze safety neurons, train others',
     }
     
-    config_path = os.path.join(args.output_dir, 'finetune_config.json')
+    config_path = os.path.join(final_output_dir, 'finetune_config.json')
     with open(config_path, 'w') as f:
         json.dump(config, f, indent=2)
     
