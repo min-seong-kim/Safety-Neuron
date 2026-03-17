@@ -116,6 +116,59 @@ def select_by_threshold(importance: torch.Tensor,
     return {idx.item() for idx in indices}
 
 
+def select_global_by_threshold(
+    layer_importance: Dict[int, torch.Tensor],
+    active_fraction: float,
+    module_name: str,
+) -> Dict[int, Set[int]]:
+    """
+    Select active neurons with one global threshold per module by aggregating
+    importance values from all layers.
+
+    layer_importance: layer_idx -> importance tensor [D_layer]
+    active_fraction: global top-k fraction to keep across all layers
+    module_name: only for debug logging
+
+    Returns:
+      layer_idx -> selected neuron index set within that layer
+    """
+    result: Dict[int, Set[int]] = {layer_idx: set() for layer_idx in range(NUM_LAYERS)}
+
+    non_empty = {
+        layer_idx: imp
+        for layer_idx, imp in layer_importance.items()
+        if imp is not None and imp.numel() > 0
+    }
+    if not non_empty:
+        logger.debug(f"select_global_by_threshold[{module_name}]: no activations captured")
+        return result
+
+    all_importance = torch.cat([imp.view(-1) for imp in non_empty.values()], dim=0)
+    if all_importance.numel() < MIN_NEURONS_FOR_QUANTILE:
+        logger.debug(
+            f"select_global_by_threshold[{module_name}]: too few neurons "
+            f"({all_importance.numel()} < {MIN_NEURONS_FOR_QUANTILE})"
+        )
+        return result
+
+    q = max(0.0, min(1.0, 1.0 - active_fraction))
+    epsilon = torch.quantile(all_importance, q)
+
+    selected_total = 0
+    for layer_idx, imp in non_empty.items():
+        active_mask = imp >= epsilon
+        indices = torch.nonzero(active_mask, as_tuple=False).view(-1)
+        selected = {idx.item() for idx in indices}
+        result[layer_idx] = selected
+        selected_total += len(selected)
+
+    logger.debug(
+        f"select_global_by_threshold[{module_name}]: total_neurons={all_importance.numel()}, "
+        f"selected={selected_total}, active_fraction={active_fraction}, epsilon={epsilon.item():.6f}"
+    )
+    return result
+
+
 def detect_safety_neurons_threshold(
     prompt: str,
     prompt_idx: int = 0,
@@ -207,68 +260,71 @@ def detect_safety_neurons_threshold(
                     return_dict=True,
                 )
 
-            # 4) For each layer, compute importance & thresholded Nx
+            # 4) Compute per-layer importance first, then apply one global
+            # threshold per module across all layers.
+            ffn_up_importance: Dict[int, torch.Tensor] = {}
+            ffn_down_importance: Dict[int, torch.Tensor] = {}
+            q_importance: Dict[int, torch.Tensor] = {}
+            k_importance: Dict[int, torch.Tensor] = {}
+            v_importance: Dict[int, torch.Tensor] = {}
+
             for layer_idx in range(NUM_LAYERS):
                 # ---------- FFN up_proj ----------
                 ffn_up_key = f"layer_{layer_idx}_ffn_up"
                 if ffn_up_key in activations_dict:
                     act = activations_dict[ffn_up_key].float()  # [B, T, D_ffn]
                     # Importance ≈ mean(|activation|) over batch & seq
-                    importance = torch.abs(act).mean(dim=(0, 1))  # [D_ffn]
-                    indices_set = select_by_threshold(
-                        importance, FFN_ACTIVE_FRACTION
-                    )
-                    ffn_up_dict[layer_idx] = indices_set
-                else:
-                    ffn_up_dict[layer_idx] = set()
+                    ffn_up_importance[layer_idx] = torch.abs(act).mean(dim=(0, 1))  # [D_ffn]
 
                 # ---------- FFN down_proj ----------
                 ffn_down_key = f"layer_{layer_idx}_ffn_down"
                 if ffn_down_key in activations_dict:
                     act = activations_dict[ffn_down_key].float()
-                    importance = torch.abs(act).mean(dim=(0, 1))
-                    indices_set = select_by_threshold(
-                        importance, FFN_ACTIVE_FRACTION
-                    )
-                    ffn_down_dict[layer_idx] = indices_set
-                else:
-                    ffn_down_dict[layer_idx] = set()
+                    ffn_down_importance[layer_idx] = torch.abs(act).mean(dim=(0, 1))
 
                 # ---------- Attention Q ----------
                 q_key = f"layer_{layer_idx}_attn_q"
                 if q_key in activations_dict:
                     act = activations_dict[q_key].float()
-                    importance = torch.abs(act).mean(dim=(0, 1))  # [D_q]
-                    indices_set = select_by_threshold(
-                        importance, ATTN_ACTIVE_FRACTION
-                    )
-                    q_dict[layer_idx] = indices_set
-                else:
-                    q_dict[layer_idx] = set()
+                    q_importance[layer_idx] = torch.abs(act).mean(dim=(0, 1))  # [D_q]
 
                 # ---------- Attention K ----------
                 k_key = f"layer_{layer_idx}_attn_k"
                 if k_key in activations_dict:
                     act = activations_dict[k_key].float()
-                    importance = torch.abs(act).mean(dim=(0, 1))  # [D_k]
-                    indices_set = select_by_threshold(
-                        importance, ATTN_ACTIVE_FRACTION
-                    )
-                    k_dict[layer_idx] = indices_set
-                else:
-                    k_dict[layer_idx] = set()
+                    k_importance[layer_idx] = torch.abs(act).mean(dim=(0, 1))  # [D_k]
 
                 # ---------- Attention V ----------
                 v_key = f"layer_{layer_idx}_attn_v"
                 if v_key in activations_dict:
                     act = activations_dict[v_key].float()
-                    importance = torch.abs(act).mean(dim=(0, 1))  # [D_v]
-                    indices_set = select_by_threshold(
-                        importance, ATTN_ACTIVE_FRACTION
-                    )
-                    v_dict[layer_idx] = indices_set
-                else:
-                    v_dict[layer_idx] = set()
+                    v_importance[layer_idx] = torch.abs(act).mean(dim=(0, 1))  # [D_v]
+
+            ffn_up_dict = select_global_by_threshold(
+                ffn_up_importance,
+                FFN_ACTIVE_FRACTION,
+                module_name="ffn_up",
+            )
+            ffn_down_dict = select_global_by_threshold(
+                ffn_down_importance,
+                FFN_ACTIVE_FRACTION,
+                module_name="ffn_down",
+            )
+            q_dict = select_global_by_threshold(
+                q_importance,
+                ATTN_ACTIVE_FRACTION,
+                module_name="q",
+            )
+            k_dict = select_global_by_threshold(
+                k_importance,
+                ATTN_ACTIVE_FRACTION,
+                module_name="k",
+            )
+            v_dict = select_global_by_threshold(
+                v_importance,
+                ATTN_ACTIVE_FRACTION,
+                module_name="v",
+            )
 
         finally:
             # 5) Remove hooks
