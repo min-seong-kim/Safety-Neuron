@@ -49,8 +49,8 @@ TOTAL_NEURONS = NUM_LAYERS * HIDDEN_DIM
 # ------------------------------------------------------------------
 # 각 layer/module에서 "최상위 몇 %의 뉴런을 활성 뉴런으로 볼 것인가?"
 # 예: 0.005 -> 상위 0.5% (논문: safety neuron은 전체의 <1% 라는 관찰과 일치)
-FFN_ACTIVE_FRACTION = 0.8
-ATTN_ACTIVE_FRACTION = 0.8
+FFN_ACTIVE_FRACTION = 0.1
+ATTN_ACTIVE_FRACTION = 0.1
 
 # quantile 연산 시 최소 샘플 수가 너무 적을 때를 대비한 safeguard
 MIN_NEURONS_FOR_QUANTILE = 10
@@ -158,7 +158,7 @@ def select_global_by_threshold(
     for layer_idx, imp in non_empty.items():
         active_mask = imp >= epsilon
         indices = torch.nonzero(active_mask, as_tuple=False).view(-1)
-        selected = {idx.item() for idx in indices}
+        selected = set(indices.tolist())
         result[layer_idx] = selected
         selected_total += len(selected)
 
@@ -209,7 +209,8 @@ def detect_safety_neurons_threshold(
                     act = output[0]
                 else:
                     act = output
-                activations_dict[name] = act.detach().cpu()
+                # Keep activations on GPU to avoid expensive GPU->CPU transfer.
+                activations_dict[name] = act.detach()
             return hook
 
         hooks = []
@@ -504,7 +505,7 @@ def main(argv):
     # 결과 저장
     output_dir = os.path.join(SCRIPT_DIR, "output_neurons")
     os.makedirs(output_dir, exist_ok=True)
-    output_file = os.path.join(output_dir, f"safety-neuron_threshold_{log_timestamp}.txt")
+    output_file = os.path.join(output_dir, f"safety_neuron_threshold_{log_timestamp}.txt")
 
     with open(output_file, "w", encoding="utf-8") as f:
         # Dict[int, Set[int]] -> str으로 저장
