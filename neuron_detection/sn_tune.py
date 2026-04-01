@@ -8,13 +8,13 @@ Safety Neuron Tuning (SN-Tune)
 
 # SN-Tune
 python sn_tune.py \
-  ./output_neurons/safety-neuron_threshold_20260310_105043.txt \
+  ./output_neurons/safety_neuron_threshold_20260331_085057.txt \
   ./corpus_all/circuit_breakers_train.json \
   ./only_sn_tuned_model
 
 # RSN-Tune
 python sn_tune.py \
-  ./output_neurons/critical-safety-neuron_20260310_135913.txt \
+  ./output_neurons/critical-safety-neuron_20260401_115452.txt \
   ./corpus_all/circuit_breakers_train.json \
   ./only_rsn_tuned_model
 """
@@ -76,6 +76,7 @@ NUM_LAYERS = 28
 LEARNING_RATE = 1e-5  # Very small LR as per paper
 NUM_EPOCHS = 3  # 1 epoch fine-tuning
 BATCH_SIZE = 2
+GRAD_ACCUM_STEPS = 4
 MAX_SEQ_LENGTH = 512
 MAX_SAMPLES = 4994  # Use only 50 samples for fine-tuning
 
@@ -380,6 +381,7 @@ def train_sn_tune(
     train_dataloader,
     learning_rate=1e-6,
     num_epochs=1,
+    grad_accum_steps=4,
     device=DEVICE,
 ):
     """
@@ -405,11 +407,15 @@ def train_sn_tune(
     
     total_loss = 0.0
     total_steps = 0
+    optimizer_steps = 0
     
     logger.info(f"Starting SN-Tune training...")
     logger.info(f"  Learning rate: {learning_rate}")
     logger.info(f"  Epochs: {num_epochs}")
-    logger.info(f"  Batch size: {len(train_dataloader)}")
+    logger.info(f"  Batch size: {BATCH_SIZE}")
+    logger.info(f"  Grad accum steps: {grad_accum_steps}")
+    logger.info(f"  Effective batch size: {BATCH_SIZE * grad_accum_steps}")
+    logger.info(f"  Num batches: {len(train_dataloader)}")
     
     for epoch in range(num_epochs):
         logger.info(f"\nEpoch {epoch + 1}/{num_epochs}")
@@ -432,18 +438,28 @@ def train_sn_tune(
                 valid_labels = (labels != -100).sum().item()
                 logger.info(f"  Valid labels (non-padding): {valid_labels}/{labels.numel()}")
             
+            # Gradient accumulation 시작
+            if batch_idx % grad_accum_steps == 0:
+                optimizer.zero_grad(set_to_none=True)
+
             # Forward pass
-            outputs = model(
-                input_ids=input_ids,
-                attention_mask=attention_mask,
-                labels=labels,
-                return_dict=True
-            )
-            loss = outputs.loss
-            
+            with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
+                outputs = model(
+                    input_ids=input_ids,
+                    attention_mask=attention_mask,
+                    labels=labels,
+                    return_dict=True
+                )
+                loss = outputs.loss
+
+            # NaN/Inf 처리 (backward 전에 체크)
+            if torch.isnan(loss) or torch.isinf(loss):
+                logger.warning(f"NaN/Inf detected at batch {batch_idx + 1}. Skipping this batch.")
+                optimizer.zero_grad(set_to_none=True)
+                continue
+
             # Backward pass
-            optimizer.zero_grad()
-            loss.backward()
+            (loss / grad_accum_steps).backward()
             
             # Log gradient info for first batch
             if batch_idx == 0:
@@ -463,19 +479,16 @@ def train_sn_tune(
                 logger.info(f"  Parameters with zero gradients: {zero_grads}")
                 logger.info(f"  Max gradient magnitude: {max_grad:.6f}")
             
-            # Gradient clipping to prevent explosion
-            torch.nn.utils.clip_grad_norm_(
-                [p for p in model.parameters() if p.requires_grad],
-                max_norm=1.0
-            )
-            
-            # Check for NaN
+            # Optimizer step (accumulation step 도달 시 또는 마지막 배치)
+            if (batch_idx + 1) % grad_accum_steps == 0 or (batch_idx + 1) == len(train_dataloader):
+                torch.nn.utils.clip_grad_norm_(
+                    [p for p in model.parameters() if p.requires_grad],
+                    max_norm=1.0
+                )
+                optimizer.step()
+                optimizer_steps += 1
+
             loss_val = loss.item()
-            if torch.isnan(loss) or torch.isinf(loss):
-                logger.warning(f"NaN/Inf detected at batch {batch_idx + 1}. Skipping this batch.")
-                continue
-            
-            optimizer.step()
             
             total_loss += loss_val
             epoch_loss += loss_val
@@ -489,12 +502,13 @@ def train_sn_tune(
         
         logger.info(f"Epoch {epoch + 1} completed - Epoch Loss: {epoch_loss / len(train_dataloader):.4f}")
     
-    avg_loss = total_loss / total_steps
+    avg_loss = total_loss / max(1, total_steps)
     logger.info(f"\n{'='*70}")
     logger.info(f"Training Complete")
     logger.info(f"{'='*70}")
     logger.info(f"Average loss: {avg_loss:.4f}")
     logger.info(f"Total steps: {total_steps}")
+    logger.info(f"Optimizer steps: {optimizer_steps}")
     logger.info(f"Training time: {num_epochs} epoch(s)")
     
     # Verify that only safety neurons were modified
@@ -570,10 +584,10 @@ def main(argv):
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
         device_map="auto",
-        torch_dtype=torch.float32,  # float32로 변경 (float16의 numerical instability 해결)
+        torch_dtype=torch.bfloat16,  # bfloat16로 변경 (float16의 numerical instability 해결)
     )
     model.eval()
-    logger.info("✓ Model and tokenizer loaded (float32)")
+    logger.info("✓ Model and tokenizer loaded (bfloat16)")
     
     # =====================================================================
     # 2. Load safety neurons
@@ -620,6 +634,7 @@ def main(argv):
         train_dataloader,
         learning_rate=LEARNING_RATE,
         num_epochs=NUM_EPOCHS,
+        grad_accum_steps=GRAD_ACCUM_STEPS,
         device=DEVICE,
     )
     

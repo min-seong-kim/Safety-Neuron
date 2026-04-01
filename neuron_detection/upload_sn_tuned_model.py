@@ -5,7 +5,7 @@ Usage:
     python upload_sn_tuned_model.py <model_local_path> --repo_id <username/model_name> [--hf_token <token>]
 
 Example:
-    python upload_sn_tuned_model.py ./gsm8k_fullft_after_rsn-tune --repo_id kmseong/my-sn-model --hf_token hf_xxx
+    python upload_sn_tuned_model.py ./only_sn_tuned_model_20260331_093205 --repo_id kmseong/llama3.2-3b-sn-tune-1.3p --hf_token hf_xxx
 """
 
 import argparse

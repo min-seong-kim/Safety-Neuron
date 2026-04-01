@@ -14,7 +14,7 @@ Step 1: Utility Neuron Detection from Wikipedia
   python detect_utility_neurons.py [num_docs] [model_name]
   
   예시:
-    python foundation_neuron_detection.py 800
+    python foundation_neuron_detection.py 1000
 
 시간/메모리:
   - 입력: Wikipedia 문서 (권장: 1000개)
@@ -54,7 +54,7 @@ if tokenizer.pad_token is None:
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
     device_map="auto",
-    torch_dtype=torch.float16,
+    torch_dtype=torch.bfloat16,
 )
 model.eval()
 
@@ -63,8 +63,8 @@ HIDDEN_DIM = 3072
 TOTAL_NEURONS = NUM_LAYERS * HIDDEN_DIM
 
 # Threshold hyperparameters
-FFN_ACTIVE_FRACTION = 0.5
-ATTN_ACTIVE_FRACTION = 0.5
+FFN_ACTIVE_FRACTION = 0.05
+ATTN_ACTIVE_FRACTION = 0.05
 MIN_NEURONS_FOR_QUANTILE = 10
 
 
@@ -509,7 +509,7 @@ def main(argv):
     os.makedirs(output_dir, exist_ok=True)
     clean_model_name = model_name.replace("/", "_")
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_file = os.path.join(output_dir, f"{clean_model_name}_utility_neurons_{len(ffn_up_sets)}_{timestamp}.txt")
+    output_file = os.path.join(output_dir, f"utility_neurons_{len(ffn_up_sets)}_{timestamp}.txt")
     
     logger.info(f"Saving results to {output_file}")
     with open(output_file, "w", encoding="utf-8") as f:

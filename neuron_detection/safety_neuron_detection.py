@@ -33,7 +33,7 @@ if tokenizer.pad_token is None:
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
     device_map="auto",
-    torch_dtype=torch.float16,
+    torch_dtype=torch.bfloat16,
 )
 model.eval()
 
