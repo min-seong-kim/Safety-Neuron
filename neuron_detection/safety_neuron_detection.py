@@ -32,7 +32,7 @@ if tokenizer.pad_token is None:
 
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
-    device_map="auto",
+    device_map={"":  0},  # Force all layers to cuda:0 (single GPU)
     torch_dtype=torch.bfloat16,
 )
 model.eval()
@@ -193,7 +193,7 @@ def detect_safety_neurons_threshold(
             return_tensors="pt",
             padding=True,
             truncation=True,
-            max_length=512,
+            max_length=1024,
         )
 
         device = next(model.parameters()).device
@@ -209,7 +209,7 @@ def detect_safety_neurons_threshold(
                     act = output[0]
                 else:
                     act = output
-                # Keep activations on GPU to avoid expensive GPU->CPU transfer.
+                # Keep activations on GPU (model is on single cuda:0)
                 activations_dict[name] = act.detach()
             return hook
 
@@ -456,19 +456,14 @@ def main(argv):
     with open(file_path, "r", encoding="utf-8") as f:
         records = json.load(f)
 
-    lines = []
-    for item in records:
-        if not isinstance(item, dict):
-            continue
-        prompt = item.get("prompt", "")
-        if isinstance(prompt, str) and prompt.strip():
-            lines.append(prompt.strip())
-
-    if not lines:
+    if not records:
         logger.error(f"No valid 'prompt' entries found in: {file_path}")
         sys.exit(1)
 
-    lines = random.sample(lines, min(num_prompts, len(lines)))
+    if len(records) > num_prompts:
+        records = records[:num_prompts]
+
+    lines = [item.get("prompt", "") for item in records]
 
     logger.info(f"Processing {len(lines)} prompts from {file_path}")
 

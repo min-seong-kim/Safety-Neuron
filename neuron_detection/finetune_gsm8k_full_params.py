@@ -5,8 +5,8 @@ Trainer + AdamW 8-bit optimizer (bitsandbytes) 사용으로 메모리 효율성 
 
 Example Usage:
 python finetune_gsm8k_full_params.py \
-    --model_path /home/gokms0509/Safety-Neuron/neuron_detection/only_rsn_tuned_model_20260313_020657 \
-    --output_dir ./gsm8k_fullft_after_rsn-tune 
+    --model_path kmseong/Llama-3.2-3B-SSFT \
+    --output_dir ./epoch5_full_finetune_gsm8k 
 """
 
 import argparse
@@ -25,6 +25,7 @@ from transformers import (
     TrainingArguments,
     set_seed,
 )
+from torch.optim import Adam
 
 
 def parse_args():
@@ -46,18 +47,18 @@ def parse_args():
     p.add_argument("--seed", type=int, default=42)
     
     # training
-    p.add_argument("--batch_size", type=int, default=2)
+    p.add_argument("--batch_size", type=int, default=1)
     p.add_argument("--eval_batch_size", type=int, default=8)
     p.add_argument("--grad_accum", type=int, default=4)
-    p.add_argument("--epochs", type=int, default=3)
-    p.add_argument("--learning_rate", type=float, default=1e-5)
-    p.add_argument("--weight_decay", type=float, default=0.01)
-    p.add_argument("--warmup_ratio", type=float, default=0.1)
-    p.add_argument("--lr_scheduler_type", type=str, default="cosine")
+    p.add_argument("--epochs", type=int, default=5)
+    p.add_argument("--learning_rate", type=float, default=2e-5)
+    p.add_argument("--weight_decay", type=float, default=0.0)
+    p.add_argument("--warmup_ratio", type=float, default=0.0)
+    p.add_argument("--lr_scheduler_type", type=str, default="linear")
     p.add_argument("--max_grad_norm", type=float, default=1.0)
     
     # seq
-    p.add_argument("--max_length", type=int, default=512)
+    p.add_argument("--max_length", type=int, default=1024)
     
     # memory/speed knobs
     p.add_argument("--bf16", action="store_true", default=True)
@@ -67,8 +68,6 @@ def parse_args():
     # logging/saving
     p.add_argument("--output_dir", type=str, default='./gsm8k_sn_tune_full_finetune')
     p.add_argument("--logging_steps", type=int, default=10)
-    p.add_argument("--save_steps", type=int, default=500)
-    p.add_argument("--save_total_limit", type=int, default=2)
     p.add_argument("--eval_steps", type=int, default=500)
     p.add_argument("--report_to", type=str, default="none")
     p.add_argument("--num_workers", type=int, default=4)
@@ -190,9 +189,11 @@ def main():
     os.makedirs(args.output_dir, exist_ok=True)
     set_seed(args.seed)
     
-    # 로컬 경로를 절대 경로로 변환 (transformers가 상대 경로를 Hub repo로 인식하는 문제 해결)
-    model_path = os.path.abspath(args.model_path)
-    
+    # 로컬 경로(./  또는 /로 시작)만 절대 경로로 변환, HuggingFace Hub ID는 그대로 유지
+    raw_path = args.model_path
+    is_local = raw_path.startswith("./") or raw_path.startswith("/") or raw_path.startswith("../")
+    model_path = os.path.abspath(raw_path) if is_local else raw_path
+
     # 로깅 설정
     logger, log_file = setup_logging(args.output_dir)
     
@@ -201,8 +202,8 @@ def main():
     logger.info(f"{'='*70}\n")
     logger.info(f"Log file: {log_file}")
     
-    # 모델 경로 존재 확인
-    if not os.path.exists(model_path):
+    # 로컬 경로인 경우에만 존재 여부 확인
+    if is_local and not os.path.exists(model_path):
         logger.error(f"Model path does not exist: {model_path}")
         raise FileNotFoundError(f"Model path not found: {model_path}")
     
@@ -215,7 +216,7 @@ def main():
     logger.info(f"   ├─ Epochs: {args.epochs}")
     logger.info(f"   ├─ Learning rate: {args.learning_rate}")
     logger.info(f"   ├─ Weight decay: {args.weight_decay}")
-    logger.info(f"   ├─ Optimizer: adamw_bnb_8bit (memory efficient)")
+    logger.info(f"   ├─ Optimizer: Adam (memory efficient)")
     logger.info(f"   ├─ Warmup ratio: {args.warmup_ratio}")
     logger.info(f"   ├─ Max length: {args.max_length}")
     logger.info(f"   ├─ Dtype: bf16")
@@ -371,7 +372,7 @@ def main():
 
     # Training
     logger.info(f"\n{'='*70}")
-    logger.info(f"  [4/4] Training with Trainer + AdamW 8-bit")
+    logger.info(f"  [4/4] Training with Trainer + Adam")
     logger.info(f"{'='*70}\n")
     
     data_collator = DataCollatorForCausalLMWithPadding(tokenizer)
@@ -396,8 +397,8 @@ def main():
         fp16=args.fp16,
         report_to=args.report_to,
         remove_unused_columns=False,
-        # 핵심: AdamW 8-bit optimizer (메모리 효율적)
-        optim="adamw_bnb_8bit",
+        # 핵심: Adam optimizer (메모리 효율적)
+        optim="adamw_torch",
         dataloader_pin_memory=False,
         seed=args.seed,
     )
@@ -418,122 +419,11 @@ def main():
     logger.info(f"\n{'='*70}")
     logger.info(f"  Saving Fine-tuned Model")
     logger.info(f"{'='*70}\n")
+    trainer.save_model(args.output_dir)
+    tokenizer.save_pretrained(args.output_dir)
     
-    try:
-        import gc
-        
-        # 1️⃣ 메모리 정리 및 최적화
-        logger.info("Step 1: Preparing model for saving...")
-        gc.collect()  # Python garbage collection
-        torch.cuda.empty_cache()  # Clear GPU cache
-        
-        # 2️⃣ 모델을 CPU로 옮김 (가장 중요!)
-        logger.info("Step 2: Moving model to CPU for safe serialization...")
-        model = model.cpu()
-        gc.collect()
-        torch.cuda.empty_cache()
-        
-        # 3️⃣ 모델 저장 (최대한 안전한 방식)
-        logger.info("Step 3: Saving model weights directly (not via Trainer)...")
-        logger.info(f"   ├─ Using safe_serialization=True (safetensors)")
-        logger.info(f"   ├─ Output directory: {os.path.abspath(args.output_dir)}")
-        
-        # Trainer 거치지 않고 직접 저장 (더 안전)
-        model.save_pretrained(
-            args.output_dir,
-            safe_serialization=True,
-            max_shard_size="4GB",  # 4GB 이하로 분할
-            push_to_hub=False,
-        )
-        logger.info(f"   └─ ✅ Model weights saved successfully")
-        
-        # 4️⃣ Tokenizer 저장
-        logger.info("Step 4: Saving tokenizer...")
-        tokenizer.save_pretrained(
-            args.output_dir,
-            safe_serialization=True
-        )
-        logger.info(f"   └─ ✅ Tokenizer saved")
-        
-        # 5️⃣ Config 및 생성 설정 저장
-        logger.info("Step 5: Saving model config and generation settings...")
-        model.config.save_pretrained(args.output_dir)
-        if hasattr(model, 'generation_config'):
-            model.generation_config.save_pretrained(args.output_dir)
-        logger.info(f"   └─ ✅ Configs saved")
-        
-        # 6️⃣ 저장 검증
-        logger.info("Step 6: Verifying saved model integrity...")
-        required_files = ['config.json', 'tokenizer_config.json', 'tokenizer.json']
-        missing_files = []
-        for fname in required_files:
-            fpath = os.path.join(args.output_dir, fname)
-            if not os.path.exists(fpath):
-                missing_files.append(fname)
-            else:
-                size = os.path.getsize(fpath)
-                if size == 0:
-                    logger.warning(f"   ⚠️  {fname} is empty!")
-                    missing_files.append(fname)
-        
-        if missing_files:
-            raise FileNotFoundError(f"Missing/corrupted files: {missing_files}")
-        
-        # 모델 파일 존재 확인 (safetensors)
-        model_files = [f for f in os.listdir(args.output_dir) 
-                      if f.endswith('.safetensors')]
-        if not model_files:
-            raise FileNotFoundError("No safetensors files found after save!")
-        
-        logger.info(f"   ├─ ✅ Found {len(model_files)} model shard file(s)")
-        
-        # 7️⃣ 파일 크기 로깅 및 최종 확인
-        logger.info(f"\n📦 Saved files:")
-        total_size = 0
-        for fname in sorted(os.listdir(args.output_dir)):
-            fpath = os.path.join(args.output_dir, fname)
-            if os.path.isfile(fpath):
-                size = os.path.getsize(fpath)
-                total_size += size
-                if size > 1e6:  # > 1MB인 파일만 표시
-                    logger.info(f"   ├─ {fname:40} {size/1e9:>8.3f} GB")
-                    
-        logger.info(f"   └─ Total size: {total_size/1e9:.2f} GB ✅")
-        
-        # 8️⃣ 최종 검증: 모델 로드 가능 확인
-        logger.info(f"\nStep 7: Final verification - attempting to load saved model...")
-        try:
-            test_tokenizer = AutoTokenizer.from_pretrained(args.output_dir)
-            # 메모리 절약을 위해 메타 데이터만 로드
-            test_model = AutoModelForCausalLM.from_pretrained(
-                args.output_dir,
-                device_map="cpu",
-                torch_dtype=torch.float32,
-                low_cpu_mem_usage=True,
-            )
-            logger.info(f"   └─ ✅ Model loads successfully - integrity verified!")
-            del test_model
-            del test_tokenizer
-            gc.collect()
-        except Exception as load_err:
-            logger.error(f"   ❌ CRITICAL: Saved model cannot be loaded: {load_err}")
-            logger.error(f"      This means the save operation was incomplete!")
-            raise RuntimeError(f"Model save verification failed: {load_err}") from load_err
-        
-        logger.info(f"\n✅✅✅ Fine-tuned model saved and verified successfully!")
-        logger.info(f"   Output directory: {os.path.abspath(args.output_dir)}")
-        logger.info(f"   Total size: {total_size/1e9:.2f} GB")
-        logger.info(f"   Status: ✅ READY FOR EVALUATION")
-        
-    except Exception as e:
-        logger.error(f"\n❌❌❌ CRITICAL ERROR during model saving: {e}")
-        logger.error(f"   {type(e).__name__}: {str(e)}")
-        logger.error(f"   Output directory may be incomplete: {args.output_dir}")
-        logger.error(f"   Please check the directory contents before using this model!")
-        import traceback
-        logger.error(traceback.format_exc())
-        raise
-    
+    logger.info(f"✅ Fine-tuned model saved successfully to {args.output_dir}")
+
     # Save training config
     import json
     config = {
@@ -550,7 +440,7 @@ def main():
         'max_length': args.max_length,
         'max_grad_norm': args.max_grad_norm,
         'lr_scheduler_type': args.lr_scheduler_type,
-        'optimizer': 'adamw_bnb_8bit',
+        'optimizer': 'Adam',
         'gradient_checkpointing': True,
         'dtype': 'bf16',
         'trainer_type': 'Trainer',

@@ -14,7 +14,7 @@ Step 1: Utility Neuron Detection from Wikipedia
   python detect_utility_neurons.py [num_docs] [model_name]
   
   예시:
-    python foundation_neuron_detection.py 1000
+    python foundation_neuron_detection.py 4994
 
 시간/메모리:
   - 입력: Wikipedia 문서 (권장: 1000개)
@@ -53,7 +53,7 @@ if tokenizer.pad_token is None:
 
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
-    device_map="auto",
+    device_map={"": 0},  # Force all layers to cuda:0 (single GPU)
     torch_dtype=torch.bfloat16,
 )
 model.eval()
@@ -63,8 +63,8 @@ HIDDEN_DIM = 3072
 TOTAL_NEURONS = NUM_LAYERS * HIDDEN_DIM
 
 # Threshold hyperparameters
-FFN_ACTIVE_FRACTION = 0.05
-ATTN_ACTIVE_FRACTION = 0.05
+FFN_ACTIVE_FRACTION = 0.1
+ATTN_ACTIVE_FRACTION = 0.1
 MIN_NEURONS_FOR_QUANTILE = 10
 
 
@@ -185,7 +185,7 @@ def detect_safety_neurons_threshold(
             return_tensors="pt",
             padding=True,
             truncation=True,
-            max_length=512,
+            max_length=1024,
         )
 
         device = next(model.parameters()).device
@@ -199,7 +199,7 @@ def detect_safety_neurons_threshold(
                     act = output[0]
                 else:
                     act = output
-                activations_dict[name] = act.detach().cpu()
+                activations_dict[name] = act.detach()
             return hook
 
         hooks = []
@@ -393,19 +393,17 @@ def load_wikipedia_data(num_samples: int = 1000) -> List[str]:
         texts = []
         logger.info(f"Sampling {num_samples} documents from Wikipedia...")
         
-        # Get random indices
+        # Get random indices (seed fixed for reproducibility across runs)
         total_size = len(dataset)
+        random.seed(112)
         random_indices = random.sample(range(total_size), min(num_samples, total_size))
         
         for idx in tqdm(random_indices, desc="Loading Wikipedia docs"):
             try:
                 text = dataset[idx]['text']
-                # Take first sentence or paragraph (max 512 tokens)
-                sentences = text.split('.')
-                if sentences:
-                    texts.append(sentences[0].strip()[:512])
+                if text.strip():
+                    texts.append(text)
             except Exception as e:
-                logger.warning(f"Error processing sample {idx}: {e}")
                 continue
         
         logger.info(f"Successfully loaded {len(texts)} Wikipedia samples")

@@ -8,7 +8,7 @@ Safety Neuron Tuning (SN-Tune)
 
 # SN-Tune
 python sn_tune.py \
-  ./output_neurons/safety_neuron_threshold_20260331_085057.txt \
+  ./output_neurons/safety_neuron_threshold_20260404_232048.txt \
   ./corpus_all/circuit_breakers_train.json \
   ./only_sn_tuned_model
 
@@ -22,15 +22,17 @@ python sn_tune.py \
 import os
 import sys
 import json
+import math
 import torch
 import torch.nn as nn
-from bitsandbytes.optim import AdamW8bit
+from torch.optim import AdamW
 from torch.utils.data import Dataset, DataLoader
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, get_linear_schedule_with_warmup
 from tqdm import tqdm
 import logging
 from datetime import datetime
 import ast
+from contextlib import nullcontext
 
 logger = logging.getLogger(__name__)
 
@@ -73,12 +75,12 @@ model_name = "meta-llama/Llama-3.2-3B"
 NUM_LAYERS = 28
 
 # SN-Tune hyperparameters
-LEARNING_RATE = 1e-5  # Very small LR as per paper
-NUM_EPOCHS = 3  # 1 epoch fine-tuning
-BATCH_SIZE = 2
+LEARNING_RATE = 1e-5
+NUM_EPOCHS = 3
+BATCH_SIZE = 4
 GRAD_ACCUM_STEPS = 4
-MAX_SEQ_LENGTH = 512
-MAX_SAMPLES = 4994  # Use only 50 samples for fine-tuning
+MAX_SEQ_LENGTH = 1024
+MAX_SAMPLES = 4994
 
 # Device
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -92,7 +94,7 @@ class SafetyDataset(Dataset):
     Circuit Breakers dataset for safety alignment
     """
     
-    def __init__(self, json_path, tokenizer, max_samples=None, max_length=512):
+    def __init__(self, json_path, tokenizer, max_samples=None, max_length=1024):
         """
         Args:
             json_path: Path to circuit_breakers_train.json
@@ -379,9 +381,10 @@ def train_sn_tune(
     model,
     tokenizer,
     train_dataloader,
-    learning_rate=1e-6,
-    num_epochs=1,
+    learning_rate=1e-5,
+    num_epochs=3,
     grad_accum_steps=4,
+    warmup_ratio=0.1,
     device=DEVICE,
 ):
     """
@@ -395,14 +398,25 @@ def train_sn_tune(
         num_epochs: Number of epochs
         device: Device to use
     """
-    model = model.to(device)
     model.train()
+
+    # Match batch tensor device to the model device to avoid cuda:0/cuda:1 mismatch.
+    model_device = next(model.parameters()).device
+    if str(device) != str(model_device):
+        logger.warning(f"Requested device={device}, but model is on {model_device}. Using model device.")
+    device = model_device
     
     # Only optimize trainable parameters
-    optimizer = AdamW8bit(
+    optimizer = AdamW(
         filter(lambda p: p.requires_grad, model.parameters()),
         lr=learning_rate,
-        weight_decay=0.0
+        weight_decay=0.01
+    )
+
+    total_optimization_steps = num_epochs * math.ceil(len(train_dataloader) / grad_accum_steps)
+    warmup_steps = int(total_optimization_steps * warmup_ratio)
+    scheduler = get_linear_schedule_with_warmup(
+        optimizer, num_warmup_steps=warmup_steps, num_training_steps=total_optimization_steps
     )
     
     total_loss = 0.0
@@ -416,6 +430,8 @@ def train_sn_tune(
     logger.info(f"  Grad accum steps: {grad_accum_steps}")
     logger.info(f"  Effective batch size: {BATCH_SIZE * grad_accum_steps}")
     logger.info(f"  Num batches: {len(train_dataloader)}")
+    logger.info(f"  Total optimization steps: {total_optimization_steps}")
+    logger.info(f"  Warmup steps: {warmup_steps}")
     
     for epoch in range(num_epochs):
         logger.info(f"\nEpoch {epoch + 1}/{num_epochs}")
@@ -443,7 +459,12 @@ def train_sn_tune(
                 optimizer.zero_grad(set_to_none=True)
 
             # Forward pass
-            with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
+            amp_ctx = (
+                torch.autocast(device_type="cuda", dtype=torch.bfloat16)
+                if device.type == "cuda"
+                else nullcontext()
+            )
+            with amp_ctx:
                 outputs = model(
                     input_ids=input_ids,
                     attention_mask=attention_mask,
@@ -486,6 +507,8 @@ def train_sn_tune(
                     max_norm=1.0
                 )
                 optimizer.step()
+                scheduler.step()
+                optimizer.zero_grad(set_to_none=True)
                 optimizer_steps += 1
 
             loss_val = loss.item()
@@ -553,6 +576,7 @@ def main(argv):
     safety_neurons_file = argv[0]
     safety_dataset_json = argv[1]
     output_dir = argv[2] if len(argv) > 2 else "./sn_tuned_model"
+    learning_rate = float(argv[3]) if len(argv) > 3 else LEARNING_RATE
 
     log_file = setup_logging()
     
@@ -583,11 +607,13 @@ def main(argv):
     
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        device_map="auto",
-        torch_dtype=torch.bfloat16,  # bfloat16로 변경 (float16의 numerical instability 해결)
+        device_map={"": 1},  # Force all layers to cuda:1 (single GPU)
+        torch_dtype=torch.bfloat16,
     )
     model.eval()
     logger.info("✓ Model and tokenizer loaded (bfloat16)")
+    model_device = next(model.parameters()).device
+    logger.info(f"✓ Model loaded on device: {model_device}")
     
     # =====================================================================
     # 2. Load safety neurons
@@ -615,8 +641,9 @@ def main(argv):
     train_dataloader = DataLoader(
         safety_dataset,
         batch_size=BATCH_SIZE,
-        shuffle=True,
-        num_workers=0
+        shuffle=False,
+        num_workers=0,
+        generator=torch.Generator().manual_seed(112),
     )
     logger.info(f"✓ DataLoader created: {len(train_dataloader)} batches")
     logger.info(f"  Total samples: {len(safety_dataset)}")
@@ -632,17 +659,19 @@ def main(argv):
         model,
         tokenizer,
         train_dataloader,
-        learning_rate=LEARNING_RATE,
+        learning_rate=learning_rate,
         num_epochs=NUM_EPOCHS,
         grad_accum_steps=GRAD_ACCUM_STEPS,
-        device=DEVICE,
+        warmup_ratio=0.1,
+        device=model_device,
     )
     
     # =====================================================================
     # 6. Save fine-tuned model
     # =====================================================================
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    final_output_dir = f"{output_dir}_{timestamp}"
+    lr_str = f"lr{learning_rate:.0e}".replace("-0", "-").replace("+0", "")
+    final_output_dir = f"{output_dir}_{lr_str}_{timestamp}"
     
     logger.info(f"\nSaving fine-tuned model...")
     save_sn_tuned_model(model, tokenizer, final_output_dir)

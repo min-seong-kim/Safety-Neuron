@@ -5,7 +5,10 @@ Usage:
     python upload_sn_tuned_model.py <model_local_path> --repo_id <username/model_name> [--hf_token <token>]
 
 Example:
-    python upload_sn_tuned_model.py ./only_sn_tuned_model_20260331_093205 --repo_id kmseong/llama3.2-3b-sn-tune-1.3p --hf_token hf_xxx
+    python upload_sn_tuned_model.py ./only_sn_tuned_model_lr1e-5_20260405_000039 --repo_id kmseong/llama3.2_3b_only_sn_tuned_lr1e-5 --hf_token 
+    python upload_sn_tuned_model.py ./only_sn_tuned_model_lr3e-5_20260405_001116 --repo_id kmseong/llama3.2_3b_only_sn_tuned_lr3e-5 --hf_token 
+    python upload_sn_tuned_model.py ./only_sn_tuned_model_lr5e-5_20260405_002152 --repo_id kmseong/llama3.2_3b_only_sn_tuned_lr5e-5 --hf_token 
+    
 """
 
 import argparse
