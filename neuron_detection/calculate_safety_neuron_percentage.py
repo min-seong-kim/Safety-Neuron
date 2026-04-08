@@ -3,7 +3,7 @@ Calculate the percentage of detected safety neurons against model-wide neuron co
 
 Usage:
 python calculate_safety_neuron_percentage.py \
-  --neuron_file ./output_neurons/critical-safety-neuron_20260310_135913.txt \
+  --neuron_file ./output_neurons/critical-safety-neuron_20260406_201744.txt \
   --model_name meta-llama/Llama-3.2-3B
 """
 

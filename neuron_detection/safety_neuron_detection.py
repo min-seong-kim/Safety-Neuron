@@ -49,8 +49,8 @@ TOTAL_NEURONS = NUM_LAYERS * HIDDEN_DIM
 # ------------------------------------------------------------------
 # 각 layer/module에서 "최상위 몇 %의 뉴런을 활성 뉴런으로 볼 것인가?"
 # 예: 0.005 -> 상위 0.5% (논문: safety neuron은 전체의 <1% 라는 관찰과 일치)
-FFN_ACTIVE_FRACTION = 0.1
-ATTN_ACTIVE_FRACTION = 0.1
+FFN_ACTIVE_FRACTION = 0.25
+ATTN_ACTIVE_FRACTION = 0.25
 
 # quantile 연산 시 최소 샘플 수가 너무 적을 때를 대비한 safeguard
 MIN_NEURONS_FOR_QUANTILE = 10

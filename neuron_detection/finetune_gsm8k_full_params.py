@@ -5,8 +5,8 @@ Trainer + AdamW 8-bit optimizer (bitsandbytes) 사용으로 메모리 효율성 
 
 Example Usage:
 python finetune_gsm8k_full_params.py \
-    --model_path kmseong/Llama-3.2-3B-SSFT \
-    --output_dir ./epoch5_full_finetune_gsm8k 
+    --model_path kmseong/llama3.2_3b_only_rsn_tuned_lr3e-5 \
+    --output_dir ./full_finetune_gsm8k 
 """
 
 import argparse
@@ -47,14 +47,14 @@ def parse_args():
     p.add_argument("--seed", type=int, default=42)
     
     # training
-    p.add_argument("--batch_size", type=int, default=1)
-    p.add_argument("--eval_batch_size", type=int, default=8)
+    p.add_argument("--batch_size", type=int, default=4)
+    p.add_argument("--eval_batch_size", type=int, default=4)
     p.add_argument("--grad_accum", type=int, default=4)
-    p.add_argument("--epochs", type=int, default=5)
-    p.add_argument("--learning_rate", type=float, default=2e-5)
-    p.add_argument("--weight_decay", type=float, default=0.0)
-    p.add_argument("--warmup_ratio", type=float, default=0.0)
-    p.add_argument("--lr_scheduler_type", type=str, default="linear")
+    p.add_argument("--epochs", type=int, default=3)
+    p.add_argument("--learning_rate", type=float, default=1e-5)
+    p.add_argument("--weight_decay", type=float, default=0.01)
+    p.add_argument("--warmup_ratio", type=float, default=0.1)
+    p.add_argument("--lr_scheduler_type", type=str, default="cosine")
     p.add_argument("--max_grad_norm", type=float, default=1.0)
     
     # seq
@@ -82,16 +82,66 @@ def _select_first_n(ds, n: int):
     return ds.select(range(n))
 
 
+def is_instruct_model(model_ref: str) -> bool:
+    return "instruct" in str(model_ref).lower()
+
+
 def build_chat_prompt(question: str, tokenizer) -> str:
-    """베이스 모델용 프롬프트 빌딩 (finetune_gsm8k_SFT.py와 동일)"""
+    """베이스 모델용 프롬프트 빌딩"""
     system_msg = "You are a helpful assistant that solves math problems step by step. Always show your reasoning and provide the final numerical answer after ####."
     user_msg = f"Solve this problem step by step:\n\n{question.strip()}"
     prompt = f"{system_msg}\n\nUser: {user_msg}\n\nAssistant:"
     return prompt
 
 
-def tokenize_sft_example(prompt_text: str, answer_text: str, tokenizer, max_length: int) -> Dict[str, List[int]]:
-    """SFT 형식으로 토큰화: 프롬프트는 attention, 답변만 loss 계산"""
+def tokenize_sft_example(question: str, answer_text: str, tokenizer, max_length: int, model_ref: str) -> Dict[str, List[int]]:
+    """SFT 형식으로 토큰화: base는 plain prompt, instruct는 chat template 사용"""
+    question = str(question).strip()
+    answer_text = str(answer_text).strip()
+
+    if is_instruct_model(model_ref):
+        try:
+            prompt_text = tokenizer.apply_chat_template(
+                [{"role": "user", "content": question}],
+                tokenize=False,
+                add_generation_prompt=True,
+            )
+            full_text = tokenizer.apply_chat_template(
+                [
+                    {"role": "user", "content": question},
+                    {"role": "assistant", "content": answer_text},
+                ],
+                tokenize=False,
+                add_generation_prompt=False,
+            )
+
+            prompt_ids = tokenizer(
+                prompt_text,
+                add_special_tokens=False,
+                truncation=True,
+                max_length=max_length,
+            )["input_ids"]
+            full_ids = tokenizer(
+                full_text,
+                add_special_tokens=False,
+                truncation=True,
+                max_length=max_length,
+            )["input_ids"]
+
+            labels = full_ids.copy()
+            prompt_len = min(len(prompt_ids), len(labels))
+            for i in range(prompt_len):
+                labels[i] = -100
+
+            return {
+                "input_ids": full_ids,
+                "attention_mask": [1] * len(full_ids),
+                "labels": labels,
+            }
+        except Exception:
+            pass
+
+    prompt_text = build_chat_prompt(question, tokenizer)
     prompt_ids = tokenizer(
         prompt_text,
         add_special_tokens=False,
@@ -198,7 +248,7 @@ def main():
     logger, log_file = setup_logging(args.output_dir)
     
     logger.info(f"\n{'='*70}")
-    logger.info(f"  🚀 Full Parameter GSM8K Fine-tuning (SN-Tuned Model - Llama 3.2-3B Base)")
+    logger.info(f"  🚀 Full Parameter GSM8K Fine-tuning (SN-Tuned Model)")
     logger.info(f"{'='*70}\n")
     logger.info(f"Log file: {log_file}")
     
@@ -209,14 +259,14 @@ def main():
     
     logger.info(f"⚙️  Configuration:")
     logger.info(f"   ├─ SN-Tuned model: {model_path}")
-    logger.info(f"   ├─ Base model: meta-llama/Llama-3.2-3B")
+    logger.info(f"   ├─ Input formatting: {'chat template' if is_instruct_model(model_path) else 'base plain prompt'}")
     logger.info(f"   ├─ Training samples: {args.num_train_samples}")
     logger.info(f"   ├─ Batch size: {args.batch_size}")
     logger.info(f"   ├─ Gradient accumulation: {args.grad_accum}")
     logger.info(f"   ├─ Epochs: {args.epochs}")
     logger.info(f"   ├─ Learning rate: {args.learning_rate}")
     logger.info(f"   ├─ Weight decay: {args.weight_decay}")
-    logger.info(f"   ├─ Optimizer: Adam (memory efficient)")
+    logger.info(f"   ├─ Optimizer: AdamW (torch)")
     logger.info(f"   ├─ Warmup ratio: {args.warmup_ratio}")
     logger.info(f"   ├─ Max length: {args.max_length}")
     logger.info(f"   ├─ Dtype: bf16")
@@ -313,7 +363,7 @@ def main():
     logger.info(f"   ├─ Model size: {total_params / 1e9:.2f}B parameters")
     logger.info(f"   ├─ Trainable: {trainable_params / 1e9:.2f}B ({100 * trainable_params / total_params:.2f}%)")
     logger.info(f"   ├─ Dtype: {model.dtype}")
-    logger.info(f"   └─ Gradient checkpointing: Enabled")
+    logger.info(f"   └─ Gradient checkpointing: {'Enabled' if args.gradient_checkpointing else 'Disabled'}")
 
     # Load dataset
     logger.info(f"\n{'='*70}")
@@ -348,9 +398,9 @@ def main():
     logger.info(f"{'='*70}\n")
     
     def preprocess(ex):
-        prompt = build_chat_prompt(ex["question"], tokenizer)
+        question = ex["question"]
         answer = ex["answer"]
-        return tokenize_sft_example(prompt, answer, tokenizer, args.max_length)
+        return tokenize_sft_example(question, answer, tokenizer, args.max_length, model_path)
 
     train_tok = train_ds.map(
         preprocess,
@@ -372,7 +422,7 @@ def main():
 
     # Training
     logger.info(f"\n{'='*70}")
-    logger.info(f"  [4/4] Training with Trainer + Adam")
+    logger.info(f"  [4/4] Training with Trainer + AdamW")
     logger.info(f"{'='*70}\n")
     
     data_collator = DataCollatorForCausalLMWithPadding(tokenizer)
@@ -440,8 +490,8 @@ def main():
         'max_length': args.max_length,
         'max_grad_norm': args.max_grad_norm,
         'lr_scheduler_type': args.lr_scheduler_type,
-        'optimizer': 'Adam',
-        'gradient_checkpointing': True,
+        'optimizer': 'AdamW (torch)',
+        'gradient_checkpointing': args.gradient_checkpointing,
         'dtype': 'bf16',
         'trainer_type': 'Trainer',
     }

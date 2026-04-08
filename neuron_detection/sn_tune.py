@@ -8,15 +8,15 @@ Safety Neuron Tuning (SN-Tune)
 
 # SN-Tune
 python sn_tune.py \
-  ./output_neurons/safety_neuron_threshold_20260404_232048.txt \
+  ./output_neurons/safety_neuron_threshold_20260406_172646.txt \
   ./corpus_all/circuit_breakers_train.json \
-  ./only_sn_tuned_model
+  ./only_sn_tuned_model_lr3e-5 
 
 # RSN-Tune
 python sn_tune.py \
-  ./output_neurons/critical-safety-neuron_20260401_115452.txt \
+  ./output_neurons/critical_safety_neuron_20260408_212408.txt \
   ./corpus_all/circuit_breakers_train.json \
-  ./only_rsn_tuned_model
+  ./only_rsn_tuned_model_lr3e-5
 """
 
 import os
@@ -27,7 +27,7 @@ import torch
 import torch.nn as nn
 from torch.optim import AdamW
 from torch.utils.data import Dataset, DataLoader
-from transformers import AutoModelForCausalLM, AutoTokenizer, get_linear_schedule_with_warmup
+from transformers import AutoModelForCausalLM, AutoTokenizer, get_cosine_schedule_with_warmup
 from tqdm import tqdm
 import logging
 from datetime import datetime
@@ -75,7 +75,7 @@ model_name = "meta-llama/Llama-3.2-3B"
 NUM_LAYERS = 28
 
 # SN-Tune hyperparameters
-LEARNING_RATE = 1e-5
+LEARNING_RATE = 3e-5
 NUM_EPOCHS = 3
 BATCH_SIZE = 4
 GRAD_ACCUM_STEPS = 4
@@ -131,8 +131,9 @@ class SafetyDataset(Dataset):
         harmful_prompt = item.get('prompt', '')
         safe_response = item.get('llama3_output', '')
         
-        # Combine into training text: harmful_prompt + safe_response
-        full_text = f"{harmful_prompt} {safe_response}"
+        # Phase 0 SSFT와 동일하게 prompt는 context로만 넣고, response만 학습합니다.
+        prompt_text = f"Question: {harmful_prompt}\nAnswer:"
+        full_text = f"{prompt_text} {safe_response}"
         
         encodings = self.tokenizer(
             full_text,
@@ -141,9 +142,17 @@ class SafetyDataset(Dataset):
             max_length=self.max_length,
             return_tensors='pt'
         )
+        prompt_encodings = self.tokenizer(
+            prompt_text,
+            truncation=True,
+            max_length=self.max_length,
+            return_tensors='pt'
+        )
         
-        # Labels: 패딩 토큰을 -100으로 설정 (loss 계산에서 무시됨)
+        # Labels: harmful prompt 구간과 padding 토큰을 -100으로 설정
         labels = encodings['input_ids'].clone()
+        prompt_length = prompt_encodings['input_ids'].size(1)
+        labels[:, :prompt_length] = -100
         labels[encodings['attention_mask'] == 0] = -100
         
         return {
@@ -415,7 +424,7 @@ def train_sn_tune(
 
     total_optimization_steps = num_epochs * math.ceil(len(train_dataloader) / grad_accum_steps)
     warmup_steps = int(total_optimization_steps * warmup_ratio)
-    scheduler = get_linear_schedule_with_warmup(
+    scheduler = get_cosine_schedule_with_warmup(
         optimizer, num_warmup_steps=warmup_steps, num_training_steps=total_optimization_steps
     )
     
@@ -450,9 +459,9 @@ def train_sn_tune(
                 logger.info(f"  Sequence length: {input_ids.shape[1]}")
                 logger.info(f"  Device: {input_ids.device}")
                 
-                # Count valid labels (not -100)
+                # Count valid labels (response-only, excluding prompt/padding)
                 valid_labels = (labels != -100).sum().item()
-                logger.info(f"  Valid labels (non-padding): {valid_labels}/{labels.numel()}")
+                logger.info(f"  Valid labels (response-only): {valid_labels}/{labels.numel()}")
             
             # Gradient accumulation 시작
             if batch_idx % grad_accum_steps == 0:

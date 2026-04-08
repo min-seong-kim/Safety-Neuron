@@ -3,12 +3,16 @@ Upload SN-Tuned Model to Hugging Face Hub
 
 Usage:
     python upload_sn_tuned_model.py <model_local_path> --repo_id <username/model_name> [--hf_token <token>]
+    python upload_sn_tuned_model.py --upload_pair <model_local_path> <username/model_name> [--upload_pair <model_local_path> <username/model_name> ...] [--hf_token <token>]
 
 Example:
-    python upload_sn_tuned_model.py ./only_sn_tuned_model_lr1e-5_20260405_000039 --repo_id kmseong/llama3.2_3b_only_sn_tuned_lr1e-5 --hf_token 
-    python upload_sn_tuned_model.py ./only_sn_tuned_model_lr3e-5_20260405_001116 --repo_id kmseong/llama3.2_3b_only_sn_tuned_lr3e-5 --hf_token 
-    python upload_sn_tuned_model.py ./only_sn_tuned_model_lr5e-5_20260405_002152 --repo_id kmseong/llama3.2_3b_only_sn_tuned_lr5e-5 --hf_token 
-    
+
+python upload_sn_tuned_model.py \
+    --upload_pair ./only_rsn_tuned_model_lr3e-5_lr3e-5_20260408_213540 kmseong/llama3.2_3b_only_rsn_tuned_lr3e-5 \
+    --upload_pair ./sn_tune_gsm8k_ft_freeze_sn_lr1e-5_20260408_095736 kmseong/llama3.2_3b_gsm8k_ft_1e-5_after_rsn_tuned_lr3e-5_fz \
+    --upload_pair ./sn_tune_gsm8k_ft_freeze_sn_lr3e-5_20260408_100415 kmseong/llama3.2_3b_gsm8k_ft_3e-5_after_rsn_tuned_lr3e-5_fz \
+    --upload_pair ./sn_tune_gsm8k_ft_freeze_sn_lr5e-5_20260408_101102 kmseong/llama3.2_3b_gsm8k_ft_5e-5_after_rsn_tuned_lr3e-5_fz
+   
 """
 
 import argparse
@@ -24,12 +28,18 @@ logger = logging.getLogger(__name__)
 
 def parse_args(argv):
     p = argparse.ArgumentParser(description="Upload SN-tuned model to Hugging Face Hub")
-    p.add_argument("model_path", type=str, help="Local model directory path")
+    p.add_argument("model_path", type=str, nargs="?", help="Local model directory path")
     p.add_argument(
         "--repo_id",
         type=str,
-        required=True,
         help="Target Hugging Face repository id, e.g. kmseong/my-model",
+    )
+    p.add_argument(
+        "--upload_pair",
+        nargs=2,
+        action="append",
+        metavar=("MODEL_PATH", "REPO_ID"),
+        help="Upload multiple model/repo pairs in one run. Repeat this option for each pair.",
     )
     p.add_argument(
         "--hf_token",
@@ -37,7 +47,21 @@ def parse_args(argv):
         default=None,
         help="Hugging Face access token. If omitted, use HF_TOKEN/HUGGINGFACE_TOKEN or cached login.",
     )
-    return p.parse_args(argv)
+    args = p.parse_args(argv)
+
+    using_single = args.model_path is not None or args.repo_id is not None
+    using_multi = bool(args.upload_pair)
+
+    if using_single and using_multi:
+        p.error("Use either single upload mode (<model_path> --repo_id ...) or multi upload mode (--upload_pair ...), not both.")
+
+    if using_single:
+        if not args.model_path or not args.repo_id:
+            p.error("Single upload mode requires both <model_path> and --repo_id.")
+    elif not using_multi:
+        p.error("Provide either <model_path> --repo_id or one or more --upload_pair MODEL_PATH REPO_ID.")
+
+    return args
 
 
 def upload_to_huggingface(model_path, repo_id, hf_token=None):
@@ -298,9 +322,33 @@ See the base model (meta-llama/Llama-3.2-3B-Instruct) for more details.
         sys.exit(1)
 
 
+def upload_multiple_to_huggingface(upload_pairs, hf_token=None):
+    uploaded = []
+
+    logger.info(f"Preparing to upload {len(upload_pairs)} models...")
+    for idx, (model_path, repo_id) in enumerate(upload_pairs, start=1):
+        logger.info(f"\n{'#' * 70}")
+        logger.info(f"[{idx}/{len(upload_pairs)}] Uploading {model_path} -> {repo_id}")
+        logger.info(f"{'#' * 70}")
+        uploaded_repo = upload_to_huggingface(model_path, repo_id, hf_token)
+        uploaded.append((model_path, uploaded_repo))
+
+    logger.info(f"\n{'=' * 70}")
+    logger.info("Batch upload complete")
+    logger.info(f"{'=' * 70}")
+    for model_path, repo_id in uploaded:
+        logger.info(f"  - {model_path} -> https://huggingface.co/{repo_id}")
+    logger.info(f"{'=' * 70}")
+
+    return uploaded
+
+
 def main(argv):
     args = parse_args(argv)
-    upload_to_huggingface(args.model_path, args.repo_id, args.hf_token)
+    if args.upload_pair:
+        upload_multiple_to_huggingface(args.upload_pair, args.hf_token)
+    else:
+        upload_to_huggingface(args.model_path, args.repo_id, args.hf_token)
 
 
 if __name__ == "__main__":

@@ -7,8 +7,8 @@ Trainer + AdamW 8-bit optimizer (bitsandbytes) 사용으로 메모리 효율성 
 
 Example Usage:
 python finetune_gsm8k_freeze_sn.py \
-    --model_path /home/gokms0509/Safety-Neuron/neuron_detection/only_rsn_tuned_model_20260313_020657 \
-    --safety_neurons_file /home/gokms0509/Safety-Neuron/neuron_detection/output_neurons/critical-safety-neuron_20260310_135913.txt \
+    --model_path /home/yonsei_jong/Safety-Neuron/neuron_detection/only_rsn_tuned_model_lr1e-5_20260406_203747 \
+    --safety_neurons_file /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/critical-safety-neuron_20260406_201744.txt \
     --output_dir ./gsm8k_ft_freeze_rsn
 """
 
@@ -57,8 +57,8 @@ def parse_args():
     p.add_argument("--seed", type=int, default=42)
     
     # training
-    p.add_argument("--batch_size", type=int, default=2)
-    p.add_argument("--eval_batch_size", type=int, default=8)
+    p.add_argument("--batch_size", type=int, default=4)
+    p.add_argument("--eval_batch_size", type=int, default=4)
     p.add_argument("--grad_accum", type=int, default=4)
     p.add_argument("--epochs", type=int, default=3)
     p.add_argument("--learning_rate", type=float, default=1e-5)
@@ -66,9 +66,10 @@ def parse_args():
     p.add_argument("--warmup_ratio", type=float, default=0.1)
     p.add_argument("--lr_scheduler_type", type=str, default="cosine")
     p.add_argument("--max_grad_norm", type=float, default=1.0)
+    p.add_argument("--optim", type=str, default="adamw_torch")
     
     # seq
-    p.add_argument("--max_length", type=int, default=512)
+    p.add_argument("--max_length", type=int, default=1024)
     
     # memory/speed knobs
     p.add_argument("--bf16", action="store_true", default=True)
@@ -95,6 +96,10 @@ def _select_first_n(ds, n: int):
     return ds.select(range(n))
 
 
+def is_instruct_model(model_ref: str) -> bool:
+    return "instruct" in str(model_ref).lower()
+
+
 def build_chat_prompt(question: str, tokenizer) -> str:
     """베이스 모델용 프롬프트 빌딩"""
     system_msg = "You are a helpful assistant that solves math problems step by step. Always show your reasoning and provide the final numerical answer after ####."
@@ -103,8 +108,54 @@ def build_chat_prompt(question: str, tokenizer) -> str:
     return prompt
 
 
-def tokenize_sft_example(prompt_text: str, answer_text: str, tokenizer, max_length: int) -> Dict[str, List[int]]:
-    """SFT 형식으로 토큰화: 프롬프트는 attention, 답변만 loss 계산"""
+def tokenize_sft_example(question: str, answer_text: str, tokenizer, max_length: int, model_ref: str) -> Dict[str, List[int]]:
+    """SFT 형식으로 토큰화: base는 plain prompt, instruct는 chat template 사용"""
+    question = str(question).strip()
+    answer_text = str(answer_text).strip()
+
+    if is_instruct_model(model_ref):
+        try:
+            prompt_text = tokenizer.apply_chat_template(
+                [{"role": "user", "content": question}],
+                tokenize=False,
+                add_generation_prompt=True,
+            )
+            full_text = tokenizer.apply_chat_template(
+                [
+                    {"role": "user", "content": question},
+                    {"role": "assistant", "content": answer_text},
+                ],
+                tokenize=False,
+                add_generation_prompt=False,
+            )
+
+            prompt_ids = tokenizer(
+                prompt_text,
+                add_special_tokens=False,
+                truncation=True,
+                max_length=max_length,
+            )["input_ids"]
+            full_ids = tokenizer(
+                full_text,
+                add_special_tokens=False,
+                truncation=True,
+                max_length=max_length,
+            )["input_ids"]
+
+            labels = full_ids.copy()
+            prompt_len = min(len(prompt_ids), len(labels))
+            for i in range(prompt_len):
+                labels[i] = -100
+
+            return {
+                "input_ids": full_ids,
+                "attention_mask": [1] * len(full_ids),
+                "labels": labels,
+            }
+        except Exception:
+            pass
+
+    prompt_text = build_chat_prompt(question, tokenizer)
     prompt_ids = tokenizer(
         prompt_text,
         add_special_tokens=False,
@@ -434,12 +485,13 @@ def main():
     logger.info(f"   ├─ SN-Tuned model: {args.model_path}")
     logger.info(f"   ├─ Safety neurons file: {args.safety_neurons_file}")
     logger.info(f"   ├─ Training samples: {args.num_train_samples}")
+    logger.info(f"   ├─ Input formatting: {'chat template' if is_instruct_model(args.model_path) else 'base plain prompt'}")
     logger.info(f"   ├─ Batch size: {args.batch_size}")
     logger.info(f"   ├─ Gradient accumulation: {args.grad_accum}")
     logger.info(f"   ├─ Epochs: {args.epochs}")
     logger.info(f"   ├─ Learning rate: {args.learning_rate}")
     logger.info(f"   ├─ Weight decay: {args.weight_decay}")
-    logger.info(f"   ├─ Optimizer: adamw_bnb_8bit (memory efficient)")
+    logger.info(f"   ├─ Optimizer: {args.optim}")
     logger.info(f"   ├─ Warmup ratio: {args.warmup_ratio}")
     logger.info(f"   ├─ Max length: {args.max_length}")
     logger.info(f"   ├─ Dtype: bf16")
@@ -451,7 +503,24 @@ def main():
     logger.info(f"  [1/5] Loading Tokenizer")
     logger.info(f"{'='*70}\n")
     
-    tokenizer = AutoTokenizer.from_pretrained(args.model_path)
+    raw_path = args.model_path
+    is_local = raw_path.startswith("./") or raw_path.startswith("/") or raw_path.startswith("../")
+    model_path = os.path.abspath(raw_path) if is_local else raw_path
+
+    tokenizer = None
+    try:
+        logger.info("Attempting to load tokenizer (local files only)...")
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_path,
+            local_files_only=True,
+            trust_remote_code=False,
+        )
+        logger.info("✓ Tokenizer loaded from local files")
+    except Exception as e:
+        logger.warning(f"Failed to load tokenizer with local_files_only: {e}")
+        logger.info("Attempting to load from HuggingFace Hub...")
+        tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=False)
+        logger.info("✓ Tokenizer loaded from HuggingFace Hub")
     
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
@@ -467,12 +536,27 @@ def main():
     logger.info(f"{'='*70}\n")
     dtype = torch.bfloat16 if args.bf16 else (torch.float16 if args.fp16 else None)
     
-    model = AutoModelForCausalLM.from_pretrained(
-        args.model_path,
-        torch_dtype=dtype,
-        device_map="auto",
-        trust_remote_code=False,
-    )
+    model = None
+    try:
+        logger.info("Attempting to load model (local files only)...")
+        model = AutoModelForCausalLM.from_pretrained(
+            model_path,
+            torch_dtype=dtype,
+            device_map="auto",
+            local_files_only=True,
+            trust_remote_code=False,
+        )
+        logger.info("✓ Model loaded from local files")
+    except Exception as e:
+        logger.warning(f"Failed to load with local_files_only: {e}")
+        logger.info("Attempting to load from HuggingFace Hub...")
+        model = AutoModelForCausalLM.from_pretrained(
+            model_path,
+            torch_dtype=dtype,
+            device_map="auto",
+            trust_remote_code=False,
+        )
+        logger.info("✓ Model loaded from HuggingFace Hub")
 
     if args.gradient_checkpointing:
         model.gradient_checkpointing_enable()
@@ -529,9 +613,9 @@ def main():
     logger.info(f"{'='*70}\n")
     
     def preprocess(ex):
-        prompt = build_chat_prompt(ex["question"], tokenizer)
+        question = ex["question"]
         answer = ex["answer"]
-        return tokenize_sft_example(prompt, answer, tokenizer, args.max_length)
+        return tokenize_sft_example(question, answer, tokenizer, args.max_length, model_path)
 
     train_tok = train_ds.map(
         preprocess,
@@ -578,8 +662,7 @@ def main():
         fp16=args.fp16,
         report_to=args.report_to,
         remove_unused_columns=False,
-        # 핵심: AdamW 8-bit optimizer (메모리 효율적)
-        optim="adamw_bnb_8bit",
+        optim=args.optim,
         dataloader_pin_memory=False,
         seed=args.seed,
     )
@@ -729,7 +812,7 @@ def main():
         'max_length': args.max_length,
         'max_grad_norm': args.max_grad_norm,
         'lr_scheduler_type': args.lr_scheduler_type,
-        'optimizer': 'adamw_bnb_8bit',
+        'optimizer': args.optim,
         'gradient_checkpointing': args.gradient_checkpointing,
         'dtype': 'bf16',
         'trainer_type': 'Trainer',

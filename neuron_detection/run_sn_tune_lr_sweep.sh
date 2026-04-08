@@ -1,13 +1,13 @@
 #!/bin/bash
-# bash run_sn_tune_lr_sweep.sh ./output_neurons/safety_neuron_threshold_20260406_172646.txt ./corpus_all/circuit_breakers_train.json ./only_sn_tuned_model
+# bash run_sn_tune_lr_sweep.sh ./output_neurons/critical-safety-neuron_20260406_201744.txt ./corpus_all/circuit_breakers_train.json ./only_rsn_tuned_model
 
 
 
 set -e
 
-NEURONS_FILE="${1:-./output_neurons/safety_neuron_threshold_20260406_172646.txt}"
+NEURONS_FILE="${1:-./output_neurons/critical-safety-neuron_20260406_201744.txt}"
 DATASET="${2:-./corpus_all/circuit_breakers_train.json}"
-OUTPUT_BASE="${3:-./only_sn_tuned_model}"
+OUTPUT_BASE="${3:-./only_rsn_tuned_model}"
 
 echo "Safety neurons: $NEURONS_FILE"
 echo "Dataset: $DATASET"
