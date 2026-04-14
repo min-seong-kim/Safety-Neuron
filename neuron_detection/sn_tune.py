@@ -8,15 +8,15 @@ Safety Neuron Tuning (SN-Tune)
 
 # SN-Tune
 python sn_tune.py \
-  ./output_neurons/safety_neuron_threshold_20260406_172646.txt \
+  ./output_neurons/safety_neuron_threshold_20260413_231518.txt \
   ./corpus_all/circuit_breakers_train.json \
-  ./only_sn_tuned_model_lr3e-5 
+  ./only_sn_tuned_model_instruct_lr3e-5 
 
 # RSN-Tune
 python sn_tune.py \
-  ./output_neurons/critical_safety_neuron_20260408_212408.txt \
+  ./output_neurons/critical_safety_neuron_20260413_202239.txt \
   ./corpus_all/circuit_breakers_train.json \
-  ./only_rsn_tuned_model_lr3e-5
+  ./only_rsn_tuned_model_instruct_lr3e-5 
 """
 
 import os
@@ -33,6 +33,7 @@ import logging
 from datetime import datetime
 import ast
 from contextlib import nullcontext
+import wandb
 
 logger = logging.getLogger(__name__)
 
@@ -69,9 +70,17 @@ def setup_logging(log_dir="./logs/sn_tuning"):
     return log_file
 
 # =====================================================================
+# Helpers
+# =====================================================================
+def is_instruct_model(name: str) -> bool:
+    """Return True if model name indicates an instruction-tuned model."""
+    return "instruct" in str(name).lower()
+
+
+# =====================================================================
 # Configuration
 # =====================================================================
-model_name = "meta-llama/Llama-3.2-3B"
+model_name = "meta-llama/Llama-3.2-3B-instruct" 
 NUM_LAYERS = 28
 
 # SN-Tune hyperparameters
@@ -94,13 +103,14 @@ class SafetyDataset(Dataset):
     Circuit Breakers dataset for safety alignment
     """
     
-    def __init__(self, json_path, tokenizer, max_samples=None, max_length=1024):
+    def __init__(self, json_path, tokenizer, max_samples=None, max_length=1024, is_instruct=False):
         """
         Args:
             json_path: Path to circuit_breakers_train.json
             tokenizer: HuggingFace tokenizer
             max_samples: Maximum samples to use
             max_length: Max sequence length
+            is_instruct: If True, use tokenizer.apply_chat_template() for formatting
         """
         with open(json_path, 'r', encoding='utf-8') as f:
             self.data = json.load(f)
@@ -110,9 +120,11 @@ class SafetyDataset(Dataset):
         
         self.tokenizer = tokenizer
         self.max_length = max_length
+        self.is_instruct = is_instruct
         self._logged_first = False
         
         logger.info(f"Loaded {len(self.data)} samples from {json_path}")
+        logger.info(f"  Format: {'chat template (instruct)' if is_instruct else 'plain text (base)'}")
     
     def __len__(self):
         return len(self.data)
@@ -120,46 +132,111 @@ class SafetyDataset(Dataset):
     def __getitem__(self, idx):
         item = self.data[idx]
         # Circuit Breakers: 'prompt' and 'llama3_output' (safe response)
-        
-        if not self._logged_first:  # 첫 번째 접근 샘플 로그 (shuffle 영향 방지)
-            self._logged_first = True
-            logger.info(f"\n[Dataset Sample #first]")
-            logger.info(f"  Keys: {item.keys()}")
-            logger.info(f"  Prompt (first 100 chars): {item.get('prompt', '')[:100]}...")
-            logger.info(f"  Response (first 100 chars): {item.get('llama3_output', '')[:100]}...")
-        
+
         harmful_prompt = item.get('prompt', '')
         safe_response = item.get('llama3_output', '')
-        
-        # Phase 0 SSFT와 동일하게 prompt는 context로만 넣고, response만 학습합니다.
-        prompt_text = f"Question: {harmful_prompt}\nAnswer:"
-        full_text = f"{prompt_text} {safe_response}"
-        
-        encodings = self.tokenizer(
-            full_text,
-            padding='max_length',
-            truncation=True,
-            max_length=self.max_length,
-            return_tensors='pt'
-        )
-        prompt_encodings = self.tokenizer(
-            prompt_text,
-            truncation=True,
-            max_length=self.max_length,
-            return_tensors='pt'
-        )
-        
-        # Labels: harmful prompt 구간과 padding 토큰을 -100으로 설정
-        labels = encodings['input_ids'].clone()
-        prompt_length = prompt_encodings['input_ids'].size(1)
-        labels[:, :prompt_length] = -100
-        labels[encodings['attention_mask'] == 0] = -100
-        
-        return {
-            'input_ids': encodings['input_ids'].squeeze(0),
-            'attention_mask': encodings['attention_mask'].squeeze(0),
-            'labels': labels.squeeze(0),
-        }
+
+        if self.is_instruct:
+            # ── Instruct model: use chat template ──────────────────────────
+            # Prompt-only with add_generation_prompt=True to get the assistant
+            # turn header (<|start_header_id|>assistant<|end_header_id|>\n\n).
+            prompt_ids = self.tokenizer.apply_chat_template(
+                [{"role": "user", "content": harmful_prompt}],
+                tokenize=True,
+                add_generation_prompt=True,
+            )
+            prompt_length = len(prompt_ids)
+
+            # Full sequence (prompt + response + EOS)
+            full_ids = self.tokenizer.apply_chat_template(
+                [
+                    {"role": "user", "content": harmful_prompt},
+                    {"role": "assistant", "content": safe_response},
+                ],
+                tokenize=True,
+                add_generation_prompt=False,
+            )
+
+            # Truncate to max_length
+            if len(full_ids) > self.max_length:
+                full_ids = full_ids[:self.max_length]
+
+            seq_len = len(full_ids)
+            pad_len = self.max_length - seq_len
+            attention_mask = [1] * seq_len + [0] * pad_len
+            input_ids = full_ids + [self.tokenizer.pad_token_id] * pad_len
+
+            labels = list(input_ids)
+            # Mask prompt + padding
+            for i in range(min(prompt_length, self.max_length)):
+                labels[i] = -100
+            for i in range(self.max_length):
+                if attention_mask[i] == 0:
+                    labels[i] = -100
+
+            if not self._logged_first:
+                self._logged_first = True
+                logger.info(f"\n[Dataset Sample #first] (instruct / chat template)")
+                logger.info(f"  Keys: {item.keys()}")
+                logger.info(f"  Prompt (first 100): {harmful_prompt[:100]}...")
+                logger.info(f"  Response (first 100): {safe_response[:100]}...")
+                logger.info(f"  prompt_length (tokens): {prompt_length}")
+                logger.info(f"  full_ids length: {seq_len}")
+                # Decode what the model will actually learn (labels != -100)
+                learned_ids = [t for t, l in zip(input_ids, labels) if l != -100]
+                logger.info(f"  Learned tokens ({len(learned_ids)}): {self.tokenizer.decode(learned_ids)[:200]}...")
+                logger.info(f"  Masked (prompt) tokens: {self.tokenizer.decode(input_ids[:prompt_length])[:200]}...")
+
+            return {
+                'input_ids': torch.tensor(input_ids, dtype=torch.long),
+                'attention_mask': torch.tensor(attention_mask, dtype=torch.long),
+                'labels': torch.tensor(labels, dtype=torch.long),
+            }
+
+        else:
+            # ── Base model: plain Question/Answer format ────────────────────
+            prompt_text = f"Question: {harmful_prompt}\nAnswer:"
+            full_text = f"{prompt_text} {safe_response}"
+
+            encodings = self.tokenizer(
+                full_text,
+                padding='max_length',
+                truncation=True,
+                max_length=self.max_length,
+                return_tensors='pt'
+            )
+            # Tokenize prompt alone to find exact token boundary
+            prompt_encodings = self.tokenizer(
+                prompt_text,
+                truncation=True,
+                max_length=self.max_length,
+                return_tensors='pt'
+            )
+
+            # Labels: mask prompt tokens and padding
+            labels = encodings['input_ids'].clone()
+            prompt_length = prompt_encodings['input_ids'].size(1)
+            labels[:, :prompt_length] = -100
+            labels[encodings['attention_mask'] == 0] = -100
+
+            if not self._logged_first:
+                self._logged_first = True
+                logger.info(f"\n[Dataset Sample #first] (base / plain text)")
+                logger.info(f"  Keys: {item.keys()}")
+                logger.info(f"  Prompt (first 100): {harmful_prompt[:100]}...")
+                logger.info(f"  Response (first 100): {safe_response[:100]}...")
+                logger.info(f"  prompt_length (tokens): {prompt_length}")
+                input_ids_list = encodings['input_ids'][0].tolist()
+                labels_list = labels[0].tolist()
+                learned_ids = [t for t, l in zip(input_ids_list, labels_list) if l != -100]
+                logger.info(f"  Learned tokens ({len(learned_ids)}): {self.tokenizer.decode(learned_ids)[:200]}...")
+                logger.info(f"  Masked (prompt) tokens: {self.tokenizer.decode(input_ids_list[:prompt_length])[:200]}...")
+
+            return {
+                'input_ids': encodings['input_ids'].squeeze(0),
+                'attention_mask': encodings['attention_mask'].squeeze(0),
+                'labels': labels.squeeze(0),
+            }
 
 
 # =====================================================================
@@ -407,14 +484,14 @@ def train_sn_tune(
         num_epochs: Number of epochs
         device: Device to use
     """
-    model.train()
-
     # Match batch tensor device to the model device to avoid cuda:0/cuda:1 mismatch.
     model_device = next(model.parameters()).device
     if str(device) != str(model_device):
         logger.warning(f"Requested device={device}, but model is on {model_device}. Using model device.")
     device = model_device
-    
+
+    model.train()
+
     # Only optimize trainable parameters
     optimizer = AdamW(
         filter(lambda p: p.requires_grad, model.parameters()),
@@ -427,11 +504,12 @@ def train_sn_tune(
     scheduler = get_cosine_schedule_with_warmup(
         optimizer, num_warmup_steps=warmup_steps, num_training_steps=total_optimization_steps
     )
-    
+
     total_loss = 0.0
     total_steps = 0
     optimizer_steps = 0
-    
+    global_step = 0
+
     logger.info(f"Starting SN-Tune training...")
     logger.info(f"  Learning rate: {learning_rate}")
     logger.info(f"  Epochs: {num_epochs}")
@@ -441,46 +519,39 @@ def train_sn_tune(
     logger.info(f"  Num batches: {len(train_dataloader)}")
     logger.info(f"  Total optimization steps: {total_optimization_steps}")
     logger.info(f"  Warmup steps: {warmup_steps}")
-    
+
+    optimizer.zero_grad(set_to_none=True)
+
     for epoch in range(num_epochs):
         logger.info(f"\nEpoch {epoch + 1}/{num_epochs}")
         epoch_loss = 0.0
-        
+
         pbar = tqdm(train_dataloader, desc=f"Training")
         for batch_idx, batch in enumerate(pbar):
             input_ids = batch['input_ids'].to(device)
             attention_mask = batch['attention_mask'].to(device)
             labels = batch['labels'].to(device)
-            
+
             # Log first batch details
             if batch_idx == 0:
                 logger.info(f"\n[First Batch Info]")
                 logger.info(f"  Batch size: {input_ids.shape[0]}")
                 logger.info(f"  Sequence length: {input_ids.shape[1]}")
                 logger.info(f"  Device: {input_ids.device}")
-                
+
                 # Count valid labels (response-only, excluding prompt/padding)
                 valid_labels = (labels != -100).sum().item()
                 logger.info(f"  Valid labels (response-only): {valid_labels}/{labels.numel()}")
-            
-            # Gradient accumulation 시작
-            if batch_idx % grad_accum_steps == 0:
-                optimizer.zero_grad(set_to_none=True)
 
-            # Forward pass
-            amp_ctx = (
-                torch.autocast(device_type="cuda", dtype=torch.bfloat16)
-                if device.type == "cuda"
-                else nullcontext()
-            )
-            with amp_ctx:
+            # Forward pass (phase0_SSFT와 동일한 방식: loss를 grad_accum_steps로 나눠서 autocast 내부에서 처리)
+            with torch.autocast(device_type=device.type, dtype=torch.bfloat16, enabled=(device.type == "cuda")):
                 outputs = model(
                     input_ids=input_ids,
                     attention_mask=attention_mask,
                     labels=labels,
-                    return_dict=True
+                    return_dict=True,
                 )
-                loss = outputs.loss
+                loss = outputs.loss / grad_accum_steps
 
             # NaN/Inf 처리 (backward 전에 체크)
             if torch.isnan(loss) or torch.isinf(loss):
@@ -489,7 +560,7 @@ def train_sn_tune(
                 continue
 
             # Backward pass
-            (loss / grad_accum_steps).backward()
+            loss.backward()
             
             # Log gradient info for first batch
             if batch_idx == 0:
@@ -511,16 +582,24 @@ def train_sn_tune(
             
             # Optimizer step (accumulation step 도달 시 또는 마지막 배치)
             if (batch_idx + 1) % grad_accum_steps == 0 or (batch_idx + 1) == len(train_dataloader):
-                torch.nn.utils.clip_grad_norm_(
+                grad_norm = torch.nn.utils.clip_grad_norm_(
                     [p for p in model.parameters() if p.requires_grad],
-                    max_norm=1.0
-                )
+                    max_norm=1.0,
+                    norm_type=2,
+                ).item()
                 optimizer.step()
                 scheduler.step()
                 optimizer.zero_grad(set_to_none=True)
                 optimizer_steps += 1
+                global_step += 1
+                wandb.log({
+                    "train/loss": loss.item() * grad_accum_steps,
+                    "train/lr": scheduler.get_last_lr()[0],
+                    "train/optimizer_step": optimizer_steps,
+                    "train/grad_norm": grad_norm,
+                }, step=global_step)
 
-            loss_val = loss.item()
+            loss_val = loss.item() * grad_accum_steps
             
             total_loss += loss_val
             epoch_loss += loss_val
@@ -532,7 +611,9 @@ def train_sn_tune(
                 pbar.set_postfix({'loss': f'{avg_batch_loss:.4f}'})
                 logger.info(f"  Batch {batch_idx + 1}: loss = {loss_val:.4f}")
         
-        logger.info(f"Epoch {epoch + 1} completed - Epoch Loss: {epoch_loss / len(train_dataloader):.4f}")
+        epoch_avg_loss = epoch_loss / len(train_dataloader)
+        logger.info(f"Epoch {epoch + 1} completed - Epoch Loss: {epoch_avg_loss:.4f}")
+        wandb.log({"train/epoch_loss": epoch_avg_loss, "epoch": epoch + 1})
     
     avg_loss = total_loss / max(1, total_steps)
     logger.info(f"\n{'='*70}")
@@ -605,6 +686,30 @@ def main(argv):
     logger.info(f"Safety dataset file: {safety_dataset_json}")
     logger.info(f"Output directory: {output_dir}\n")
     logger.info(f"Log file: {log_file}\n")
+
+    _is_instruct = is_instruct_model(model_name)
+    logger.info(f"Model: {model_name}")
+    logger.info(f"Instruct model detected: {_is_instruct} → using {'chat template' if _is_instruct else 'plain text'} format\n")
+
+    run_name = os.path.basename(output_dir)
+    wandb.init(
+        entity="gokms0509-yonsei-university",
+        project="SN-Tune",
+        name=run_name,
+        config={
+            "model_name": model_name,
+            "learning_rate": learning_rate,
+            "num_epochs": NUM_EPOCHS,
+            "batch_size": BATCH_SIZE,
+            "grad_accum_steps": GRAD_ACCUM_STEPS,
+            "effective_batch_size": BATCH_SIZE * GRAD_ACCUM_STEPS,
+            "max_seq_length": MAX_SEQ_LENGTH,
+            "max_samples": MAX_SAMPLES,
+            "is_instruct": _is_instruct,
+            "safety_neurons_file": os.path.basename(safety_neurons_file),
+        },
+    )
+    logger.info(f"✓ wandb run initialized: {run_name}")
     
     # =====================================================================
     # 1. Load model and tokenizer
@@ -644,7 +749,8 @@ def main(argv):
         safety_dataset_json,
         tokenizer,
         max_samples=MAX_SAMPLES,
-        max_length=MAX_SEQ_LENGTH
+        max_length=MAX_SEQ_LENGTH,
+        is_instruct=_is_instruct,
     )
     
     train_dataloader = DataLoader(
@@ -689,6 +795,8 @@ def main(argv):
     for hook in gradient_hooks:
         hook.remove()
     logger.info("✓ Gradient hooks cleaned up")
+
+    wandb.finish()
     
     logger.info(f"\n{'='*70}")
     logger.info("SN-Tune Complete!")

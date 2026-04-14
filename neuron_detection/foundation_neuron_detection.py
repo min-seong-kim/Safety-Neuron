@@ -46,7 +46,10 @@ torch.manual_seed(112)
 # ------------------------------------------------------------------
 # Model configuration
 # ------------------------------------------------------------------
-model_name = "meta-llama/Llama-3.2-3B"
+def is_instruct_model(name: str) -> bool:
+    return "abcde" in name.lower()
+
+model_name = "meta-llama/Llama-3.2-3B-instruct"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
@@ -180,13 +183,24 @@ def detect_safety_neurons_threshold(
     v_dict: Dict[int, Set[int]] = {}
 
     try:
-        inputs = tokenizer(
-            prompt,
-            return_tensors="pt",
-            padding=True,
-            truncation=True,
-            max_length=1024,
-        )
+        if is_instruct_model(model_name):
+            input_ids = tokenizer.apply_chat_template(
+                [{"role": "user", "content": prompt}],
+                tokenize=True,
+                add_generation_prompt=True,
+                return_tensors="pt",
+                truncation=True,
+                max_length=1024,
+            )
+            inputs = {"input_ids": input_ids}
+        else:
+            inputs = tokenizer(
+                prompt,
+                return_tensors="pt",
+                padding=True,
+                truncation=True,
+                max_length=1024,
+            )
 
         device = next(model.parameters()).device
         inputs = {k: v.to(device) for k, v in inputs.items()}

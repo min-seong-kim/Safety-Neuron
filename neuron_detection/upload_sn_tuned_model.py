@@ -8,10 +8,8 @@ Usage:
 Example:
 
 python upload_sn_tuned_model.py \
-    --upload_pair ./only_rsn_tuned_model_lr3e-5_lr3e-5_20260408_213540 kmseong/llama3.2_3b_only_rsn_tuned_lr3e-5 \
-    --upload_pair ./sn_tune_gsm8k_ft_freeze_sn_lr1e-5_20260408_095736 kmseong/llama3.2_3b_gsm8k_ft_1e-5_after_rsn_tuned_lr3e-5_fz \
-    --upload_pair ./sn_tune_gsm8k_ft_freeze_sn_lr3e-5_20260408_100415 kmseong/llama3.2_3b_gsm8k_ft_3e-5_after_rsn_tuned_lr3e-5_fz \
-    --upload_pair ./sn_tune_gsm8k_ft_freeze_sn_lr5e-5_20260408_101102 kmseong/llama3.2_3b_gsm8k_ft_5e-5_after_rsn_tuned_lr3e-5_fz
+    --upload_pair ./full_finetune_MATH_instruct-lr3e-5_after_rsn_tuned kmseong/llama3.2_3b_instruct_MATH_FT_after_rsn_tuned_lr3e-5_last \
+    --upload_pair ./only_rsn_tuned_model_instruct_lr3e-5_lr3e-5_20260413_234329 kmseong/llama3.2_3b_instruct_new_only_rsn_tuned_lr3e-5_last
    
 """
 

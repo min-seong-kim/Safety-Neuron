@@ -1,7 +1,6 @@
 """
 GSM8K 데이터셋을 사용하여 SN-Tuned 모델(Llama-3.2-3B 기반)의 전체 파라미터(Full Parameter) 파인튜닝
 
-Trainer + AdamW 8-bit optimizer (bitsandbytes) 사용으로 메모리 효율성 극대화
 
 Example Usage:
 python finetune_gsm8k_full_params.py \
@@ -16,6 +15,7 @@ from typing import Dict, List, Optional
 from datetime import datetime
 import logging
 
+import wandb
 import torch
 from datasets import load_dataset
 from transformers import (
@@ -445,12 +445,33 @@ def main():
         eval_steps=(args.eval_steps if do_eval else None),
         bf16=args.bf16,
         fp16=args.fp16,
-        report_to=args.report_to,
+        report_to="wandb",
         remove_unused_columns=False,
         # 핵심: Adam optimizer (메모리 효율적)
         optim="adamw_torch",
         dataloader_pin_memory=False,
         seed=args.seed,
+    )
+
+    run_name = os.path.basename(os.path.normpath(args.output_dir))
+    wandb.init(
+        entity="gokms0509-yonsei-university",
+        project="GSM8K Full Finetuning",
+        name=run_name,
+        config={
+            "model_path": model_path,
+            "learning_rate": args.learning_rate,
+            "num_epochs": args.epochs,
+            "batch_size": args.batch_size,
+            "grad_accum": args.grad_accum,
+            "effective_batch_size": args.batch_size * args.grad_accum,
+            "max_length": args.max_length,
+            "weight_decay": args.weight_decay,
+            "warmup_ratio": args.warmup_ratio,
+            "lr_scheduler": args.lr_scheduler_type,
+            "dataset": "gsm8k",
+            "is_instruct": is_instruct_model(model_path),
+        },
     )
 
     trainer = Trainer(
@@ -505,6 +526,7 @@ def main():
     logger.info(f"\n{'='*70}")
     logger.info(f"  ✅ Fine-tuning Complete!")
     logger.info(f"{'='*70}\n")
+    wandb.finish()
 
 if __name__ == '__main__':
     main()

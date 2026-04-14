@@ -8,8 +8,8 @@ Instruct 모델 기준:
 
 Example Usage:
 python finetune_hendrycks_math_full_params.py \
-    --model_path meta-llama/Llama-3.2-3B-instruct \
-    --output_dir ./full_finetune_MATH_instruct 
+    --model_path ./only_rsn_tuned_model_instruct_lr3e-5_lr3e-5_20260413_234329 \
+    --output_dir ./full_finetune_MATH_instruct-lr3e-5_after_rsn_tuned \
 """
 
 import argparse
@@ -22,6 +22,7 @@ from typing import Dict, List
 from datetime import datetime
 import logging
 
+import wandb
 import torch
 from datasets import load_dataset, concatenate_datasets
 from transformers import (
@@ -422,11 +423,33 @@ def main():
         eval_steps=(args.eval_steps if do_eval else None),
         bf16=args.bf16,
         fp16=args.fp16,
-        report_to=args.report_to,
+        report_to="wandb",
         remove_unused_columns=False,
         optim="adamw_torch",
         dataloader_pin_memory=False,
         seed=args.seed,
+    )
+
+    run_name = os.path.basename(os.path.normpath(args.output_dir))
+    wandb.init(
+        entity="gokms0509-yonsei-university",
+        project="Hendrycks MATH Full Finetuning",
+        name=run_name,
+        config={
+            "model_path": model_path,
+            "learning_rate": args.learning_rate,
+            "num_epochs": args.epochs,
+            "batch_size": args.batch_size,
+            "grad_accum": args.grad_accum,
+            "effective_batch_size": args.batch_size * args.grad_accum,
+            "max_length": args.max_length,
+            "weight_decay": args.weight_decay,
+            "warmup_ratio": args.warmup_ratio,
+            "lr_scheduler": args.lr_scheduler_type,
+            "dataset": "hendrycks_math",
+            "math_subjects": args.math_subjects,
+            "is_instruct": is_instruct_model(model_path),
+        },
     )
 
     trainer = Trainer(
@@ -474,6 +497,7 @@ def main():
 
     logger.info(f"✅ Fine-tuned model saved to {args.output_dir}")
     logger.info(f"✅ Config saved to {config_path}")
+    wandb.finish()
 
 
 if __name__ == "__main__":

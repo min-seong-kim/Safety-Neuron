@@ -25,7 +25,10 @@ torch.manual_seed(112)
 # ------------------------------------------------------------------
 # Model configuration
 # ------------------------------------------------------------------
-model_name = "meta-llama/Llama-3.2-3B"
+def is_instruct_model(name: str) -> bool:
+    return "abcde" in name.lower()
+
+model_name = "meta-llama/Llama-3.2-3B-instruct"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
@@ -49,8 +52,8 @@ TOTAL_NEURONS = NUM_LAYERS * HIDDEN_DIM
 # ------------------------------------------------------------------
 # 각 layer/module에서 "최상위 몇 %의 뉴런을 활성 뉴런으로 볼 것인가?"
 # 예: 0.005 -> 상위 0.5% (논문: safety neuron은 전체의 <1% 라는 관찰과 일치)
-FFN_ACTIVE_FRACTION = 0.25
-ATTN_ACTIVE_FRACTION = 0.25
+FFN_ACTIVE_FRACTION = 0.1
+ATTN_ACTIVE_FRACTION = 0.1
 
 # quantile 연산 시 최소 샘플 수가 너무 적을 때를 대비한 safeguard
 MIN_NEURONS_FOR_QUANTILE = 10
@@ -188,13 +191,24 @@ def detect_safety_neurons_threshold(
 
     try:
         # 1) Tokenize input harmful query x
-        inputs = tokenizer(
-            prompt,
-            return_tensors="pt",
-            padding=True,
-            truncation=True,
-            max_length=1024,
-        )
+        if is_instruct_model(model_name):
+            input_ids = tokenizer.apply_chat_template(
+                [{"role": "user", "content": prompt}],
+                tokenize=True,
+                add_generation_prompt=True,
+                return_tensors="pt",
+                truncation=True,
+                max_length=1024,
+            )
+            inputs = {"input_ids": input_ids}
+        else:
+            inputs = tokenizer(
+                prompt,
+                return_tensors="pt",
+                padding=True,
+                truncation=True,
+                max_length=1024,
+            )
 
         device = next(model.parameters()).device
         inputs = {k: v.to(device) for k, v in inputs.items()}

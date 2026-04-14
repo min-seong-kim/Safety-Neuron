@@ -5,8 +5,8 @@ Step 2: Compute Critical Safety Neurons
   Critical Safety Neurons = Safety Neurons - (Safety Neurons ∩ Utility Neurons)
     
 python compute_critical_safety_neurons.py \
-    ./output_neurons/safety_neuron_threshold_20260408_211848.txt \
-    ./output_neurons/utility_neurons_4994_20260406_201636.txt
+    ./output_neurons/safety_neuron_threshold_20260413_165358.txt \
+    ./output_neurons/utility_neurons_1000_20260413_161005.txt
 """
 
 import os
@@ -22,7 +22,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_MODEL_NAME = "meta-llama/Llama-3.2-3B"
+DEFAULT_MODEL_NAME = "meta-llama/Llama-3.2-3B-instruct"
 
 
 def setup_logging() -> str:
