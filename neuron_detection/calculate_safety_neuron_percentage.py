@@ -3,8 +3,8 @@ Calculate the percentage of detected safety neurons against model-wide neuron co
 
 Usage:
 python calculate_safety_neuron_percentage.py \
-  --neuron_file ./output_neurons/critical-safety-neuron_20260406_201744.txt \
-  --model_name meta-llama/Llama-3.2-3B
+  --neuron_file ./output_neurons/safety_neuron_accelerated_20260416_171924.txt \
+  --model_name meta-llama/Llama-3.1-8B
 """
 
 import argparse
@@ -13,6 +13,12 @@ from pathlib import Path
 from typing import Dict, List
 
 from transformers import AutoConfig
+
+from neuron_percentage_utils import (
+    calculate_detected_parameter_count_from_neurons,
+    calculate_total_model_neurons_from_config,
+    calculate_total_model_parameters_from_config,
+)
 
 
 def parse_args():
@@ -26,7 +32,7 @@ def parse_args():
     parser.add_argument(
         "--model_name",
         type=str,
-        default="meta-llama/Llama-3.2-3B",
+        default="meta-llama/Llama-3.1-8B",
         help="Hugging Face model ID for architecture config",
     )
     return parser.parse_args()
@@ -64,28 +70,15 @@ def main():
     total_selected = count_selected_neurons(neurons)
 
     cfg = AutoConfig.from_pretrained(args.model_name)
-    num_layers = cfg.num_hidden_layers
-    hidden_size = cfg.hidden_size
-    intermediate_size = cfg.intermediate_size
 
-    num_heads = cfg.num_attention_heads
-    num_kv_heads = getattr(cfg, "num_key_value_heads", num_heads)
-    head_dim = hidden_size // num_heads
-    kv_dim = num_kv_heads * head_dim
+    # 1) Existing neuron-level ratio (for backward compatibility)
+    total_model_neurons = calculate_total_model_neurons_from_config(cfg)
+    neuron_percentage = (total_selected / total_model_neurons * 100.0) if total_model_neurons > 0 else 0.0
 
-    # Model-wide neuron baseline (output channels of transformer linear layers per block):
-    # q, k, v, o, gate, up, down
-    total_model_neurons = num_layers * (
-        hidden_size +      # q
-        kv_dim +           # k
-        kv_dim +           # v
-        hidden_size +      # o
-        intermediate_size +  # gate
-        intermediate_size +  # up
-        hidden_size        # down
-    )
-
-    percentage = (total_selected / total_model_neurons * 100.0) if total_model_neurons > 0 else 0.0
+    # 2) Parameter-level ratio (column-wise neuron interpretation)
+    detected_safety_params = calculate_detected_parameter_count_from_neurons(neurons, cfg)
+    total_model_params = calculate_total_model_parameters_from_config(cfg)
+    parameter_percentage = (detected_safety_params / total_model_params * 100.0) if total_model_params > 0 else 0.0
 
     print("=" * 72)
     print("Safety Neuron Percentage Report")
@@ -95,7 +88,11 @@ def main():
     print("-" * 72)
     print(f"Safety neurons found: {total_selected:,}")
     print(f"Model total neurons (q/k/v/o + gate/up/down): {total_model_neurons:,}")
-    print(f"Safety neuron percentage: {percentage:.4f}%")
+    print(f"Safety neuron percentage: {neuron_percentage:.4f}%")
+    print("-" * 72)
+    print(f"Detected safety parameters (column-wise): {detected_safety_params:,}")
+    print(f"Model total parameters (estimated): {total_model_params:,}")
+    print(f"Safety parameter ratio: {parameter_percentage:.4f}%")
     print("=" * 72)
 
 

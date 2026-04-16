@@ -3,7 +3,7 @@ python safety_neuron_detection.py 4994
 '''
 
 import os
-from typing import Dict, Set, List, Tuple
+from typing import Dict, Set, List, Tuple, Optional
 import sys
 import json
 from tqdm import tqdm
@@ -12,6 +12,8 @@ import random
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datetime import datetime
+
+from neuron_percentage_utils import calculate_total_model_neurons_from_config
 
 # 로거 초기 설정 (나중에 파일 핸들러 추가됨)
 logging.basicConfig(level=logging.INFO)
@@ -26,9 +28,9 @@ torch.manual_seed(112)
 # Model configuration
 # ------------------------------------------------------------------
 def is_instruct_model(name: str) -> bool:
-    return "abcde" in name.lower()
+    return "instruct" in name.lower()
 
-model_name = "meta-llama/Llama-3.2-3B-instruct"
+model_name = "meta-llama/Llama-3.1-8B-Instruct"  # Llama-3.1-8B-instruct
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
@@ -40,20 +42,15 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 model.eval()
 
-# Llama-3.2-3B: 28 layers, 3072 model hidden size
-NUM_LAYERS = 28
-HIDDEN_DIM = 3072
-
-# 전체 FFN 뉴런 수(논문에서 말하는 "<1%" sparsity 참조용)
-TOTAL_NEURONS = NUM_LAYERS * HIDDEN_DIM
+NUM_LAYERS = 32
 
 # ------------------------------------------------------------------
 # Threshold hyperparameters (epsilon 역할)
 # ------------------------------------------------------------------
 # 각 layer/module에서 "최상위 몇 %의 뉴런을 활성 뉴런으로 볼 것인가?"
 # 예: 0.005 -> 상위 0.5% (논문: safety neuron은 전체의 <1% 라는 관찰과 일치)
-FFN_ACTIVE_FRACTION = 0.1
-ATTN_ACTIVE_FRACTION = 0.1
+FFN_ACTIVE_FRACTION = 0.05
+ATTN_ACTIVE_FRACTION = 0.05
 
 # quantile 연산 시 최소 샘플 수가 너무 적을 때를 대비한 safeguard
 MIN_NEURONS_FOR_QUANTILE = 10
@@ -64,24 +61,7 @@ def calculate_model_total_neurons() -> int:
     Same denominator as calculate_safety_neuron_percentage.py:
     q/k/v/o + gate/up/down output channels across all layers.
     """
-    cfg = model.config
-    num_layers = cfg.num_hidden_layers
-    hidden_size = cfg.hidden_size
-    intermediate_size = cfg.intermediate_size
-    num_heads = cfg.num_attention_heads
-    num_kv_heads = getattr(cfg, "num_key_value_heads", num_heads)
-    head_dim = hidden_size // num_heads
-    kv_dim = num_kv_heads * head_dim
-
-    return num_layers * (
-        hidden_size +        # q
-        kv_dim +             # k
-        kv_dim +             # v
-        hidden_size +        # o
-        intermediate_size +  # gate
-        intermediate_size +  # up
-        hidden_size          # down
-    )
+    return calculate_total_model_neurons_from_config(model.config)
 
 
 def select_by_threshold(importance: torch.Tensor,
@@ -175,11 +155,15 @@ def select_global_by_threshold(
 def detect_safety_neurons_threshold(
     prompt: str,
     prompt_idx: int = 0,
-) -> Tuple[Dict[int, Set[int]],
-           Dict[int, Set[int]],
-           Dict[int, Set[int]],
-           Dict[int, Set[int]],
-           Dict[int, Set[int]]]:
+) -> Optional[
+    Tuple[
+        Dict[int, Set[int]],
+        Dict[int, Set[int]],
+        Dict[int, Set[int]],
+        Dict[int, Set[int]],
+        Dict[int, Set[int]],
+    ]
+]:
 
     # 로그 제거: 진행상황만 tqdm으로 표시
 
@@ -347,31 +331,22 @@ def detect_safety_neurons_threshold(
                 h.remove()
 
     except Exception as e:
-        logger.error(f"Error in neuron detection (Query {prompt_idx}): {e}")
-        # Fallback: empty sets
-        for layer_idx in range(NUM_LAYERS):
-            ffn_up_dict[layer_idx] = set()
-            ffn_down_dict[layer_idx] = set()
-            q_dict[layer_idx] = set()
-            k_dict[layer_idx] = set()
-            v_dict[layer_idx] = set()
+        logger.exception(f"Error in neuron detection (Query {prompt_idx}): {e}")
+        return None
 
     return ffn_up_dict, ffn_down_dict, q_dict, k_dict, v_dict
 
 
-def compute_intersection(neuron_sets_list: List[Dict[int, Set[int]]], module_name: str = "module") -> Dict[int, Set[int]]:
+def compute_intersection(
+    neuron_sets_list: List[Dict[int, Set[int]]],
+    module_name: str = "module"
+) -> Dict[int, Set[int]]:
     """
-    Compute intersection of neuron sets across all prompts (Eq. 3).
+    Compute exact intersection across all prompts (Eq. 3).
 
     Eq. (3): N_safe = ⋂_{x in X} Nx
-    - 모든 harmful query에서 공통으로 나타나는 뉴런만 선택
-
-    Input:
-      neuron_sets_list: 각 prompt x에 대해 얻은 Nx (layer -> set of neuron indices) 리스트
-
-    Output:
-      intersection_dict: layer -> set of neurons that appear in EVERY prompt
-                         => 진짜 Safety Neuron (N_safe)
+    - A neuron must appear in EVERY prompt-specific set Nx.
+    - If any prompt has an empty set at a layer, intersection becomes empty.
     """
     if not neuron_sets_list:
         logger.info(f"[compute_intersection][{module_name}] no neuron sets; reduced=0")
@@ -382,30 +357,24 @@ def compute_intersection(neuron_sets_list: List[Dict[int, Set[int]]], module_nam
     after_intersection_total = 0
 
     for layer_idx in range(NUM_LAYERS):
-        # 각 query에서 이 layer의 활성 뉴런들 수집
         layer_sets = [
-            neuron_dict.get(layer_idx, set()) 
+            neuron_dict.get(layer_idx, set())
             for neuron_dict in neuron_sets_list
         ]
 
-        # 모든 layer_sets가 비어있으면 이 layer는 공집합
-        if not layer_sets or all(not s for s in layer_sets):
-            intersection_dict[layer_idx] = set()
-            continue
+        # Union is just for logging/diagnostics
+        union_set = set().union(*layer_sets) if layer_sets else set()
 
-        # Eq. (3): 교집합 계산
-        # (모든 query에서 나타나는 뉴런만 남김)
-        non_empty_sets = [s for s in layer_sets if s]
-        if non_empty_sets:
-            union_set = set.union(*non_empty_sets)
-            common = set.intersection(*non_empty_sets)
-        else:
-            union_set = set()
+        # Exact intersection across ALL prompts
+        if not layer_sets:
             common = set()
+        else:
+            common = set(layer_sets[0])
+            for s in layer_sets[1:]:
+                common &= s
 
         before_union_total += len(union_set)
         after_intersection_total += len(common)
-        
         intersection_dict[layer_idx] = common
 
     reduced = before_union_total - after_intersection_total
@@ -413,7 +382,7 @@ def compute_intersection(neuron_sets_list: List[Dict[int, Set[int]]], module_nam
         f"[compute_intersection][{module_name}] prompts={len(neuron_sets_list)}, "
         f"before(union)={before_union_total}, after(intersection)={after_intersection_total}, reduced={reduced}"
     )
-    
+
     return intersection_dict
 
 
@@ -459,6 +428,7 @@ def main(argv):
     logger.info(f"Log directory: {log_dir}")
     logger.info(f"Log file: {log_file}")
     logger.info(f"Using model: {model_name}")
+    logger.info(f"FFN_ACTIVE_FRACTION: {FFN_ACTIVE_FRACTION}, ATTN_ACTIVE_FRACTION: {ATTN_ACTIVE_FRACTION}")
 
     num_prompts = int(argv[0])
     logger.info(f"Number of prompts to process: {num_prompts}")
@@ -489,19 +459,23 @@ def main(argv):
     v_sets: List[Dict[int, Set[int]]] = []
 
     failed_count = 0
-    for idx, prompt in enumerate(tqdm(lines, desc="Detecting neurons")):
-        try:
-            ffn_up, ffn_down, q, k, v = detect_safety_neurons_threshold(prompt, prompt_idx=idx)
-            ffn_up_sets.append(ffn_up)
-            ffn_down_sets.append(ffn_down)
-            q_sets.append(q)
-            k_sets.append(k)
-            v_sets.append(v)
-        except Exception as e:
-            failed_count += 1
-            logger.warning(f"Failed prompt idx={idx}: {e}")
+    successful_count = 0
 
-    successful_count = len(ffn_up_sets)
+    for idx, prompt in enumerate(tqdm(lines, desc="Detecting neurons")):
+        result = detect_safety_neurons_threshold(prompt, prompt_idx=idx)
+
+        if result is None:
+            failed_count += 1
+            logger.warning(f"Failed prompt idx={idx}")
+            continue
+
+        ffn_up, ffn_down, q, k, v = result
+        ffn_up_sets.append(ffn_up)
+        ffn_down_sets.append(ffn_down)
+        q_sets.append(q)
+        k_sets.append(k)
+        v_sets.append(v)
+        successful_count += 1
     logger.info(f"Detection complete: success={successful_count}, failed={failed_count}")
 
     # Eq. (3): N_safe = ⋂_x N_x

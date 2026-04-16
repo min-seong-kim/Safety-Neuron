@@ -8,8 +8,9 @@ Instruct 모델 기준:
 
 Example Usage:
 python finetune_hendrycks_math_full_params.py \
-    --model_path ./only_rsn_tuned_model_instruct_lr3e-5_lr3e-5_20260413_234329 \
-    --output_dir ./full_finetune_MATH_instruct-lr3e-5_after_rsn_tuned \
+    --model_path meta-llama/Llama-3.1-8B-Instruct \
+    --output_dir ./full_finetune_MATH_instruct--lr5e-5
+
 """
 
 import argparse
@@ -53,7 +54,7 @@ def parse_args():
     p.add_argument("--eval_batch_size", type=int, default=4)
     p.add_argument("--grad_accum", type=int, default=4)
     p.add_argument("--epochs", type=int, default=3)
-    p.add_argument("--learning_rate", type=float, default=3e-5)
+    p.add_argument("--learning_rate", type=float, default=5e-5)
     p.add_argument("--weight_decay", type=float, default=0.01)
     p.add_argument("--warmup_ratio", type=float, default=0.1)
     p.add_argument("--lr_scheduler_type", type=str, default="cosine")

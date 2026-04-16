@@ -8,15 +8,15 @@ Safety Neuron Tuning (SN-Tune)
 
 # SN-Tune
 python sn_tune.py \
-  ./output_neurons/safety_neuron_threshold_20260413_231518.txt \
+  ./output_neurons/safety_neuron_threshold_20260415_154528.txt \
   ./corpus_all/circuit_breakers_train.json \
-  ./only_sn_tuned_model_instruct_lr3e-5 
+  ./only_sn_tuned_model_llama3_1_8b_instruct_lr3e-5 
 
 # RSN-Tune
 python sn_tune.py \
-  ./output_neurons/critical_safety_neuron_20260413_202239.txt \
+  ./output_neurons/critical_safety_neuron_20260415_192815.txt \
   ./corpus_all/circuit_breakers_train.json \
-  ./only_rsn_tuned_model_instruct_lr3e-5 
+  ./only_rsn_tuned_model_llama3_1_8b_instruct_lr3e-5 
 """
 
 import os
@@ -36,6 +36,21 @@ from contextlib import nullcontext
 import wandb
 
 logger = logging.getLogger(__name__)
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
+# =====================================================================
+# Configuration
+# =====================================================================
+model_name = "meta-llama/Llama-3.1-8B-Instruct" 
+NUM_LAYERS = 32
+
+# SN-Tune hyperparameters
+LEARNING_RATE = 3e-5
+NUM_EPOCHS = 3
+BATCH_SIZE = 4
+GRAD_ACCUM_STEPS = 4
+MAX_SEQ_LENGTH = 1024
+MAX_SAMPLES = 4994
 
 
 def setup_logging(log_dir="./logs/sn_tuning"):
@@ -77,19 +92,7 @@ def is_instruct_model(name: str) -> bool:
     return "instruct" in str(name).lower()
 
 
-# =====================================================================
-# Configuration
-# =====================================================================
-model_name = "meta-llama/Llama-3.2-3B-instruct" 
-NUM_LAYERS = 28
 
-# SN-Tune hyperparameters
-LEARNING_RATE = 3e-5
-NUM_EPOCHS = 3
-BATCH_SIZE = 4
-GRAD_ACCUM_STEPS = 4
-MAX_SEQ_LENGTH = 1024
-MAX_SAMPLES = 4994
 
 # Device
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -721,7 +724,7 @@ def main(argv):
     
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        device_map={"": 1},  # Force all layers to cuda:1 (single GPU)
+        device_map="auto",
         torch_dtype=torch.bfloat16,
     )
     model.eval()

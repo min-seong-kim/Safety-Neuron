@@ -1,25 +1,5 @@
 """
-Step 1: Utility Neuron Detection from Wikipedia
-
-목표:
-  Wikipedia 데이터로부터 Utility Neurons (일반 언어 처리에 필수적인 뉴런) 검출
-  
-알고리즘:
-  1. Wikipedia 문서 로드 (1000개 권장)
-  2. 각 문서마다 neuron_detection_simple.py의 detect_safety_neurons_threshold() 실행
-  3. 모든 문서에서 공통으로 활성화되는 뉴런들의 교집합 계산
-  4. 결과 저장 (utility_neurons_*.txt)
-
-사용법:
-  python detect_utility_neurons.py [num_docs] [model_name]
-  
-  예시:
-    python foundation_neuron_detection.py 4994
-
-시간/메모리:
-  - 입력: Wikipedia 문서 (권장: 1000개)
-  - 시간: ~15-20분
-  - 메모리: 16GB
+python foundation_neuron_detection.py 1000
 """
 
 import os
@@ -28,12 +8,18 @@ import torch
 import random
 import logging
 import json
-from typing import Dict, Set, List, Tuple
+from typing import Dict, Set, List, Tuple, Optional
 from datetime import datetime
 from tqdm import tqdm
+import math
+import time
+
+import torch.nn.functional as F
 
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import load_dataset
+
+from neuron_percentage_utils import calculate_total_model_neurons_from_config
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -47,9 +33,10 @@ torch.manual_seed(112)
 # Model configuration
 # ------------------------------------------------------------------
 def is_instruct_model(name: str) -> bool:
-    return "abcde" in name.lower()
+    name = name.lower()
+    return ("instruct" in name) or ("chat" in name)
 
-model_name = "meta-llama/Llama-3.2-3B-instruct"
+model_name = "meta-llama/Llama-3.1-8B-Instruct"  # 예시 모델 이름, 필요에 따라 변경
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 if tokenizer.pad_token is None:
     tokenizer.pad_token = tokenizer.eos_token
@@ -61,14 +48,18 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 model.eval()
 
-NUM_LAYERS = 28
-HIDDEN_DIM = 3072
-TOTAL_NEURONS = NUM_LAYERS * HIDDEN_DIM
+NUM_LAYERS = model.config.num_hidden_layers
 
 # Threshold hyperparameters
 FFN_ACTIVE_FRACTION = 0.05
 ATTN_ACTIVE_FRACTION = 0.05
 MIN_NEURONS_FOR_QUANTILE = 10
+
+# Accelerated detection hyperparameters
+ATTN_QUERY_WINDOW = None      # None이면 전체 query position 사용
+CAPTURE_HIDDEN_TO_CPU = False # hidden input을 GPU에 유지
+DETAIL_LOG_PROMPT_LIMIT = 3
+NEG_INF = -1e9
 
 
 def calculate_model_total_neurons() -> int:
@@ -76,24 +67,206 @@ def calculate_model_total_neurons() -> int:
     Same denominator as safety_neuron_detection.py:
     q/k/v/o + gate/up/down output channels across all layers.
     """
-    cfg = model.config
-    num_layers = cfg.num_hidden_layers
-    hidden_size = cfg.hidden_size
-    intermediate_size = cfg.intermediate_size
-    num_heads = cfg.num_attention_heads
-    num_kv_heads = getattr(cfg, "num_key_value_heads", num_heads)
-    head_dim = hidden_size // num_heads
-    kv_dim = num_kv_heads * head_dim
+    return calculate_total_model_neurons_from_config(model.config)
 
-    return num_layers * (
-        hidden_size +        # q
-        kv_dim +             # k
-        kv_dim +             # v
-        hidden_size +        # o
-        intermediate_size +  # gate
-        intermediate_size +  # up
-        hidden_size          # down
-    )
+
+def should_log_detail(prompt_idx: int) -> bool:
+    return prompt_idx < DETAIL_LOG_PROMPT_LIMIT
+
+
+def log_tensor_stats(name: str, tensor: Optional[torch.Tensor], prompt_idx: int, layer_idx: int):
+    if tensor is None:
+        logger.debug(f"[Prompt {prompt_idx}][Layer {layer_idx}] {name}: None")
+        return
+
+    try:
+        t = tensor.detach().float()
+        nan_count = torch.isnan(t).sum().item()
+        inf_count = torch.isinf(t).sum().item()
+        logger.debug(
+            f"[Prompt {prompt_idx}][Layer {layer_idx}] {name}: "
+            f"shape={tuple(t.shape)}, dtype={tensor.dtype}, device={tensor.device}, "
+            f"min={t.min().item():.6f}, max={t.max().item():.6f}, mean={t.mean().item():.6f}, "
+            f"nan={nan_count}, inf={inf_count}"
+        )
+    except Exception as e:
+        logger.debug(f"[Prompt {prompt_idx}][Layer {layer_idx}] {name}: stats failed: {e}")
+
+
+def get_attention_metadata(attn_module):
+    cfg = getattr(attn_module, "config", None)
+    if cfg is None:
+        cfg = model.config
+
+    num_heads = getattr(attn_module, "num_heads", None)
+    if num_heads is None:
+        num_heads = getattr(cfg, "num_attention_heads", None)
+    if num_heads is None:
+        raise RuntimeError("Cannot determine num_heads from attention module or config.")
+
+    num_kv_heads = getattr(attn_module, "num_key_value_heads", None)
+    if num_kv_heads is None:
+        num_kv_heads = getattr(cfg, "num_key_value_heads", None)
+    if num_kv_heads is None:
+        k_out = attn_module.k_proj.weight.shape[0]
+        q_out = attn_module.q_proj.weight.shape[0]
+        inferred_head_dim = q_out // num_heads
+        num_kv_heads = k_out // inferred_head_dim
+
+    head_dim = getattr(attn_module, "head_dim", None)
+    if head_dim is None:
+        q_out = attn_module.q_proj.weight.shape[0]
+        if q_out % num_heads != 0:
+            raise RuntimeError(
+                f"q_proj out_features ({q_out}) is not divisible by num_heads ({num_heads})."
+            )
+        head_dim = q_out // num_heads
+
+    if num_heads % num_kv_heads != 0:
+        raise RuntimeError(
+            f"num_heads ({num_heads}) is not divisible by num_kv_heads ({num_kv_heads})."
+        )
+
+    num_kv_groups = num_heads // num_kv_heads
+
+    return {
+        "num_heads": num_heads,
+        "num_kv_heads": num_kv_heads,
+        "head_dim": head_dim,
+        "num_kv_groups": num_kv_groups,
+    }
+
+
+def repeat_kv_heads(x: torch.Tensor, n_rep: int) -> torch.Tensor:
+    if n_rep == 1:
+        return x
+    bsz, seqlen, num_kv_heads, head_dim = x.shape
+    x = x[:, :, :, None, :].expand(bsz, seqlen, num_kv_heads, n_rep, head_dim)
+    return x.reshape(bsz, seqlen, num_kv_heads * n_rep, head_dim)
+
+
+def build_causal_mask_for_query_subset(
+    seq_len: int,
+    query_start: int,
+    device: torch.device,
+) -> torch.Tensor:
+    q_positions = torch.arange(query_start, seq_len, device=device)
+    k_positions = torch.arange(seq_len, device=device)
+    return k_positions.unsqueeze(0) <= q_positions.unsqueeze(1)
+
+
+def compute_ffn_importance_from_hffn(
+    hffn: torch.Tensor,
+    down_proj_weight: torch.Tensor,
+) -> torch.Tensor:
+    h_sq = hffn.float().pow(2).sum(dim=(0, 1))
+    w_sq = down_proj_weight.float().pow(2).sum(dim=0)
+    return h_sq * w_sq
+
+
+def compute_q_importance_parallel(
+    base_scores: torch.Tensor,
+    base_probs: torch.Tensor,
+    q_used: torch.Tensor,
+    k_rep: torch.Tensor,
+    head_dim: int,
+    prompt_idx: int,
+    layer_idx: int,
+) -> torch.Tensor:
+    device = base_scores.device
+    _, num_heads, _, _ = base_scores.shape
+    d = head_dim
+    q_importance = torch.zeros(num_heads, d, device=device, dtype=torch.float32)
+
+    for h in range(num_heads):
+        scores_h = base_scores[:, h, :, :]
+        probs_h = base_probs[:, h, :, :]
+        q_h = q_used[:, :, h, :].float()
+        k_h = k_rep[:, :, h, :].float()
+        delta = q_h.unsqueeze(2) * k_h.unsqueeze(1)
+        perturbed_scores = scores_h.unsqueeze(-1) - (delta / math.sqrt(head_dim))
+        perturbed_probs = torch.softmax(perturbed_scores, dim=2)
+        diff = perturbed_probs - probs_h.unsqueeze(-1)
+        imp = diff.pow(2).sum(dim=(0, 1, 2))
+        q_importance[h] = imp
+
+    if should_log_detail(prompt_idx):
+        log_tensor_stats("q_importance_parallel", q_importance, prompt_idx, layer_idx)
+
+    return q_importance.reshape(-1).detach()
+
+
+def compute_k_importance_parallel(
+    base_scores: torch.Tensor,
+    base_probs: torch.Tensor,
+    q_used: torch.Tensor,
+    k_orig: torch.Tensor,
+    num_kv_groups: int,
+    head_dim: int,
+    prompt_idx: int,
+    layer_idx: int,
+) -> torch.Tensor:
+    device = base_scores.device
+    _, _, _, _ = base_scores.shape
+    _, _, num_kv_heads, d = k_orig.shape
+    k_importance = torch.zeros(num_kv_heads, d, device=device, dtype=torch.float32)
+
+    for kvh in range(num_kv_heads):
+        h_start = kvh * num_kv_groups
+        h_end = (kvh + 1) * num_kv_groups
+        k_h = k_orig[:, :, kvh, :].float()
+        scores_grp = base_scores[:, h_start:h_end]
+        probs_grp = base_probs[:, h_start:h_end]
+        q_grp = q_used[:, :, h_start:h_end, :].float()
+        imp_total = torch.zeros(d, device=device, dtype=torch.float32)
+
+        for g in range(h_end - h_start):
+            scores_h = scores_grp[:, g, :, :]
+            probs_h = probs_grp[:, g, :, :]
+            q_h = q_grp[:, :, g, :]
+            delta = q_h.unsqueeze(2) * k_h.unsqueeze(1)
+            perturbed_scores = scores_h.unsqueeze(-1) - (delta / math.sqrt(head_dim))
+            perturbed_probs = torch.softmax(perturbed_scores, dim=2)
+            diff = perturbed_probs - probs_h.unsqueeze(-1)
+            imp = diff.pow(2).sum(dim=(0, 1, 2))
+            imp_total += imp
+
+        k_importance[kvh] = imp_total
+
+    if should_log_detail(prompt_idx):
+        log_tensor_stats("k_importance_parallel", k_importance, prompt_idx, layer_idx)
+
+    return k_importance.reshape(-1).detach()
+
+
+def compute_v_importance_linear(
+    base_probs: torch.Tensor,
+    v_orig: torch.Tensor,
+    o_proj_weight: torch.Tensor,
+    num_kv_groups: int,
+    prompt_idx: int,
+    layer_idx: int,
+) -> torch.Tensor:
+    device = base_probs.device
+    _, num_heads, _, _ = base_probs.shape
+    _, _, num_kv_heads, head_dim = v_orig.shape
+    o_col_norm_sq = o_proj_weight.float().pow(2).sum(dim=0).view(num_heads, head_dim)
+    v_importance = torch.zeros(num_kv_heads, head_dim, device=device, dtype=torch.float32)
+
+    for kvh in range(num_kv_heads):
+        h_start = kvh * num_kv_groups
+        h_end = (kvh + 1) * num_kv_groups
+        probs_grp = base_probs[:, h_start:h_end, :, :]
+        v_h = v_orig[:, :, kvh, :].float()
+        o_norm_grp = o_col_norm_sq[h_start:h_end, :]
+        ctx = torch.einsum("bgqt,btd->bgqd", probs_grp, v_h)
+        ctx_sq_sum = ctx.pow(2).sum(dim=(0, 2))
+        v_importance[kvh] = (ctx_sq_sum * o_norm_grp).sum(dim=0)
+
+    if should_log_detail(prompt_idx):
+        log_tensor_stats("v_importance", v_importance, prompt_idx, layer_idx)
+
+    return v_importance.reshape(-1).detach()
 
 
 def select_by_threshold(importance: torch.Tensor,
@@ -164,23 +337,21 @@ def select_global_by_threshold(
 
 def detect_safety_neurons_threshold(
     prompt: str,
-) -> Tuple[Dict[int, Set[int]],
-           Dict[int, Set[int]],
-           Dict[int, Set[int]],
-           Dict[int, Set[int]],
-           Dict[int, Set[int]]]:
-    """
-    Neuron detection based on activation magnitude thresholding.
-    
-    Returns:
-        (ffn_up_dict, ffn_down_dict, q_dict, k_dict, v_dict)
-    """
-
-    ffn_up_dict: Dict[int, Set[int]] = {}
-    ffn_down_dict: Dict[int, Set[int]] = {}
-    q_dict: Dict[int, Set[int]] = {}
-    k_dict: Dict[int, Set[int]] = {}
-    v_dict: Dict[int, Set[int]] = {}
+    prompt_idx: int = 0,
+) -> Optional[
+    Tuple[
+        Dict[int, Set[int]],
+        Dict[int, Set[int]],
+        Dict[int, Set[int]],
+        Dict[int, Set[int]],
+        Dict[int, Set[int]],
+    ]
+]:
+    ffn_up_dict: Dict[int, Set[int]] = {layer_idx: set() for layer_idx in range(NUM_LAYERS)}
+    ffn_down_dict: Dict[int, Set[int]] = {layer_idx: set() for layer_idx in range(NUM_LAYERS)}
+    q_dict: Dict[int, Set[int]] = {layer_idx: set() for layer_idx in range(NUM_LAYERS)}
+    k_dict: Dict[int, Set[int]] = {layer_idx: set() for layer_idx in range(NUM_LAYERS)}
+    v_dict: Dict[int, Set[int]] = {layer_idx: set() for layer_idx in range(NUM_LAYERS)}
 
     try:
         if is_instruct_model(model_name):
@@ -202,55 +373,49 @@ def detect_safety_neurons_threshold(
                 max_length=1024,
             )
 
+        if "attention_mask" not in inputs:
+            inputs["attention_mask"] = torch.ones_like(inputs["input_ids"])
+
         device = next(model.parameters()).device
         inputs = {k: v.to(device) for k, v in inputs.items()}
 
-        activations_dict = {}
+        captured_inputs: Dict[str, torch.Tensor] = {}
 
-        def get_activation_hook(name):
-            def hook(module, input, output):
-                if isinstance(output, tuple):
-                    act = output[0]
-                else:
-                    act = output
-                activations_dict[name] = act.detach()
+        def get_attn_pre_hook(name: str):
+            def hook(module, args, kwargs):
+                x = None
+                if kwargs is not None and "hidden_states" in kwargs and kwargs["hidden_states"] is not None:
+                    x = kwargs["hidden_states"]
+                elif args is not None and len(args) > 0 and args[0] is not None:
+                    x = args[0]
+                if x is None:
+                    return
+                x = x.detach()
+                if CAPTURE_HIDDEN_TO_CPU:
+                    x = x.to("cpu")
+                captured_inputs[name] = x
+            return hook
+
+        def get_mlp_pre_hook(name: str):
+            def hook(module, module_inputs):
+                if not module_inputs:
+                    return
+                x = module_inputs[0].detach()
+                if CAPTURE_HIDDEN_TO_CPU:
+                    x = x.to("cpu")
+                captured_inputs[name] = x
             return hook
 
         hooks = []
         for layer_idx in range(NUM_LAYERS):
             layer = model.model.layers[layer_idx]
-
-            if hasattr(layer.mlp, "up_proj"):
-                hooks.append(
-                    layer.mlp.up_proj.register_forward_hook(
-                        get_activation_hook(f"layer_{layer_idx}_ffn_up")
-                    )
+            hooks.append(
+                layer.self_attn.register_forward_pre_hook(
+                    get_attn_pre_hook(f"layer_{layer_idx}_attn_in"),
+                    with_kwargs=True,
                 )
-            if hasattr(layer.mlp, "down_proj"):
-                hooks.append(
-                    layer.mlp.down_proj.register_forward_hook(
-                        get_activation_hook(f"layer_{layer_idx}_ffn_down")
-                    )
-                )
-
-            if hasattr(layer.self_attn, "q_proj"):
-                hooks.append(
-                    layer.self_attn.q_proj.register_forward_hook(
-                        get_activation_hook(f"layer_{layer_idx}_attn_q")
-                    )
-                )
-            if hasattr(layer.self_attn, "k_proj"):
-                hooks.append(
-                    layer.self_attn.k_proj.register_forward_hook(
-                        get_activation_hook(f"layer_{layer_idx}_attn_k")
-                    )
-                )
-            if hasattr(layer.self_attn, "v_proj"):
-                hooks.append(
-                    layer.self_attn.v_proj.register_forward_hook(
-                        get_activation_hook(f"layer_{layer_idx}_attn_v")
-                    )
-                )
+            )
+            hooks.append(layer.mlp.register_forward_pre_hook(get_mlp_pre_hook(f"layer_{layer_idx}_mlp_in")))
 
         try:
             with torch.no_grad():
@@ -268,35 +433,113 @@ def detect_safety_neurons_threshold(
             v_importance: Dict[int, torch.Tensor] = {}
 
             for layer_idx in range(NUM_LAYERS):
-                # FFN up_proj
-                ffn_up_key = f"layer_{layer_idx}_ffn_up"
-                if ffn_up_key in activations_dict:
-                    act = activations_dict[ffn_up_key].float()
-                    ffn_up_importance[layer_idx] = torch.abs(act).mean(dim=(0, 1))
+                layer_t0 = time.perf_counter()
+                layer = model.model.layers[layer_idx]
+                attn_key = f"layer_{layer_idx}_attn_in"
+                mlp_key = f"layer_{layer_idx}_mlp_in"
 
-                # FFN down_proj
-                ffn_down_key = f"layer_{layer_idx}_ffn_down"
-                if ffn_down_key in activations_dict:
-                    act = activations_dict[ffn_down_key].float()
-                    ffn_down_importance[layer_idx] = torch.abs(act).mean(dim=(0, 1))
+                if attn_key not in captured_inputs or mlp_key not in captured_inputs:
+                    raise RuntimeError(f"Missing captured input at layer {layer_idx}")
 
-                # Attention Q
-                q_key = f"layer_{layer_idx}_attn_q"
-                if q_key in activations_dict:
-                    act = activations_dict[q_key].float()
-                    q_importance[layer_idx] = torch.abs(act).mean(dim=(0, 1))
+                attn_in = captured_inputs.pop(attn_key)
+                mlp_in = captured_inputs.pop(mlp_key)
 
-                # Attention K
-                k_key = f"layer_{layer_idx}_attn_k"
-                if k_key in activations_dict:
-                    act = activations_dict[k_key].float()
-                    k_importance[layer_idx] = torch.abs(act).mean(dim=(0, 1))
+                attn_dtype = layer.self_attn.q_proj.weight.dtype
+                mlp_dtype = layer.mlp.up_proj.weight.dtype
+                layer_device = layer.self_attn.q_proj.weight.device
 
-                # Attention V
-                v_key = f"layer_{layer_idx}_attn_v"
-                if v_key in activations_dict:
-                    act = activations_dict[v_key].float()
-                    v_importance[layer_idx] = torch.abs(act).mean(dim=(0, 1))
+                attn_x = attn_in.to(device=layer_device, dtype=attn_dtype, non_blocking=True)
+                mlp_x = mlp_in.to(device=layer_device, dtype=mlp_dtype, non_blocking=True)
+
+                gate_out = layer.mlp.gate_proj(mlp_x)
+                up_out = layer.mlp.up_proj(mlp_x)
+                hffn = F.silu(gate_out.float()) * up_out.float()
+                ffn_imp = compute_ffn_importance_from_hffn(
+                    hffn=hffn,
+                    down_proj_weight=layer.mlp.down_proj.weight,
+                )
+                ffn_up_importance[layer_idx] = ffn_imp
+                ffn_down_importance[layer_idx] = ffn_imp
+                del gate_out, up_out, hffn, mlp_x, mlp_in
+
+                q_proj = layer.self_attn.q_proj(attn_x).float()
+                k_proj = layer.self_attn.k_proj(attn_x).float()
+                v_proj = layer.self_attn.v_proj(attn_x).float()
+
+                attn_meta = get_attention_metadata(layer.self_attn)
+                num_heads = attn_meta["num_heads"]
+                num_kv_heads = attn_meta["num_kv_heads"]
+                head_dim = attn_meta["head_dim"]
+                num_kv_groups = attn_meta["num_kv_groups"]
+
+                bsz, full_seq_len, _ = q_proj.shape
+                q = q_proj.reshape(bsz, full_seq_len, num_heads, head_dim)
+                k = k_proj.reshape(bsz, full_seq_len, num_kv_heads, head_dim)
+                v = v_proj.reshape(bsz, full_seq_len, num_kv_heads, head_dim)
+                k_rep = repeat_kv_heads(k, num_kv_groups)
+
+                query_start = 0 if ATTN_QUERY_WINDOW is None else max(0, full_seq_len - ATTN_QUERY_WINDOW)
+                q_used = q[:, query_start:, :, :]
+
+                base_scores = torch.einsum("bqhd,bthd->bhqt", q_used, k_rep) / math.sqrt(head_dim)
+                causal_mask = build_causal_mask_for_query_subset(
+                    seq_len=full_seq_len,
+                    query_start=query_start,
+                    device=base_scores.device,
+                )
+                base_scores = base_scores.masked_fill(~causal_mask.unsqueeze(0).unsqueeze(0), NEG_INF)
+
+                if "attention_mask" in inputs and inputs["attention_mask"] is not None:
+                    key_mask = inputs["attention_mask"].to(base_scores.device).bool()
+                    base_scores = base_scores.masked_fill(~key_mask.unsqueeze(1).unsqueeze(1), NEG_INF)
+
+                base_probs = torch.softmax(base_scores, dim=-1).float()
+
+                q_imp = compute_q_importance_parallel(
+                    base_scores=base_scores,
+                    base_probs=base_probs,
+                    q_used=q_used,
+                    k_rep=k_rep,
+                    head_dim=head_dim,
+                    prompt_idx=prompt_idx,
+                    layer_idx=layer_idx,
+                )
+                k_imp = compute_k_importance_parallel(
+                    base_scores=base_scores,
+                    base_probs=base_probs,
+                    q_used=q_used,
+                    k_orig=k,
+                    num_kv_groups=num_kv_groups,
+                    head_dim=head_dim,
+                    prompt_idx=prompt_idx,
+                    layer_idx=layer_idx,
+                )
+                v_imp = compute_v_importance_linear(
+                    base_probs=base_probs,
+                    v_orig=v,
+                    o_proj_weight=layer.self_attn.o_proj.weight,
+                    num_kv_groups=num_kv_groups,
+                    prompt_idx=prompt_idx,
+                    layer_idx=layer_idx,
+                )
+
+                q_importance[layer_idx] = q_imp
+                k_importance[layer_idx] = k_imp
+                v_importance[layer_idx] = v_imp
+
+                del (
+                    attn_x, attn_in,
+                    q_proj, k_proj, v_proj,
+                    q, k, v, k_rep, q_used,
+                    base_scores, base_probs,
+                    q_imp, k_imp, v_imp,
+                )
+
+                layer_t1 = time.perf_counter()
+                logger.debug(
+                    f"[Prompt {prompt_idx}][Layer {layer_idx}] layer importance done in "
+                    f"{layer_t1 - layer_t0:.3f}s"
+                )
 
             ffn_up_dict = select_global_by_threshold(
                 ffn_up_importance,
@@ -327,15 +570,11 @@ def detect_safety_neurons_threshold(
         finally:
             for h in hooks:
                 h.remove()
+            captured_inputs.clear()
 
     except Exception as e:
-        logger.error(f"Error in neuron detection: {e}")
-        for layer_idx in range(NUM_LAYERS):
-            ffn_up_dict[layer_idx] = set()
-            ffn_down_dict[layer_idx] = set()
-            q_dict[layer_idx] = set()
-            k_dict[layer_idx] = set()
-            v_dict[layer_idx] = set()
+        logger.exception(f"Error in neuron detection (Prompt {prompt_idx}): {e}")
+        return None
 
     return ffn_up_dict, ffn_down_dict, q_dict, k_dict, v_dict
 
@@ -495,18 +734,25 @@ def main(argv):
     k_sets: List[Dict[int, Set[int]]] = []
     v_sets: List[Dict[int, Set[int]]] = []
     
+    failed_count = 0
+    successful_count = 0
+
     for idx, doc in enumerate(tqdm(wikipedia_docs, desc="Detecting neurons")):
-        try:
-            ffn_up, ffn_down, q, k, v = detect_safety_neurons_threshold(doc)
-            ffn_up_sets.append(ffn_up)
-            ffn_down_sets.append(ffn_down)
-            q_sets.append(q)
-            k_sets.append(k)
-            v_sets.append(v)
-        except Exception as e:
-            logger.warning(f"Failed doc {idx}: {str(e)[:100]}")
-    
-    logger.info(f"Successfully processed {len(ffn_up_sets)}/{len(wikipedia_docs)} documents")
+        result = detect_safety_neurons_threshold(doc, prompt_idx=idx)
+        if result is None:
+            failed_count += 1
+            logger.warning(f"Failed doc idx={idx}")
+            continue
+
+        ffn_up, ffn_down, q, k, v = result
+        ffn_up_sets.append(ffn_up)
+        ffn_down_sets.append(ffn_down)
+        q_sets.append(q)
+        k_sets.append(k)
+        v_sets.append(v)
+        successful_count += 1
+
+    logger.info(f"Successfully processed {successful_count}/{len(wikipedia_docs)} documents (failed={failed_count})")
     
     # Step 3: Compute intersection (Foundation Neurons)
     logger.info("\nComputing foundation neuron intersections...")

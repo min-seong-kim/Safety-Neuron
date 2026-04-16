@@ -5,8 +5,8 @@ Step 2: Compute Critical Safety Neurons
   Critical Safety Neurons = Safety Neurons - (Safety Neurons ∩ Utility Neurons)
     
 python compute_critical_safety_neurons.py \
-    ./output_neurons/safety_neuron_threshold_20260413_165358.txt \
-    ./output_neurons/utility_neurons_1000_20260413_161005.txt
+    ./output_neurons/safety_neuron_threshold_20260415_154528.txt \
+    ./output_neurons/utility_neurons_4994_20260415_162728.txt
 """
 
 import os
@@ -18,11 +18,17 @@ from typing import Dict, Set
 from datetime import datetime
 from transformers import AutoConfig
 
+from neuron_percentage_utils import (
+    LLAMA31_8B_FALLBACK_DIMS,
+    calculate_total_model_neurons_from_config,
+    calculate_total_model_neurons_from_dims,
+)
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_MODEL_NAME = "meta-llama/Llama-3.2-3B-instruct"
+DEFAULT_MODEL_NAME = "meta-llama/Llama-3.1-8B"
 
 
 def setup_logging() -> str:
@@ -60,34 +66,12 @@ def calculate_model_total_neurons(model_name: str = DEFAULT_MODEL_NAME) -> int:
     """Model-wide neuron denominator: q/k/v/o + gate/up/down output channels."""
     try:
         cfg = AutoConfig.from_pretrained(model_name)
-        num_layers = cfg.num_hidden_layers
-        hidden_size = cfg.hidden_size
-        intermediate_size = cfg.intermediate_size
-        num_heads = cfg.num_attention_heads
-        num_kv_heads = getattr(cfg, "num_key_value_heads", num_heads)
-        head_dim = hidden_size // num_heads
-        kv_dim = num_kv_heads * head_dim
         logger.info(f"Using model config for denominator: {model_name}")
+        return calculate_total_model_neurons_from_config(cfg)
     except Exception as e:
-        # Fallback for Llama-3.2-3B architecture
-        logger.warning(f"Failed to load AutoConfig ({e}); using Llama-3.2-3B fallback config")
-        num_layers = 28
-        hidden_size = 3072
-        intermediate_size = 8192
-        num_heads = 24
-        num_kv_heads = 8
-        head_dim = hidden_size // num_heads
-        kv_dim = num_kv_heads * head_dim
-
-    return num_layers * (
-        hidden_size +        # q
-        kv_dim +             # k
-        kv_dim +             # v
-        hidden_size +        # o
-        intermediate_size +  # gate
-        intermediate_size +  # up
-        hidden_size          # down
-    )
+        # Fallback for Llama-3.1-8B architecture
+        logger.warning(f"Failed to load AutoConfig ({e}); using Llama-3.1-8B fallback config")
+        return calculate_total_model_neurons_from_dims(**LLAMA31_8B_FALLBACK_DIMS)
 
 
 def _parse_dict_line(raw: str) -> Dict:
@@ -157,19 +141,26 @@ def load_neurons_from_file(file_path: str) -> Dict[str, Dict[int, Set[int]]]:
         return None
 
 
-def compute_critical_safety_neurons(safety_neurons: Dict, utility_neurons: Dict, num_layers: int = 28) -> Dict:
+def compute_critical_safety_neurons(safety_neurons: Dict, utility_neurons: Dict, num_layers: int = None) -> Dict:
     """
     Compute Critical Safety Neurons = Safety - (Safety ∩ Utility)
     
     Args:
         safety_neurons: Dictionary with structure {'ffn_up': {...}, 'ffn_down': {...}, ...}
         utility_neurons: Same structure
-        num_layers: Number of transformer layers (28 for Llama-3.2-3B)
+        num_layers: Number of transformer layers (inferred from data if None)
     
     Returns:
         critical: Dictionary with same structure containing only Critical Safety Neurons
     """
     
+    if num_layers is None:
+        all_layers = set()
+        for module in ['ffn_up', 'ffn_down', 'q', 'k', 'v']:
+            all_layers.update(safety_neurons.get(module, {}).keys())
+            all_layers.update(utility_neurons.get(module, {}).keys())
+        num_layers = max(all_layers) + 1 if all_layers else 32
+
     critical = {}
     module_keys = ['ffn_up', 'ffn_down', 'q', 'k', 'v']
     
@@ -204,8 +195,15 @@ def compute_statistics(safety_neurons: Dict, utility_neurons: Dict, critical_neu
         'overlap': {'ffn': 0, 'attn': 0, 'total': 0},
         'layer_stats': {},
     }
-    
-    for layer_idx in range(28):
+
+    all_layers = set()
+    for module in ['ffn_up', 'ffn_down', 'q', 'k', 'v']:
+        all_layers.update(safety_neurons.get(module, {}).keys())
+        all_layers.update(utility_neurons.get(module, {}).keys())
+        all_layers.update(critical_neurons.get(module, {}).keys())
+    num_layers = max(all_layers) + 1 if all_layers else 32
+
+    for layer_idx in range(num_layers):
         layer_stats = {
             'safety': {'ffn_up': 0, 'ffn_down': 0, 'q': 0, 'k': 0, 'v': 0},
             'utility': {'ffn_up': 0, 'ffn_down': 0, 'q': 0, 'k': 0, 'v': 0},
@@ -358,7 +356,7 @@ def main(argv):
     logger.info(f"{'Layer':<10} {'Safety':<10} {'Utility':<10} {'Overlap':<10} {'Critical':<10}")
     logger.info(f"{'-'*52}")
     
-    for layer_idx in range(28):
+    for layer_idx in sorted(stats['layer_stats'].keys()):
         layer_stat = stats['layer_stats'][layer_idx]
         safety_total = sum(layer_stat['safety'].values())
         utility_total = sum(layer_stat['utility'].values())

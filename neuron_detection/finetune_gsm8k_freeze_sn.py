@@ -7,8 +7,13 @@ Trainer + AdamW 8-bit optimizer (bitsandbytes) 사용으로 메모리 효율성 
 
 Example Usage:
 python finetune_gsm8k_freeze_sn.py \
-    --model_path /home/yonsei_jong/Safety-Neuron/neuron_detection/only_rsn_tuned_model_lr1e-5_20260406_203747 \
-    --safety_neurons_file /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/critical-safety-neuron_20260406_201744.txt \
+    --model_path kmseong/llama3.1_8b_base_only_sn_tuned_lr3e-5 \
+    --safety_neurons_file /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/safety_neuron_threshold_20260414_155457.txt \
+    --output_dir ./gsm8k_ft_freeze_sn
+
+python finetune_gsm8k_freeze_sn.py \
+    --model_path /home/yonsei_jong/Safety-Neuron/neuron_detection/only_rsn_tuned_model_base_lr3e-5_lr3e-5_20260415_000357 \
+    --safety_neurons_file /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/critical_safety_neuron_20260414_232646.txt \
     --output_dir ./gsm8k_ft_freeze_rsn
 """
 
@@ -32,6 +37,8 @@ from transformers import (
     TrainingArguments,
     set_seed,
 )
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 
 def parse_args():
@@ -61,7 +68,7 @@ def parse_args():
     p.add_argument("--eval_batch_size", type=int, default=4)
     p.add_argument("--grad_accum", type=int, default=4)
     p.add_argument("--epochs", type=int, default=3)
-    p.add_argument("--learning_rate", type=float, default=1e-5)
+    p.add_argument("--learning_rate", type=float, default=3e-5)
     p.add_argument("--weight_decay", type=float, default=0.01)
     p.add_argument("--warmup_ratio", type=float, default=0.1)
     p.add_argument("--lr_scheduler_type", type=str, default="cosine")
@@ -102,10 +109,7 @@ def is_instruct_model(model_ref: str) -> bool:
 
 def build_chat_prompt(question: str, tokenizer) -> str:
     """베이스 모델용 프롬프트 빌딩"""
-    system_msg = "You are a helpful assistant that solves math problems step by step. Always show your reasoning and provide the final numerical answer after ####."
-    user_msg = f"Solve this problem step by step:\n\n{question.strip()}"
-    prompt = f"{system_msg}\n\nUser: {user_msg}\n\nAssistant:"
-    return prompt
+    return f"Question: {question.strip()}\nAnswer:"
 
 
 def tokenize_sft_example(question: str, answer_text: str, tokenizer, max_length: int, model_ref: str) -> Dict[str, List[int]]:
