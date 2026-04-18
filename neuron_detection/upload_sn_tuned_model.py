@@ -8,12 +8,12 @@ Usage:
 Example:
 
 python upload_sn_tuned_model.py \
-    --upload_pair ./math_ft_instruct_freeze_sn_lr3e-5_20260415_205825 kmseong/llama3.1_8b_instruct_MATH_FT_lr3e-5_freeze_sn \
-    --upload_pair ./math_ft_instruct_freeze_rsn_lr3e-5_20260415_210044 kmseong/llama3.1_8b_instruct_MATH_FT_lr3e-5_freeze_rsn \
+    --upload_pair ./full_finetune_llama2_7b_chat_gsm8k_lr3e-5 kmseong/llama2_7b_chat_SSFT_gsm8k_FT_lr3e-5 \
+    --upload_pair ./full_finetune_llama2_7b_gsm8k_lr3e-5 kmseong/llama2_7b_SSFT_gsm8k_FT_lr3e-5 \
     
 python upload_sn_tuned_model.py \
-    --upload_pair ./full_finetune_MATH_instruct--lr5e-5 kmseong/llama3.1_8b_instruct-MATH_FT_lr5e-5 \
-    --upload_pair ./math_ft_instruct_after_rsn_tune_freeze_rsn_lr3e-5_20260415_235641 kmseong/llama3.1_8b_instruct-MATH_FT_after_rsn-tune_lr3e-5 \
+    --upload_pair ./llama2_7b_gsm8k_ft_freeze_sn_20260417_144001 kmseong/llama2_7b_gsm8k_ft_freeze_sn_lr3e-5 \
+    --upload_pair ./llama2_7b_chat_gsm8k_ft_freeze_sn_20260417_144013 kmseong/llama2_7b_chat_gsm8k_ft_freeze_sn_lr3e-5 
    
 """
 

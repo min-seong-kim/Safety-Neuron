@@ -8,17 +8,28 @@ Safety Neuron Tuning (SN-Tune)
 
 # SN-Tune
 python sn_tune.py \
-  ./output_neurons/safety_neuron_threshold_20260415_154528.txt \
+  ./output_neurons/llama_31_8b_base_safety_neuron_accelerated_20260418_195615.txt \
   ./corpus_all/circuit_breakers_train.json \
-  ./only_sn_tuned_model_llama3_1_8b_instruct_lr3e-5 
+  ./only_sn_tuned_model_llama31_8b_base_lr3e-5 \
+  --model_name meta-llama/Llama-3.1-8B
+
+# SN-Tune with custom model
+python sn_tune.py \
+  ./output_neurons/llama_31_8b_instruct_safety_neuron_accelerated_20260418_195634.txt \
+  ./corpus_all/circuit_breakers_train.json \
+  ./only_sn_tuned_model_llama31_8b_instruct_lr3e-5 \
+  --model_name meta-llama/Llama-3.1-8B-Instruct
+  
 
 # RSN-Tune
 python sn_tune.py \
-  ./output_neurons/critical_safety_neuron_20260415_192815.txt \
+  ./output_neurons/llama_2_7b_chat_safety_neuron_accelerated_20260416_160653.txt \
   ./corpus_all/circuit_breakers_train.json \
-  ./only_rsn_tuned_model_llama3_1_8b_instruct_lr3e-5 
+  ./only_sn_tuned_model_llama2_7b_chat_lr3e-5 \
+  --model_name meta-llama/Llama-2-7b-chat-hf
 """
 
+import argparse
 import os
 import sys
 import json
@@ -41,7 +52,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 # =====================================================================
 # Configuration
 # =====================================================================
-model_name = "meta-llama/Llama-3.1-8B-Instruct" 
+DEFAULT_MODEL_NAME = "meta-llama/Llama-3.1-8B"
 NUM_LAYERS = 32
 
 # SN-Tune hyperparameters
@@ -89,7 +100,8 @@ def setup_logging(log_dir="./logs/sn_tuning"):
 # =====================================================================
 def is_instruct_model(name: str) -> bool:
     """Return True if model name indicates an instruction-tuned model."""
-    return "instruct" in str(name).lower()
+    model_ref = name.lower()
+    return any(tag in model_ref for tag in ('instruct', 'chat'))
 
 
 
@@ -376,14 +388,14 @@ def setup_gradient_masking(model, safety_neurons):
             if neuron_indices:
                 param.requires_grad = True
                 # down_proj: weight shape [hidden_dim, intermediate_dim]
-                # neurons are rows in weight matrix (output dimensions)
-                trainable_neuron_params += len(neuron_indices) * param.shape[1]
+                # neurons are COLUMNS (intermediate_dim axis), same index as up_proj rows
+                trainable_neuron_params += len(neuron_indices) * param.shape[0]
                 unfrozen_modules['ffn_down'] += 1
                 
                 def make_hook(indices):
                     def hook(grad):
                         mask = torch.zeros_like(grad)
-                        mask[indices, :] = 1.0
+                        mask[:, indices] = 1.0  # columns = intermediate_dim neurons
                         return grad * mask
                     return hook
                 
@@ -661,15 +673,19 @@ def save_sn_tuned_model(model, tokenizer, save_path):
 # Main
 # =====================================================================
 def main(argv):
-    if len(argv) < 2:
-        logger.error("Usage: python sn_tune.py <safety_neurons_file> <safety_dataset_json> [output_dir]")
-        logger.error("Example: python sn_tune.py ./output_neurons/meta-llama_...neurons_200_20251208_*.txt ./corpus_all/circuit_breakers_train.json ./sn_tuned_model")
-        sys.exit(1)
-    
-    safety_neurons_file = argv[0]
-    safety_dataset_json = argv[1]
-    output_dir = argv[2] if len(argv) > 2 else "./sn_tuned_model"
-    learning_rate = float(argv[3]) if len(argv) > 3 else LEARNING_RATE
+    parser = argparse.ArgumentParser(description="Safety Neuron Tuning (SN-Tune)")
+    parser.add_argument("safety_neurons_file", help="Path to safety neurons txt file")
+    parser.add_argument("safety_dataset_json", help="Path to circuit_breakers_train.json")
+    parser.add_argument("output_dir", nargs="?", default="./sn_tuned_model", help="Output directory")
+    parser.add_argument("--learning_rate", type=float, default=LEARNING_RATE, help="Learning rate")
+    parser.add_argument("--model_name", type=str, default=DEFAULT_MODEL_NAME, help="HuggingFace model name or local path")
+    args = parser.parse_args(argv)
+
+    safety_neurons_file = args.safety_neurons_file
+    safety_dataset_json = args.safety_dataset_json
+    output_dir = args.output_dir
+    learning_rate = args.learning_rate
+    model_name = args.model_name
 
     log_file = setup_logging()
     

@@ -8,8 +8,8 @@ Instruct 모델 기준:
 
 Example Usage:
 python finetune_hendrycks_math_full_params.py \
-    --model_path meta-llama/Llama-3.1-8B-Instruct \
-    --output_dir ./full_finetune_MATH_instruct--lr5e-5
+    --model_path meta-llama/Llama-2-7b-chat-hf \
+    --output_dir ./full_finetune_MATH_chat-lr3e-5 
 
 """
 
@@ -34,6 +34,7 @@ from transformers import (
     set_seed,
 )
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 def parse_args():
     p = argparse.ArgumentParser(description="Full Parameter Finetune SN-Tuned Model on Hendrycks MATH")
@@ -54,7 +55,7 @@ def parse_args():
     p.add_argument("--eval_batch_size", type=int, default=4)
     p.add_argument("--grad_accum", type=int, default=4)
     p.add_argument("--epochs", type=int, default=3)
-    p.add_argument("--learning_rate", type=float, default=5e-5)
+    p.add_argument("--learning_rate", type=float, default=3e-5)
     p.add_argument("--weight_decay", type=float, default=0.01)
     p.add_argument("--warmup_ratio", type=float, default=0.1)
     p.add_argument("--lr_scheduler_type", type=str, default="cosine")
@@ -77,7 +78,8 @@ def parse_args():
 
 
 def is_instruct_model(model_ref: str) -> bool:
-    return "instruct" in str(model_ref).lower()
+    model_ref = model_ref.lower()
+    return any(tag in model_ref for tag in ('instruct', 'chat'))
 
 
 def normalize_csv_arg(raw_value: str) -> str:

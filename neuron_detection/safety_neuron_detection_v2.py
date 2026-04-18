@@ -1,9 +1,18 @@
 '''
-python safety_neuron_detection_v2.py 4994
+python safety_neuron_detection_v2.py 4994 \
+    --model_name meta-llama/Llama-3.1-8B \
+    --ffn_active_fraction 0.05 \
+    --attn_active_fraction 0.05
+
+python safety_neuron_detection_v2.py 4994 \
+    --model_name meta-llama/Llama-3.1-8B-Instruct \
+    --ffn_active_fraction 0.05 \
+    --attn_active_fraction 0.05
 '''
 from neuron_percentage_utils import calculate_total_model_neurons_from_config
 
 import os
+import argparse
 from typing import Dict, Set, List, Tuple, Optional
 import sys
 import json
@@ -17,6 +26,8 @@ import torch
 import torch.nn.functional as F
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datetime import datetime
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 # 로거 초기 설정 (나중에 파일 핸들러 추가됨)
 logging.basicConfig(level=logging.INFO)
@@ -34,26 +45,19 @@ def is_instruct_model(name: str) -> bool:
     name = name.lower()
     return ("instruct" in name) or ("chat" in name)
 
-model_name = "meta-llama/Llama-3.1-8B-Instruct"  # 예시 모델 이름, 필요에 따라 변경
-
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-if tokenizer.pad_token is None:
-    tokenizer.pad_token = tokenizer.eos_token
-
-model = AutoModelForCausalLM.from_pretrained(
-    model_name,
-    device_map={"": 0},
-    torch_dtype=torch.bfloat16,
-)
-model.eval()
-
-NUM_LAYERS = model.config.num_hidden_layers
+DEFAULT_MODEL_NAME = "meta-llama/Llama-3.1-8B-Instruct"
+model_name = DEFAULT_MODEL_NAME
+tokenizer = None
+model = None
+NUM_LAYERS = 0
 
 # ------------------------------------------------------------------
 # Threshold hyperparameters
 # ------------------------------------------------------------------
-FFN_ACTIVE_FRACTION = 0.05
-ATTN_ACTIVE_FRACTION = 0.05
+DEFAULT_FFN_ACTIVE_FRACTION = 0.05
+DEFAULT_ATTN_ACTIVE_FRACTION = 0.05
+FFN_ACTIVE_FRACTION = DEFAULT_FFN_ACTIVE_FRACTION
+ATTN_ACTIVE_FRACTION = DEFAULT_ATTN_ACTIVE_FRACTION
 MIN_NEURONS_FOR_QUANTILE = 10
 
 # ------------------------------------------------------------------
@@ -65,6 +69,66 @@ DETAIL_LOG_PROMPT_LIMIT = 3
 NEG_INF = -1e9
 
 USE_FULL_DIM_PARALLEL_QK = True
+
+
+def initialize_model_and_tokenizer(selected_model_name: str):
+    """Initialize global model/tokenizer after CLI args are parsed."""
+    global model_name, model, tokenizer, NUM_LAYERS
+
+    model_name = selected_model_name
+
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name,
+        device_map={"": 0},
+        torch_dtype=torch.bfloat16,
+    )
+    model.eval()
+
+    NUM_LAYERS = model.config.num_hidden_layers
+
+
+def parse_args(argv):
+    parser = argparse.ArgumentParser(
+        description="Safety neuron detection with configurable model and thresholds"
+    )
+    parser.add_argument(
+        "num_prompts",
+        type=int,
+        help="Number of prompts to process from circuit_breakers_train.json",
+    )
+    parser.add_argument(
+        "--model_name",
+        type=str,
+        default=DEFAULT_MODEL_NAME,
+        help="HuggingFace model name or path",
+    )
+    parser.add_argument(
+        "--ffn_active_fraction",
+        type=float,
+        default=DEFAULT_FFN_ACTIVE_FRACTION,
+        help="Global top fraction for FFN neurons (0~1)",
+    )
+    parser.add_argument(
+        "--attn_active_fraction",
+        "--attn_activ_fraction",
+        dest="attn_active_fraction",
+        type=float,
+        default=DEFAULT_ATTN_ACTIVE_FRACTION,
+        help="Global top fraction for attention neurons (0~1)",
+    )
+
+    args = parser.parse_args(argv)
+
+    if not (0.0 < args.ffn_active_fraction <= 1.0):
+        parser.error("--ffn_active_fraction must be in (0, 1].")
+    if not (0.0 < args.attn_active_fraction <= 1.0):
+        parser.error("--attn_active_fraction must be in (0, 1].")
+
+    return args
 
 
 def calculate_model_total_neurons() -> int:
@@ -885,10 +949,14 @@ def compute_intersection(
 
 
 def main(argv):
-    if len(argv) < 1:
-        logger.error("Usage: python safety_neuron_detection.py <num_prompts>")
-        logger.error("Example: python safety_neuron_detection.py 800")
-        sys.exit(1)
+    global FFN_ACTIVE_FRACTION, ATTN_ACTIVE_FRACTION
+
+    args = parse_args(argv)
+
+    FFN_ACTIVE_FRACTION = args.ffn_active_fraction
+    ATTN_ACTIVE_FRACTION = args.attn_active_fraction
+
+    initialize_model_and_tokenizer(args.model_name)
 
     # =====================================================================
     # 로깅 설정: 파일 핸들러 추가
@@ -928,7 +996,7 @@ def main(argv):
     logger.info(f"Using model: {model_name}")
     logger.info(f"FFN_ACTIVE_FRACTION: {FFN_ACTIVE_FRACTION}, ATTN_ACTIVE_FRACTION: {ATTN_ACTIVE_FRACTION}")
 
-    num_prompts = int(argv[0])
+    num_prompts = args.num_prompts
     logger.info(f"Number of prompts to process: {num_prompts}")
     file_path = os.path.join(SCRIPT_DIR, "corpus_all", "circuit_breakers_train.json")
     if not os.path.exists(file_path):

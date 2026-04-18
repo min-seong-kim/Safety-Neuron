@@ -5,8 +5,22 @@ Step 2: Compute Critical Safety Neurons
   Critical Safety Neurons = Safety Neurons - (Safety Neurons ∩ Utility Neurons)
     
 python compute_critical_safety_neurons.py \
-    ./output_neurons/safety_neuron_threshold_20260415_154528.txt \
-    ./output_neurons/utility_neurons_4994_20260415_162728.txt
+    ./output_neurons/llama_2_7b_base_safety_neuron_accelerated_20260417_003734.txt \
+    ./output_neurons/utility_neurons_1000_20260417_125034.txt
+
+python compute_critical_safety_neurons.py \
+    ./output_neurons/llama_2_7b_chat_safety_neuron_accelerated_20260416_160653.txt \
+    ./output_neurons/utility_neurons_1000_20260417_125319.txt
+
+python compute_critical_safety_neurons.py \
+    ./output_neurons/llama_31_8b_base_safety_neuron_accelerated_20260418_195615.txt \
+    ./output_neurons/utility_neurons_1000_20260418_161554.txt
+
+python compute_critical_safety_neurons.py \
+    ./output_neurons/llama_31_8b_instruct_safety_neuron_accelerated_20260418_195634.txt \
+    ./output_neurons/utility_neurons_1000_20260418_162404.txt
+
+
 """
 
 import os

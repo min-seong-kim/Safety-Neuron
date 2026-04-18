@@ -1,11 +1,12 @@
 """
-GSM8K 데이터셋을 사용하여 SN-Tuned 모델(Llama-3.2-3B 기반)의 전체 파라미터(Full Parameter) 파인튜닝
-
-
 Example Usage:
 python finetune_gsm8k_full_params.py \
-    --model_path meta-llama/Meta-Llama-3-8B-Instruct \
-    --output_dir ./full_finetune_instruct_gsm8k \
+    --model_path kmseong/llama2_7b-Safety-FT-lr3e-5 \
+    --output_dir ./full_finetune_llama2_7b_gsm8k_lr3e-5
+
+python finetune_gsm8k_full_params.py \
+    --model_path kmseong/llama2_7b-chat-Safety-FT-lr3e-5 \
+    --output_dir ./full_finetune_llama2_7b_chat_gsm8k_lr3e-5
 """
 
 import argparse
@@ -26,7 +27,7 @@ from transformers import (
     set_seed,
 )
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 def parse_args():
     p = argparse.ArgumentParser(description='Full Parameter Finetune SN-Tuned Model on GSM8K')
@@ -83,7 +84,7 @@ def _select_first_n(ds, n: int):
 
 
 def is_instruct_model(model_ref: str) -> bool:
-    return "instruct" in str(model_ref).lower()
+    return "instruct" in str(model_ref).lower() or "chat" in str(model_ref).lower()
 
 
 def build_chat_prompt(question: str, tokenizer) -> str:

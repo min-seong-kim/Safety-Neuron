@@ -7,14 +7,14 @@ Trainer + AdamW 8-bit optimizer (bitsandbytes) 사용으로 메모리 효율성 
 
 Example Usage:
 python finetune_gsm8k_freeze_sn.py \
-    --model_path kmseong/llama3.1_8b_base_only_sn_tuned_lr3e-5 \
-    --safety_neurons_file /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/safety_neuron_threshold_20260414_155457.txt \
-    --output_dir ./gsm8k_ft_freeze_sn
+    --model_path ./only_sn_tuned_model_llama2_7b_lr3e-5_lr3e-5_20260417_134939 \
+    --safety_neurons_file /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/llama_2_7b_safety_neuron_accelerated_20260417_003734.txt \
+    --output_dir ./llama2_7b_gsm8k_ft_freeze_sn
 
 python finetune_gsm8k_freeze_sn.py \
-    --model_path /home/yonsei_jong/Safety-Neuron/neuron_detection/only_rsn_tuned_model_base_lr3e-5_lr3e-5_20260415_000357 \
-    --safety_neurons_file /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/critical_safety_neuron_20260414_232646.txt \
-    --output_dir ./gsm8k_ft_freeze_rsn
+    --model_path ./only_sn_tuned_model_llama2_7b_chat_lr3e-5_lr3e-5_20260417_135000 \
+    --safety_neurons_file /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/llama_2_7b_chat_safety_neuron_accelerated_20260416_160653.txt \
+    --output_dir ./llama2_7b_chat_gsm8k_ft_freeze_sn
 """
 
 import argparse
@@ -22,6 +22,7 @@ import ast
 import os
 import gc
 import json
+import re
 import traceback
 from dataclasses import dataclass
 from typing import Dict, List, Optional
@@ -104,7 +105,8 @@ def _select_first_n(ds, n: int):
 
 
 def is_instruct_model(model_ref: str) -> bool:
-    return "instruct" in str(model_ref).lower()
+    model_ref = model_ref.lower()
+    return any(tag in model_ref for tag in ('instruct', 'chat'))
 
 
 def build_chat_prompt(question: str, tokenizer) -> str:
@@ -307,6 +309,42 @@ def setup_safety_neuron_freezing(model, safety_neurons, logger):
     frozen_neuron_params = 0
     trainable_params = 0
     frozen_modules = {'ffn_up': 0, 'ffn_down': 0, 'q': 0, 'k': 0, 'v': 0}
+
+    def _sanitize_indices(raw_indices, row_dim: int, module_name: str, layer_idx: int):
+        """Convert possibly noisy neuron IDs to unique, in-range row indices."""
+        parsed = []
+        dropped = 0
+
+        for x in raw_indices:
+            idx = None
+            if isinstance(x, int):
+                idx = x
+            elif isinstance(x, str):
+                s = x.strip()
+                if s.lstrip("-").isdigit():
+                    idx = int(s)
+                else:
+                    # Supports names like "neuron_123" or "q-456".
+                    m = re.search(r"-?\d+", s)
+                    if m:
+                        idx = int(m.group(0))
+
+            if idx is None:
+                dropped += 1
+                continue
+
+            if 0 <= idx < row_dim:
+                parsed.append(idx)
+            else:
+                dropped += 1
+
+        uniq = sorted(set(parsed))
+        if dropped > 0:
+            logger.warning(
+                f"[Index sanitize] layer={layer_idx}, module={module_name}, "
+                f"kept={len(uniq)}, dropped={dropped}, row_dim={row_dim}"
+            )
+        return uniq
     
     # Step 1: Enable gradients for all parameters by default
     for param in model.parameters():
@@ -329,7 +367,12 @@ def setup_safety_neuron_freezing(model, safety_neurons, logger):
         
         # Check module type and freeze safety neurons
         if 'mlp.up_proj.weight' in name:
-            neuron_indices = safety_neurons['ffn_up'].get(layer_idx, [])
+            neuron_indices = _sanitize_indices(
+                safety_neurons['ffn_up'].get(layer_idx, []),
+                param.shape[0],
+                'ffn_up',
+                layer_idx,
+            )
             if neuron_indices:
                 # up_proj: weight shape [intermediate_dim, hidden_dim]
                 # neurons are rows in weight matrix
@@ -347,7 +390,12 @@ def setup_safety_neuron_freezing(model, safety_neurons, logger):
                 param.register_hook(make_hook(neuron_indices))
         
         elif 'mlp.down_proj.weight' in name:
-            neuron_indices = safety_neurons['ffn_down'].get(layer_idx, [])
+            neuron_indices = _sanitize_indices(
+                safety_neurons['ffn_down'].get(layer_idx, []),
+                param.shape[0],
+                'ffn_down',
+                layer_idx,
+            )
             if neuron_indices:
                 # down_proj: weight shape [hidden_dim, intermediate_dim]
                 # neurons are rows in weight matrix (output dimensions)
@@ -364,7 +412,12 @@ def setup_safety_neuron_freezing(model, safety_neurons, logger):
                 param.register_hook(make_hook(neuron_indices))
         
         elif 'self_attn.q_proj.weight' in name:
-            neuron_indices = safety_neurons['q'].get(layer_idx, [])
+            neuron_indices = _sanitize_indices(
+                safety_neurons['q'].get(layer_idx, []),
+                param.shape[0],
+                'q',
+                layer_idx,
+            )
             if neuron_indices:
                 # q_proj: weight shape [hidden_dim, hidden_dim]
                 # neurons are rows
@@ -381,7 +434,12 @@ def setup_safety_neuron_freezing(model, safety_neurons, logger):
                 param.register_hook(make_hook(neuron_indices))
         
         elif 'self_attn.k_proj.weight' in name:
-            neuron_indices = safety_neurons['k'].get(layer_idx, [])
+            neuron_indices = _sanitize_indices(
+                safety_neurons['k'].get(layer_idx, []),
+                param.shape[0],
+                'k',
+                layer_idx,
+            )
             if neuron_indices:
                 frozen_neuron_params += len(neuron_indices) * param.shape[1]
                 frozen_modules['k'] += 1
@@ -396,7 +454,12 @@ def setup_safety_neuron_freezing(model, safety_neurons, logger):
                 param.register_hook(make_hook(neuron_indices))
         
         elif 'self_attn.v_proj.weight' in name:
-            neuron_indices = safety_neurons['v'].get(layer_idx, [])
+            neuron_indices = _sanitize_indices(
+                safety_neurons['v'].get(layer_idx, []),
+                param.shape[0],
+                'v',
+                layer_idx,
+            )
             if neuron_indices:
                 frozen_neuron_params += len(neuron_indices) * param.shape[1]
                 frozen_modules['v'] += 1
@@ -773,7 +836,7 @@ def main():
             test_model = AutoModelForCausalLM.from_pretrained(
                 final_output_dir,
                 torch_dtype=torch.bfloat16,
-                device_map="cpu",
+                device_map="auto",
                 local_files_only=True,
             )
             del test_tokenizer

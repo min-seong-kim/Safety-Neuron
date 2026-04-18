@@ -1,9 +1,18 @@
 """
-python foundation_neuron_detection.py 1000
+python foundation_neuron_detection.py 1000 \
+    --model_name meta-llama/Llama-3.1-8B \
+    --ffn_active_fraction 0.01 \
+    --attn_active_fraction 0.01
+
+python foundation_neuron_detection.py 1000 \
+    --model_name meta-llama/Llama-3.1-8B-Instruct \
+    --ffn_active_fraction 0.01 \
+    --attn_active_fraction 0.01
 """
 
 import os
 import sys
+import argparse
 import torch
 import random
 import logging
@@ -21,6 +30,8 @@ from datasets import load_dataset
 
 from neuron_percentage_utils import calculate_total_model_neurons_from_config
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -36,23 +47,17 @@ def is_instruct_model(name: str) -> bool:
     name = name.lower()
     return ("instruct" in name) or ("chat" in name)
 
-model_name = "meta-llama/Llama-3.1-8B-Instruct"  # 예시 모델 이름, 필요에 따라 변경
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-if tokenizer.pad_token is None:
-    tokenizer.pad_token = tokenizer.eos_token
-
-model = AutoModelForCausalLM.from_pretrained(
-    model_name,
-    device_map={"": 0},  # Force all layers to cuda:0 (single GPU)
-    torch_dtype=torch.bfloat16,
-)
-model.eval()
-
-NUM_LAYERS = model.config.num_hidden_layers
+DEFAULT_MODEL_NAME = "meta-llama/Llama-3.1-8B-Instruct"
+model_name = DEFAULT_MODEL_NAME
+tokenizer = None
+model = None
+NUM_LAYERS = 0
 
 # Threshold hyperparameters
-FFN_ACTIVE_FRACTION = 0.05
-ATTN_ACTIVE_FRACTION = 0.05
+DEFAULT_FFN_ACTIVE_FRACTION = 0.05
+DEFAULT_ATTN_ACTIVE_FRACTION = 0.05
+FFN_ACTIVE_FRACTION = DEFAULT_FFN_ACTIVE_FRACTION
+ATTN_ACTIVE_FRACTION = DEFAULT_ATTN_ACTIVE_FRACTION
 MIN_NEURONS_FOR_QUANTILE = 10
 
 # Accelerated detection hyperparameters
@@ -60,6 +65,66 @@ ATTN_QUERY_WINDOW = None      # None이면 전체 query position 사용
 CAPTURE_HIDDEN_TO_CPU = False # hidden input을 GPU에 유지
 DETAIL_LOG_PROMPT_LIMIT = 3
 NEG_INF = -1e9
+
+
+def initialize_model_and_tokenizer(selected_model_name: str):
+    """Initialize global model/tokenizer after CLI args are parsed."""
+    global model_name, model, tokenizer, NUM_LAYERS
+
+    model_name = selected_model_name
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name,
+        device_map={"": 0},  # Force all layers to cuda:0 (single GPU)
+        torch_dtype=torch.bfloat16,
+    )
+    model.eval()
+    NUM_LAYERS = model.config.num_hidden_layers
+
+
+def parse_args(argv):
+    parser = argparse.ArgumentParser(
+        description="Foundation neuron detection with configurable model and thresholds"
+    )
+    parser.add_argument(
+        "num_docs",
+        type=int,
+        nargs="?",
+        default=1000,
+        help="Number of Wikipedia documents to process",
+    )
+    parser.add_argument(
+        "--model_name",
+        type=str,
+        default=DEFAULT_MODEL_NAME,
+        help="HuggingFace model name or path",
+    )
+    parser.add_argument(
+        "--ffn_active_fraction",
+        type=float,
+        default=DEFAULT_FFN_ACTIVE_FRACTION,
+        help="Global top fraction for FFN neurons (0~1)",
+    )
+    parser.add_argument(
+        "--attn_active_fraction",
+        "--attn_activ_fraction",
+        dest="attn_active_fraction",
+        type=float,
+        default=DEFAULT_ATTN_ACTIVE_FRACTION,
+        help="Global top fraction for attention neurons (0~1)",
+    )
+
+    args = parser.parse_args(argv)
+
+    if not (0.0 < args.ffn_active_fraction <= 1.0):
+        parser.error("--ffn_active_fraction must be in (0, 1].")
+    if not (0.0 < args.attn_active_fraction <= 1.0):
+        parser.error("--attn_active_fraction must be in (0, 1].")
+
+    return args
 
 
 def calculate_model_total_neurons() -> int:
@@ -706,7 +771,14 @@ def main(argv):
     logger.setLevel(logging.INFO)
     logger.propagate = False
 
-    num_docs = int(argv[0]) if len(argv) > 0 else 1000
+    global FFN_ACTIVE_FRACTION, ATTN_ACTIVE_FRACTION
+
+    args = parse_args(argv)
+    FFN_ACTIVE_FRACTION = args.ffn_active_fraction
+    ATTN_ACTIVE_FRACTION = args.attn_active_fraction
+    initialize_model_and_tokenizer(args.model_name)
+
+    num_docs = args.num_docs
 
     logger.info(f"Log directory: {log_dir}")
     logger.info(f"Log file: {log_file}")
