@@ -1,16 +1,42 @@
 """
 Example Usage:
 python finetune_gsm8k_full_params.py \
-    --model_path kmseong/llama2_7b-Safety-FT-lr3e-5 \
-    --output_dir ./full_finetune_llama2_7b_gsm8k_lr3e-5
+    --model_path kmseong/llama2_7b-chat-Safety-FT-lr5e-5 \
+    --output_dir ./full_finetune_llama2_7b_chat_gsm8k_full_finetune_lr3e-5
 
 python finetune_gsm8k_full_params.py \
-    --model_path kmseong/llama2_7b-chat-Safety-FT-lr3e-5 \
-    --output_dir ./full_finetune_llama2_7b_chat_gsm8k_lr3e-5
+    --model_path kmseong/llama3.1_8b_instruct-Safety-FT-lr3e-5 \
+    --output_dir ./full_finetune_llama3.1_8b_instruct_gsm8k_ssft3e-5_lr1e-5
+
+python finetune_gsm8k_full_params.py \
+    --model_path kmseong/llama2_7b-Safety-FT-lr3e-5 \
+    --output_dir ./full_finetune_llama2_7b_base_gsm8k_lr5e-5 \
+    --learning_rate 5e-5 --epochs 3 \
+    --upload_name kmseong/llama2_7b-base-gsm8k_ssft_lr5e-5
+LoRA:
+python finetune_gsm8k_full_params.py \
+    --model_path kmseong/llama2_7b-Safety-FT-lr3e-5 \
+    --output_dir ./lora_gsm8k_llama2_7b \
+    --learning_rate 5e-5 --epochs 3 \
+    --lora --lora_r 16 --lora_alpha 32 --lora_dropout 0.05 \
+    --upload_name kmseong/llama2_7b_base-gsm8k_lora_ft_lr5e-5
+
+    
+Safety 10% mixing + full parameter:
+python finetune_gsm8k_full_params.py \
+    --model_path kmseong/llama2_7b-chat-Safety-FT-lr5e-5 \
+    --output_dir ./full_gsm8k_llama2_7b_safetymix \
+    --learning_rate 5e-5 --epochs 3 \
+    --safety_mix_ratio 0.05 \
+    --upload_name kmseong/llama2_7b-chat-gsm8k_safelnstr_5p_lr5e-5
+
+
 """
 
 import argparse
 import os
+import json
+import random
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 from datetime import datetime
@@ -18,7 +44,7 @@ import logging
 
 import wandb
 import torch
-from datasets import load_dataset
+from datasets import load_dataset, Dataset as HFDataset, concatenate_datasets
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
@@ -26,8 +52,13 @@ from transformers import (
     TrainingArguments,
     set_seed,
 )
+try:
+    from peft import LoraConfig, get_peft_model, TaskType
+    _peft_available = True
+except ImportError:
+    _peft_available = False
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 def parse_args():
     p = argparse.ArgumentParser(description='Full Parameter Finetune SN-Tuned Model on GSM8K')
@@ -52,7 +83,7 @@ def parse_args():
     p.add_argument("--eval_batch_size", type=int, default=4)
     p.add_argument("--grad_accum", type=int, default=4)
     p.add_argument("--epochs", type=int, default=3)
-    p.add_argument("--learning_rate", type=float, default=3e-5)
+    p.add_argument("--learning_rate", type=float, default=5e-5)
     p.add_argument("--weight_decay", type=float, default=0.01)
     p.add_argument("--warmup_ratio", type=float, default=0.1)
     p.add_argument("--lr_scheduler_type", type=str, default="cosine")
@@ -73,7 +104,29 @@ def parse_args():
     p.add_argument("--report_to", type=str, default="none")
     p.add_argument("--num_workers", type=int, default=4)
     p.add_argument("--cache_dir", type=str, default='./cache')
-    
+    p.add_argument("--upload_name", type=str, default=None,
+                    help="Optional Hugging Face repo id (e.g., username/model-name). If set, upload after training")
+    p.add_argument("--hf_token", type=str, default=None,
+                    help="Optional Hugging Face token for upload")
+
+    # Safety data mixing
+    p.add_argument("--safety_data_path", type=str,
+                    default="/home/yonsei_jong/Safety-Neuron/neuron_detection/corpus_all/circuit_breakers_train.json",
+                    help="Safety dataset JSON 경로 (circuit_breakers_train.json 형식)")
+    p.add_argument("--safety_mix_ratio", type=float, default=0.0,
+                    help="GSM8K 데이터 수 대비 safety 데이터 비율 (e.g. 0.1 = 10%%, 0=비활성화)")
+    p.add_argument("--lora", action="store_true",
+                    help="LoRA를 사용하여 학습 (peft 필요)")
+    p.add_argument("--lora_r", type=int, default=16,
+                    help="LoRA rank (default: 16)")
+    p.add_argument("--lora_alpha", type=int, default=32,
+                    help="LoRA alpha (default: 32)")
+    p.add_argument("--lora_dropout", type=float, default=0.05,
+                    help="LoRA dropout (default: 0.05)")
+    p.add_argument("--lora_target_modules", type=str, nargs='+',
+                    default=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+                    help="LoRA를 적용할 모듈 이름 목록")
+
     return p.parse_args()
 
 def _select_first_n(ds, n: int):
@@ -354,7 +407,24 @@ def main():
     if args.gradient_checkpointing:
         model.gradient_checkpointing_enable()
         model.config.use_cache = False
-    
+
+    # LoRA 적용
+    if args.lora:
+        if not _peft_available:
+            logger.error("peft 라이브러리가 설치되지 않았습니다. 'pip install peft'를 실행하세요.")
+            raise ImportError("peft is required for LoRA training")
+        lora_config = LoraConfig(
+            task_type=TaskType.CAUSAL_LM,
+            r=args.lora_r,
+            lora_alpha=args.lora_alpha,
+            lora_dropout=args.lora_dropout,
+            target_modules=args.lora_target_modules,
+            bias="none",
+        )
+        model = get_peft_model(model, lora_config)
+        logger.info(f"✓ LoRA 적용: r={args.lora_r}, alpha={args.lora_alpha}, "
+                    f"dropout={args.lora_dropout}, target_modules={args.lora_target_modules}")
+
     total_params = sum(p.numel() for p in model.parameters())
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     logger.info(f"✅ Model loaded successfully")
@@ -415,8 +485,36 @@ def main():
             num_proc=max(1, args.num_workers),
             desc="Tokenizing eval",
         )
-    
-    logger.info(f"✅ Data preprocessed")
+
+    # Safety data mixing
+    if args.safety_mix_ratio > 0:
+        safety_path = args.safety_data_path
+        if not os.path.exists(safety_path):
+            logger.error(f"Safety dataset not found: {safety_path}")
+            raise FileNotFoundError(f"Safety dataset not found: {safety_path}")
+
+        with open(safety_path, "r", encoding="utf-8") as f:
+            safety_raw = json.load(f)
+
+        num_safety = int(len(train_tok) * args.safety_mix_ratio)
+        rng = random.Random(args.seed)
+        sampled = rng.sample(safety_raw, min(num_safety, len(safety_raw)))
+
+        def preprocess_safety(ex):
+            return tokenize_sft_example(
+                ex["prompt"], ex["llama3_output"], tokenizer, args.max_length, model_path
+            )
+
+        safety_hf = HFDataset.from_list(sampled)
+        safety_tok = safety_hf.map(
+            preprocess_safety,
+            remove_columns=safety_hf.column_names,
+            desc="Tokenizing safety data",
+        )
+
+        train_tok = concatenate_datasets([train_tok, safety_tok]).shuffle(seed=args.seed)
+        logger.info(f"✅ Safety data mixed: {len(safety_tok)} samples (ratio={args.safety_mix_ratio})")
+        logger.info(f"   Total training samples: {len(train_tok)} (GSM8K {len(train_ds)} + Safety {len(safety_tok)})")
 
     # Training
     logger.info(f"\n{'='*70}")
@@ -469,6 +567,12 @@ def main():
             "lr_scheduler": args.lr_scheduler_type,
             "dataset": "gsm8k",
             "is_instruct": is_instruct_model(model_path),
+            "lora": args.lora,
+            "lora_r": args.lora_r if args.lora else None,
+            "lora_alpha": args.lora_alpha if args.lora else None,
+            "lora_dropout": args.lora_dropout if args.lora else None,
+            "safety_mix_ratio": args.safety_mix_ratio,
+            "safety_data_path": args.safety_data_path if args.safety_mix_ratio > 0 else None,
         },
     )
 
@@ -488,16 +592,21 @@ def main():
     logger.info(f"\n{'='*70}")
     logger.info(f"  Saving Fine-tuned Model")
     logger.info(f"{'='*70}\n")
-    trainer.save_model(args.output_dir)
+    if args.lora:
+        logger.info("LoRA 어댑터를 base model에 merge 중...")
+        model = model.merge_and_unload()
+        logger.info("✓ Merge 완료 - 전체 모델 저장 중...")
+        model.save_pretrained(args.output_dir)
+    else:
+        trainer.save_model(args.output_dir)
     tokenizer.save_pretrained(args.output_dir)
     
     logger.info(f"✅ Fine-tuned model saved successfully to {args.output_dir}")
 
     # Save training config
-    import json
     config = {
         'base_model': model_path,
-        'fine_tuning_type': 'Full Parameter Fine-tuning',
+        'fine_tuning_type': 'LoRA Fine-tuning' if args.lora else 'Full Parameter Fine-tuning',
         'dataset': 'GSM8K',
         'num_train_samples': args.num_train_samples,
         'batch_size': args.batch_size,
@@ -513,6 +622,8 @@ def main():
         'gradient_checkpointing': args.gradient_checkpointing,
         'dtype': 'bf16',
         'trainer_type': 'Trainer',
+        'safety_mix_ratio': args.safety_mix_ratio,
+        'safety_data_path': args.safety_data_path if args.safety_mix_ratio > 0 else None,
     }
     
     config_path = os.path.join(args.output_dir, 'finetune_config.json')
@@ -520,6 +631,17 @@ def main():
         json.dump(config, f, indent=2)
     
     logger.info(f"✅ Config saved to: {config_path}")
+
+    if args.upload_name:
+        logger.info(f"\nStarting upload to Hugging Face: {args.upload_name}")
+        try:
+            from upload_sn_tuned_model import upload_to_huggingface
+
+            upload_to_huggingface(args.output_dir, args.upload_name, args.hf_token)
+            logger.info(f"✅ Upload completed: https://huggingface.co/{args.upload_name}")
+        except Exception as e:
+            logger.error(f"Upload failed: {e}")
+            logger.error("Model was saved locally; you can upload manually with upload_sn_tuned_model.py")
     
     logger.info(f"\n{'='*70}")
     logger.info(f"  ✅ Fine-tuning Complete!")

@@ -8,9 +8,16 @@ Instruct 모델 기준:
 
 Example Usage:
 python finetune_hendrycks_math_full_params.py \
-    --model_path meta-llama/Llama-2-7b-chat-hf \
-    --output_dir ./full_finetune_MATH_chat-lr3e-5 
+    --model_path kmseong/llama3.1_8b_instruct-Safety-FT-lr3e-5  \
+    --output_dir ./full_finetune_MATH_8b_instruct-lr1e-5 \
+    --upload_name kmseong/llama3.1_8b_instruct_MATH_full_ft-lr1e-5
 
+    
+python finetune_hendrycks_math_full_params.py \
+    --model_path kmseong/llama3.1_8b_instruct-Safety-FT-lr3e-5 \
+    --output_dir ./lora_math_llama3.1_8b \
+    --lora --lora_r 16 --lora_alpha 32 \
+    --upload_name kmseong/llama3.1_8b_instruct_MATH_lora_ft-lr1e-5
 """
 
 import argparse
@@ -33,6 +40,11 @@ from transformers import (
     TrainingArguments,
     set_seed,
 )
+try:
+    from peft import LoraConfig, get_peft_model, TaskType
+    _peft_available = True
+except ImportError:
+    _peft_available = False
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
@@ -55,7 +67,7 @@ def parse_args():
     p.add_argument("--eval_batch_size", type=int, default=4)
     p.add_argument("--grad_accum", type=int, default=4)
     p.add_argument("--epochs", type=int, default=3)
-    p.add_argument("--learning_rate", type=float, default=3e-5)
+    p.add_argument("--learning_rate", type=float, default=1e-5)
     p.add_argument("--weight_decay", type=float, default=0.01)
     p.add_argument("--warmup_ratio", type=float, default=0.1)
     p.add_argument("--lr_scheduler_type", type=str, default="cosine")
@@ -73,6 +85,23 @@ def parse_args():
     p.add_argument("--report_to", type=str, default="none")
     p.add_argument("--num_workers", type=int, default=4)
     p.add_argument("--cache_dir", type=str, default="./cache")
+    p.add_argument("--upload_name", type=str, default=None,
+                   help="Optional Hugging Face repo id (e.g., username/model-name). If set, upload after training")
+    p.add_argument("--hf_token", type=str, default=None,
+                   help="Optional Hugging Face token for upload")
+
+    # LoRA 옵션
+    p.add_argument("--lora", action="store_true",
+                   help="LoRA를 사용하여 학습 (peft 필요)")
+    p.add_argument("--lora_r", type=int, default=16,
+                   help="LoRA rank (default: 16)")
+    p.add_argument("--lora_alpha", type=int, default=32,
+                   help="LoRA alpha (default: 32)")
+    p.add_argument("--lora_dropout", type=float, default=0.05,
+                   help="LoRA dropout (default: 0.05)")
+    p.add_argument("--lora_target_modules", type=str, nargs='+',
+                   default=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+                   help="LoRA를 적용할 모듈 이름 목록")
 
     return p.parse_args()
 
@@ -340,6 +369,28 @@ def main():
         model.gradient_checkpointing_enable()
         model.config.use_cache = False
 
+    # LoRA 적용
+    if args.lora:
+        if not _peft_available:
+            logger.error("peft 라이브러리가 설치되지 않았습니다. 'pip install peft'를 실행하세요.")
+            raise ImportError("peft is required for LoRA training")
+        lora_config = LoraConfig(
+            task_type=TaskType.CAUSAL_LM,
+            r=args.lora_r,
+            lora_alpha=args.lora_alpha,
+            lora_dropout=args.lora_dropout,
+            target_modules=args.lora_target_modules,
+            bias="none",
+        )
+        model = get_peft_model(model, lora_config)
+        logger.info(f"✓ LoRA 적용: r={args.lora_r}, alpha={args.lora_alpha}, "
+                    f"dropout={args.lora_dropout}, target_modules={args.lora_target_modules}")
+
+    total_params = sum(p.numel() for p in model.parameters())
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    logger.info(f"Total parameters: {total_params:,}")
+    logger.info(f"Trainable parameters: {trainable_params:,} ({100 * trainable_params / total_params:.2f}%)")
+
     subject_to_config = {
         "Algebra": "algebra",
         "Counting & Probability": "counting_and_probability",
@@ -452,6 +503,10 @@ def main():
             "dataset": "hendrycks_math",
             "math_subjects": args.math_subjects,
             "is_instruct": is_instruct_model(model_path),
+            "lora": args.lora,
+            "lora_r": args.lora_r if args.lora else None,
+            "lora_alpha": args.lora_alpha if args.lora else None,
+            "lora_dropout": args.lora_dropout if args.lora else None,
         },
     )
 
@@ -467,12 +522,18 @@ def main():
     logger.info("Starting training...")
     trainer.train()
 
-    trainer.save_model(args.output_dir)
+    if args.lora:
+        logger.info("LoRA 어댑터를 base model에 merge 중...")
+        model = model.merge_and_unload()
+        logger.info("✓ Merge 완료 - 전체 모델 저장 중...")
+        model.save_pretrained(args.output_dir)
+    else:
+        trainer.save_model(args.output_dir)
     tokenizer.save_pretrained(args.output_dir)
 
     config = {
         "base_model": model_path,
-        "fine_tuning_type": "Full Parameter Fine-tuning",
+        "fine_tuning_type": "LoRA Fine-tuning" if args.lora else "Full Parameter Fine-tuning",
         "dataset": "Hendrycks MATH",
         "math_dataset_source": args.math_dataset_source,
         "math_subjects": args.math_subjects,
@@ -500,6 +561,18 @@ def main():
 
     logger.info(f"✅ Fine-tuned model saved to {args.output_dir}")
     logger.info(f"✅ Config saved to {config_path}")
+
+    if args.upload_name:
+        logger.info(f"\nStarting upload to Hugging Face: {args.upload_name}")
+        try:
+            from upload_sn_tuned_model import upload_to_huggingface
+
+            upload_to_huggingface(args.output_dir, args.upload_name, args.hf_token)
+            logger.info(f"✅ Upload completed: https://huggingface.co/{args.upload_name}")
+        except Exception as e:
+            logger.error(f"Upload failed: {e}")
+            logger.error("Model was saved locally; you can upload manually with upload_sn_tuned_model.py")
+
     wandb.finish()
 
 

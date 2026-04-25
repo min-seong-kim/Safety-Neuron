@@ -4,10 +4,10 @@ python safety_neuron_detection_v2.py 4994 \
     --ffn_active_fraction 0.05 \
     --attn_active_fraction 0.05
 
-python safety_neuron_detection_v2.py 4994 \
-    --model_name meta-llama/Llama-3.1-8B-Instruct \
-    --ffn_active_fraction 0.05 \
-    --attn_active_fraction 0.05
+python safety_neuron_detection_v2.py 200 \
+    --model_name meta-llama/Llama-2-7b-chat-hf \
+    --ffn_active_fraction 0.4 \
+    --attn_active_fraction 0.4
 '''
 from neuron_percentage_utils import calculate_total_model_neurons_from_config
 
@@ -54,8 +54,8 @@ NUM_LAYERS = 0
 # ------------------------------------------------------------------
 # Threshold hyperparameters
 # ------------------------------------------------------------------
-DEFAULT_FFN_ACTIVE_FRACTION = 0.05
-DEFAULT_ATTN_ACTIVE_FRACTION = 0.05
+DEFAULT_FFN_ACTIVE_FRACTION = 0.15
+DEFAULT_ATTN_ACTIVE_FRACTION = 0.15
 FFN_ACTIVE_FRACTION = DEFAULT_FFN_ACTIVE_FRACTION
 ATTN_ACTIVE_FRACTION = DEFAULT_ATTN_ACTIVE_FRACTION
 MIN_NEURONS_FOR_QUANTILE = 10

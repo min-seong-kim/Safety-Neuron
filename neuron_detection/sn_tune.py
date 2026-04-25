@@ -7,26 +7,24 @@ Safety Neuron Tuning (SN-Tune)
 - Use small learning rate and 1 epoch as per paper
 
 # SN-Tune
-python sn_tune.py \
-  ./output_neurons/llama_31_8b_base_safety_neuron_accelerated_20260418_195615.txt \
-  ./corpus_all/circuit_breakers_train.json \
-  ./only_sn_tuned_model_llama31_8b_base_lr3e-5 \
-  --model_name meta-llama/Llama-3.1-8B
 
 # SN-Tune with custom model
 python sn_tune.py \
-  ./output_neurons/llama_31_8b_instruct_safety_neuron_accelerated_20260418_195634.txt \
-  ./corpus_all/circuit_breakers_train.json \
-  ./only_sn_tuned_model_llama31_8b_instruct_lr3e-5 \
-  --model_name meta-llama/Llama-3.1-8B-Instruct
+    --neuron_file ./output_neurons/llama_2_7b_chat_safety_neuron_accelerated_20260416_160653.txt \
+    --dataset_file ./corpus_all/circuit_breakers_train.json \
+    --local_model_name ./only_sn_tuned_model_llama2_7b_chat_lr3e-5 \
+    --model_name meta-llama/Llama-2-7b-chat-hf \
+    --upload_name kmseong/llama2_7b_chat_only_sn_tuned_lr3e-5_shuffle
   
 
 # RSN-Tune
 python sn_tune.py \
-  ./output_neurons/llama_2_7b_chat_safety_neuron_accelerated_20260416_160653.txt \
-  ./corpus_all/circuit_breakers_train.json \
-  ./only_sn_tuned_model_llama2_7b_chat_lr3e-5 \
-  --model_name meta-llama/Llama-2-7b-chat-hf
+    --neuron_file ./output_neurons/critical_safety_neuron_20260418_204636.txt \
+    --dataset_file ./corpus_all/circuit_breakers_train.json \
+    --local_model_name ./only_rsn_tuned_model_llama2_7b_chat_lr3e-5 \
+    --model_name meta-llama/Llama-2-7b-chat-hf \
+    --upload_name kmseong/llama2_7b_chat_only_rsn_tuned_lr3e-5
+
 """
 
 import argparse
@@ -52,7 +50,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 # =====================================================================
 # Configuration
 # =====================================================================
-DEFAULT_MODEL_NAME = "meta-llama/Llama-3.1-8B"
+DEFAULT_MODEL_NAME = "meta-llama/Llama-2-7b-chat-hf"
 NUM_LAYERS = 32
 
 # SN-Tune hyperparameters
@@ -182,7 +180,6 @@ class SafetyDataset(Dataset):
             input_ids = full_ids + [self.tokenizer.pad_token_id] * pad_len
 
             labels = list(input_ids)
-            # Mask prompt + padding
             for i in range(min(prompt_length, self.max_length)):
                 labels[i] = -100
             for i in range(self.max_length):
@@ -674,18 +671,31 @@ def save_sn_tuned_model(model, tokenizer, save_path):
 # =====================================================================
 def main(argv):
     parser = argparse.ArgumentParser(description="Safety Neuron Tuning (SN-Tune)")
-    parser.add_argument("safety_neurons_file", help="Path to safety neurons txt file")
-    parser.add_argument("safety_dataset_json", help="Path to circuit_breakers_train.json")
-    parser.add_argument("output_dir", nargs="?", default="./sn_tuned_model", help="Output directory")
+    # Backward-compatible positional args
+    parser.add_argument("safety_neurons_file", nargs="?", default=None, help="Path to safety neurons txt file (positional, optional)")
+    parser.add_argument("safety_dataset_json", nargs="?", default=None, help="Path to circuit_breakers_train.json (positional, optional)")
+    parser.add_argument("output_dir", nargs="?", default=None, help="Output directory (positional, optional)")
+
+    # Preferred named args
+    parser.add_argument("--neuron_file", type=str, default=None, help="Path to safety neurons txt file")
+    parser.add_argument("--dataset_file", type=str, default=None, help="Path to circuit_breakers_train.json")
+    parser.add_argument("--local_model_name", type=str, default=None, help="Local output model directory name")
     parser.add_argument("--learning_rate", type=float, default=LEARNING_RATE, help="Learning rate")
     parser.add_argument("--model_name", type=str, default=DEFAULT_MODEL_NAME, help="HuggingFace model name or local path")
+    parser.add_argument("--upload_name", type=str, default=None, help="Optional Hugging Face repo id (e.g., username/model-name). If set, upload after training")
+    parser.add_argument("--hf_token", type=str, default=None, help="Optional Hugging Face token for upload")
     args = parser.parse_args(argv)
 
-    safety_neurons_file = args.safety_neurons_file
-    safety_dataset_json = args.safety_dataset_json
-    output_dir = args.output_dir
+    safety_neurons_file = args.neuron_file or args.safety_neurons_file
+    safety_dataset_json = args.dataset_file or args.safety_dataset_json
+    output_dir = args.local_model_name or args.output_dir or "./sn_tuned_model"
     learning_rate = args.learning_rate
     model_name = args.model_name
+    upload_name = args.upload_name
+    hf_token = args.hf_token
+
+    if safety_neurons_file is None or safety_dataset_json is None:
+        parser.error("Provide neuron/dataset via --neuron_file and --dataset_file (or positional args).")
 
     log_file = setup_logging()
     
@@ -704,6 +714,7 @@ def main(argv):
     logger.info(f"Safety neurons file: {safety_neurons_file}")
     logger.info(f"Safety dataset file: {safety_dataset_json}")
     logger.info(f"Output directory: {output_dir}\n")
+    logger.info(f"Upload target: {upload_name if upload_name else 'None'}")
     logger.info(f"Log file: {log_file}\n")
 
     _is_instruct = is_instruct_model(model_name)
@@ -775,7 +786,7 @@ def main(argv):
     train_dataloader = DataLoader(
         safety_dataset,
         batch_size=BATCH_SIZE,
-        shuffle=False,
+        shuffle=True,
         num_workers=0,
         generator=torch.Generator().manual_seed(112),
     )
@@ -821,6 +832,18 @@ def main(argv):
     logger.info("SN-Tune Complete!")
     logger.info(f"{'='*70}")
     logger.info(f"Fine-tuned model saved to: {final_output_dir}")
+
+    if upload_name:
+        logger.info(f"\nStarting upload to Hugging Face: {upload_name}")
+        try:
+            from upload_sn_tuned_model import upload_to_huggingface
+
+            upload_to_huggingface(final_output_dir, upload_name, hf_token)
+            logger.info(f"✓ Upload completed: https://huggingface.co/{upload_name}")
+        except Exception as e:
+            logger.error(f"Upload failed: {e}")
+            logger.error("Model was saved locally; you can upload manually with upload_sn_tuned_model.py")
+
     logger.info(f"{'='*70}\n")
 
 

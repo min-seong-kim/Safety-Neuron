@@ -7,14 +7,21 @@ Trainer + AdamW 8-bit optimizer (bitsandbytes) 사용으로 메모리 효율성 
 
 Example Usage:
 python finetune_gsm8k_freeze_sn.py \
-    --model_path ./only_sn_tuned_model_llama2_7b_lr3e-5_lr3e-5_20260417_134939 \
-    --safety_neurons_file /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/llama_2_7b_safety_neuron_accelerated_20260417_003734.txt \
-    --output_dir ./llama2_7b_gsm8k_ft_freeze_sn
+    --model_path kmseong/llama2_7b_only_sn_tuned_lr3e-5 \
+    --safety_neurons_file /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/llama_2_7b_base_safety_neuron_accelerated_20260417_003734.txt \
+    --output_dir ./llama2_7b_base_gsm8k_ft_freeze_sn_lr7e-5 \
+    --learning_rate 2.5e-5 --epochs 3 \
+    --upload_name kmseong/llama2_7b_base_gsm8k_ft_freeze_sn_lr7e-5
+
 
 python finetune_gsm8k_freeze_sn.py \
-    --model_path ./only_sn_tuned_model_llama2_7b_chat_lr3e-5_lr3e-5_20260417_135000 \
-    --safety_neurons_file /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/llama_2_7b_chat_safety_neuron_accelerated_20260416_160653.txt \
-    --output_dir ./llama2_7b_chat_gsm8k_ft_freeze_sn
+    --model_path kmseong/llama2_7b_chat_only_rsn_tuned_lr3e-5 \
+    --safety_neurons_file /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/critical_safety_neuron_20260418_204636.txt \
+    --output_dir ./llama2_7b_chat_gsm8k_ft_freeze_rsn_lr7e-5_new \
+    --upload_name kmseong/llama2_7b_chat_gsm8k_ft_freeze_rsn_lr7e-5_new
+
+
+
 """
 
 import argparse
@@ -30,16 +37,18 @@ from datetime import datetime
 import logging
 
 import torch
+import wandb
 from datasets import load_dataset
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
     Trainer,
+    TrainerCallback,
     TrainingArguments,
     set_seed,
 )
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 
 def parse_args():
@@ -69,7 +78,7 @@ def parse_args():
     p.add_argument("--eval_batch_size", type=int, default=4)
     p.add_argument("--grad_accum", type=int, default=4)
     p.add_argument("--epochs", type=int, default=3)
-    p.add_argument("--learning_rate", type=float, default=3e-5)
+    p.add_argument("--learning_rate", type=float, default=7e-5)
     p.add_argument("--weight_decay", type=float, default=0.01)
     p.add_argument("--warmup_ratio", type=float, default=0.1)
     p.add_argument("--lr_scheduler_type", type=str, default="cosine")
@@ -90,9 +99,13 @@ def parse_args():
     p.add_argument("--save_steps", type=int, default=500)
     p.add_argument("--save_total_limit", type=int, default=2)
     p.add_argument("--eval_steps", type=int, default=500)
-    p.add_argument("--report_to", type=str, default="none")
+    p.add_argument("--report_to", type=str, default="wandb")
     p.add_argument("--num_workers", type=int, default=4)
     p.add_argument("--cache_dir", type=str, default='./cache')
+    p.add_argument("--upload_name", type=str, default=None,
+                    help="Optional Hugging Face repo id (e.g., username/model-name). If set, upload after training")
+    p.add_argument("--hf_token", type=str, default=None,
+                    help="Optional Hugging Face token for upload")
     
     return p.parse_args()
 
@@ -295,26 +308,23 @@ def load_safety_neurons(output_file, logger):
 def setup_safety_neuron_freezing(model, safety_neurons, logger):
     """
     Freeze safety neurons and train only the remaining parameters.
-    
+
     This is the REVERSE of sn_tune.py's setup_gradient_masking:
     - sn_tune.py: freeze all, train only safety neurons
     - This function: train all, freeze only safety neurons
-    
-    Args:
-        model: LLaMA model
-        safety_neurons: Dict of safety neuron indices per layer/module
-        logger: Logger instance
+
+    Returns frozen_param_specs: list of (param, indices, axis) used by
+    SafetyNeuronRestoreCallback to undo weight-decay updates on safety neurons.
     """
     total_params = 0
     frozen_neuron_params = 0
-    trainable_params = 0
     frozen_modules = {'ffn_up': 0, 'ffn_down': 0, 'q': 0, 'k': 0, 'v': 0}
+    frozen_param_specs = []  # (param, indices, axis) — for weight-decay bypass correction
 
-    def _sanitize_indices(raw_indices, row_dim: int, module_name: str, layer_idx: int):
-        """Convert possibly noisy neuron IDs to unique, in-range row indices."""
+    def _sanitize_indices(raw_indices, dim: int, module_name: str, layer_idx: int):
+        """Convert possibly noisy neuron IDs to unique, in-range indices."""
         parsed = []
         dropped = 0
-
         for x in raw_indices:
             idx = None
             if isinstance(x, int):
@@ -324,158 +334,115 @@ def setup_safety_neuron_freezing(model, safety_neurons, logger):
                 if s.lstrip("-").isdigit():
                     idx = int(s)
                 else:
-                    # Supports names like "neuron_123" or "q-456".
                     m = re.search(r"-?\d+", s)
                     if m:
                         idx = int(m.group(0))
-
             if idx is None:
                 dropped += 1
                 continue
-
-            if 0 <= idx < row_dim:
+            if 0 <= idx < dim:
                 parsed.append(idx)
             else:
                 dropped += 1
-
         uniq = sorted(set(parsed))
         if dropped > 0:
             logger.warning(
                 f"[Index sanitize] layer={layer_idx}, module={module_name}, "
-                f"kept={len(uniq)}, dropped={dropped}, row_dim={row_dim}"
+                f"kept={len(uniq)}, dropped={dropped}, dim={dim}"
             )
         return uniq
-    
+
+    def _make_zero_hook_rows(indices):
+        """Zero out gradient rows (used for up_proj, q/k/v_proj)."""
+        def hook(grad):
+            grad = grad.clone()
+            grad[indices, :] = 0.0
+            return grad
+        return hook
+
+    def _make_zero_hook_cols(indices):
+        """Zero out gradient columns (used for down_proj)."""
+        def hook(grad):
+            grad = grad.clone()
+            grad[:, indices] = 0.0
+            return grad
+        return hook
+
     # Step 1: Enable gradients for all parameters by default
     for param in model.parameters():
         param.requires_grad = True
-    
-    # Step 2: Freeze safety neurons
+
+    # Step 2: Freeze safety neurons via gradient hooks + track for weight-decay restore
     for name, param in model.named_parameters():
         total_params += param.numel()
-        
-        # Extract layer index from name
-        # e.g., "model.layers.0.mlp.up_proj.weight" -> layer_idx = 0
         parts = name.split('.')
         if len(parts) < 4 or parts[0] != 'model' or parts[1] != 'layers':
             continue
-        
         try:
             layer_idx = int(parts[2])
         except ValueError:
             continue
-        
-        # Check module type and freeze safety neurons
+
         if 'mlp.up_proj.weight' in name:
+            # up_proj: [intermediate_dim, hidden_dim] — neurons are rows
             neuron_indices = _sanitize_indices(
                 safety_neurons['ffn_up'].get(layer_idx, []),
-                param.shape[0],
-                'ffn_up',
-                layer_idx,
+                param.shape[0], 'ffn_up', layer_idx,
             )
             if neuron_indices:
-                # up_proj: weight shape [intermediate_dim, hidden_dim]
-                # neurons are rows in weight matrix
                 frozen_neuron_params += len(neuron_indices) * param.shape[1]
                 frozen_modules['ffn_up'] += 1
-                
-                # Register backward hook to zero out gradients for safety neurons
-                def make_hook(indices):
-                    def hook(grad):
-                        grad = grad.clone()
-                        grad[indices, :] = 0.0  # Zero out safety neuron gradients
-                        return grad
-                    return hook
-                
-                param.register_hook(make_hook(neuron_indices))
-        
+                param.register_hook(_make_zero_hook_rows(neuron_indices))
+                frozen_param_specs.append((param, neuron_indices, 'rows'))
+
         elif 'mlp.down_proj.weight' in name:
+            # down_proj: [hidden_dim, intermediate_dim] — neurons are columns
             neuron_indices = _sanitize_indices(
                 safety_neurons['ffn_down'].get(layer_idx, []),
-                param.shape[0],
-                'ffn_down',
-                layer_idx,
+                param.shape[1], 'ffn_down', layer_idx,
             )
             if neuron_indices:
-                # down_proj: weight shape [hidden_dim, intermediate_dim]
-                # neurons are rows in weight matrix (output dimensions)
-                frozen_neuron_params += len(neuron_indices) * param.shape[1]
+                frozen_neuron_params += len(neuron_indices) * param.shape[0]
                 frozen_modules['ffn_down'] += 1
-                
-                def make_hook(indices):
-                    def hook(grad):
-                        grad = grad.clone()
-                        grad[indices, :] = 0.0
-                        return grad
-                    return hook
-                
-                param.register_hook(make_hook(neuron_indices))
-        
+                param.register_hook(_make_zero_hook_cols(neuron_indices))
+                frozen_param_specs.append((param, neuron_indices, 'cols'))
+
         elif 'self_attn.q_proj.weight' in name:
             neuron_indices = _sanitize_indices(
                 safety_neurons['q'].get(layer_idx, []),
-                param.shape[0],
-                'q',
-                layer_idx,
+                param.shape[0], 'q', layer_idx,
             )
             if neuron_indices:
-                # q_proj: weight shape [hidden_dim, hidden_dim]
-                # neurons are rows
                 frozen_neuron_params += len(neuron_indices) * param.shape[1]
                 frozen_modules['q'] += 1
-                
-                def make_hook(indices):
-                    def hook(grad):
-                        grad = grad.clone()
-                        grad[indices, :] = 0.0
-                        return grad
-                    return hook
-                
-                param.register_hook(make_hook(neuron_indices))
-        
+                param.register_hook(_make_zero_hook_rows(neuron_indices))
+                frozen_param_specs.append((param, neuron_indices, 'rows'))
+
         elif 'self_attn.k_proj.weight' in name:
             neuron_indices = _sanitize_indices(
                 safety_neurons['k'].get(layer_idx, []),
-                param.shape[0],
-                'k',
-                layer_idx,
+                param.shape[0], 'k', layer_idx,
             )
             if neuron_indices:
                 frozen_neuron_params += len(neuron_indices) * param.shape[1]
                 frozen_modules['k'] += 1
-                
-                def make_hook(indices):
-                    def hook(grad):
-                        grad = grad.clone()
-                        grad[indices, :] = 0.0
-                        return grad
-                    return hook
-                
-                param.register_hook(make_hook(neuron_indices))
-        
+                param.register_hook(_make_zero_hook_rows(neuron_indices))
+                frozen_param_specs.append((param, neuron_indices, 'rows'))
+
         elif 'self_attn.v_proj.weight' in name:
             neuron_indices = _sanitize_indices(
                 safety_neurons['v'].get(layer_idx, []),
-                param.shape[0],
-                'v',
-                layer_idx,
+                param.shape[0], 'v', layer_idx,
             )
             if neuron_indices:
                 frozen_neuron_params += len(neuron_indices) * param.shape[1]
                 frozen_modules['v'] += 1
-                
-                def make_hook(indices):
-                    def hook(grad):
-                        grad = grad.clone()
-                        grad[indices, :] = 0.0
-                        return grad
-                    return hook
-                
-                param.register_hook(make_hook(neuron_indices))
-    
+                param.register_hook(_make_zero_hook_rows(neuron_indices))
+                frozen_param_specs.append((param, neuron_indices, 'rows'))
+
     # Calculate trainable parameters
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    
+
     logger.info(f"\n{'='*70}")
     logger.info(f"Safety Neuron Freezing Setup Summary")
     logger.info(f"{'='*70}")
@@ -484,13 +451,52 @@ def setup_safety_neuron_freezing(model, safety_neurons, logger):
     logger.info(f"Trainable parameters: {trainable_params:,}")
     logger.info(f"Trainable ratio: {trainable_params / total_params * 100:.4f}%")
     logger.info(f"Frozen safety neuron ratio: {frozen_neuron_params / total_params * 100:.4f}%")
-    
+
     logger.info(f"\nLayers with frozen safety neurons:")
     for module_type, count in frozen_modules.items():
         if count > 0:
             logger.info(f"  {module_type:12} : {count} layers")
-    
+
     logger.info(f"{'='*70}\n")
+    return frozen_param_specs
+
+
+# =====================================================================
+# Safety Neuron Restore Callback
+# =====================================================================
+class SafetyNeuronRestoreCallback(TrainerCallback):
+    """
+    Restores safety neuron weights after every optimizer step.
+
+    AdamW's weight-decay term (λθ) is applied independently of gradient hooks,
+    so safety neuron weights would otherwise drift toward 0 even when the
+    gradient hook zeros out the gradient signal.  This callback saves the
+    initial (frozen) values at construction time and writes them back after
+    every optimizer step, guaranteeing true parameter freezing.
+    """
+
+    def __init__(self, frozen_param_specs):
+        # frozen_param_specs: list of (param, indices, axis)
+        #   axis = "rows"  →  param[indices, :]  (up/q/k/v_proj)
+        #   axis = "cols"  →  param[:, indices]  (down_proj)
+        self._specs = frozen_param_specs
+        self._frozen_vals = []
+        for param, indices, axis in frozen_param_specs:
+            with torch.no_grad():
+                if axis == 'rows':
+                    self._frozen_vals.append(param.data[indices, :].clone())
+                else:
+                    self._frozen_vals.append(param.data[:, indices].clone())
+
+    def on_step_end(self, args, state, control, **kwargs):
+        """Called after each optimizer step — restore frozen weights."""
+        for (param, indices, axis), frozen_val in zip(self._specs, self._frozen_vals):
+            with torch.no_grad():
+                if axis == 'rows':
+                    param.data[indices, :] = frozen_val
+                else:
+                    param.data[:, indices] = frozen_val
+        return control
 
 
 def setup_logging(output_dir):
@@ -565,14 +571,37 @@ def main():
     logger.info(f"   ├─ Strategy: Freeze safety neurons, train others")
     logger.info(f"   └─ Output dir: {args.output_dir}\n")
 
+    raw_path = args.model_path
+    is_local = raw_path.startswith("./") or raw_path.startswith("/") or raw_path.startswith("../")
+    model_path = os.path.abspath(raw_path) if is_local else raw_path
+
+    run_name = os.path.basename(os.path.normpath(args.output_dir))
+    wandb.init(
+        entity="gokms0509-yonsei-university",
+        project="GSM8K Freeze SN Finetuning",
+        name=run_name,
+        config={
+            "model_path": model_path,
+            "safety_neurons_file": os.path.basename(args.safety_neurons_file),
+            "strategy": "freeze_safety_neurons",
+            "learning_rate": args.learning_rate,
+            "num_epochs": args.epochs,
+            "batch_size": args.batch_size,
+            "grad_accum": args.grad_accum,
+            "effective_batch_size": args.batch_size * args.grad_accum,
+            "max_length": args.max_length,
+            "weight_decay": args.weight_decay,
+            "warmup_ratio": args.warmup_ratio,
+            "lr_scheduler": args.lr_scheduler_type,
+            "dataset": "gsm8k",
+            "is_instruct": is_instruct_model(model_path),
+        },
+    )
+
     # Load tokenizer
     logger.info(f"\n{'='*70}")
     logger.info(f"  [1/5] Loading Tokenizer")
     logger.info(f"{'='*70}\n")
-    
-    raw_path = args.model_path
-    is_local = raw_path.startswith("./") or raw_path.startswith("/") or raw_path.startswith("../")
-    model_path = os.path.abspath(raw_path) if is_local else raw_path
 
     tokenizer = None
     try:
@@ -641,7 +670,7 @@ def main():
     logger.info(f"{'='*70}\n")
     
     safety_neurons = load_safety_neurons(args.safety_neurons_file, logger)
-    setup_safety_neuron_freezing(model, safety_neurons, logger)
+    frozen_param_specs = setup_safety_neuron_freezing(model, safety_neurons, logger)
     
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     logger.info(f"✅ Safety neuron freezing setup complete")
@@ -741,6 +770,7 @@ def main():
         eval_dataset=eval_tok if do_eval else None,
         tokenizer=tokenizer,
         data_collator=data_collator,
+        callbacks=[SafetyNeuronRestoreCallback(frozen_param_specs)],
     )
 
     logger.info("Starting training...")
@@ -891,10 +921,22 @@ def main():
         json.dump(config, f, indent=2)
     
     logger.info(f"✅ Config saved to: {config_path}")
+
+    if args.upload_name:
+        logger.info(f"\nStarting upload to Hugging Face: {args.upload_name}")
+        try:
+            from upload_sn_tuned_model import upload_to_huggingface
+
+            upload_to_huggingface(final_output_dir, args.upload_name, args.hf_token)
+            logger.info(f"✅ Upload completed: https://huggingface.co/{args.upload_name}")
+        except Exception as e:
+            logger.error(f"Upload failed: {e}")
+            logger.error("Model was saved locally; you can upload manually with upload_sn_tuned_model.py")
     
     logger.info(f"\n{'='*70}")
     logger.info(f"  ✅ Fine-tuning Complete!")
     logger.info(f"{'='*70}\n")
+    wandb.finish()
 
 if __name__ == '__main__':
     main()
