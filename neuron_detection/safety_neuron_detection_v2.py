@@ -1,13 +1,17 @@
 '''
+# Safety neuron detection (from circuit_breakers_train.json)
 python safety_neuron_detection_v2.py 4994 \
     --model_name meta-llama/Llama-3.2-3B-Instruct \
     --ffn_active_fraction 0.05 \
-    --attn_active_fraction 0.05
+    --attn_active_fraction 0.05 \
+    --safety_neuron
 
-python safety_neuron_detection_v2.py 200 \
-    --model_name meta-llama/Llama-2-7b-chat-hf \
-    --ffn_active_fraction 0.4 \
-    --attn_active_fraction 0.4
+# Utility neuron detection (from Wikipedia)
+python safety_neuron_detection_v2.py 1000 \
+    --model_name meta-llama/Llama-3.2-3B-Instruct \
+    --ffn_active_fraction 0.05 \
+    --attn_active_fraction 0.05 \
+    --utility_neuron
 '''
 from neuron_percentage_utils import calculate_total_model_neurons_from_config
 
@@ -26,6 +30,7 @@ import torch
 import torch.nn.functional as F
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datetime import datetime
+from datasets import load_dataset
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
@@ -98,7 +103,7 @@ def parse_args(argv):
     parser.add_argument(
         "num_prompts",
         type=int,
-        help="Number of prompts to process from circuit_breakers_train.json",
+        help="Number of samples to process (prompts for --safety_neuron, documents for --utility_neuron)",
     )
     parser.add_argument(
         "--model_name",
@@ -119,6 +124,18 @@ def parse_args(argv):
         type=float,
         default=DEFAULT_ATTN_ACTIVE_FRACTION,
         help="Global top fraction for attention neurons (0~1)",
+    )
+
+    mode_group = parser.add_mutually_exclusive_group(required=True)
+    mode_group.add_argument(
+        "--safety_neuron",
+        action="store_true",
+        help="Detect safety neurons from circuit_breakers_train.json",
+    )
+    mode_group.add_argument(
+        "--utility_neuron",
+        action="store_true",
+        help="Detect utility neurons from Wikipedia dataset",
     )
 
     args = parser.parse_args(argv)
@@ -948,6 +965,40 @@ def compute_intersection(
     return intersection_dict
 
 
+def load_wikipedia_data(num_samples: int = 1000) -> List[str]:
+    """Load Wikipedia data from Hugging Face."""
+    logger.info("Loading Wikipedia dataset (subset: 20231101.en)...")
+    try:
+        dataset = load_dataset(
+            "wikimedia/wikipedia",
+            "20231101.en",
+            split="train",
+            streaming=False,
+            cache_dir=os.path.join(SCRIPT_DIR, "wikipedia_cache"),
+        )
+
+        total_size = len(dataset)
+        random.seed(112)
+        random_indices = random.sample(range(total_size), min(num_samples, total_size))
+
+        texts = []
+        for idx in tqdm(random_indices, desc="Loading Wikipedia docs"):
+            try:
+                item = dataset[idx]
+                text = item.get("text", "").strip()
+                if text:
+                    texts.append(text[:2000])
+            except Exception as e:
+                logger.warning(f"Failed to load Wikipedia doc {idx}: {e}")
+
+        logger.info(f"Successfully loaded {len(texts)} Wikipedia samples")
+        return texts
+
+    except Exception as e:
+        logger.error(f"Error loading Wikipedia dataset: {e}")
+        raise
+
+
 def main(argv):
     global FFN_ACTIVE_FRACTION, ATTN_ACTIVE_FRACTION
 
@@ -961,12 +1012,13 @@ def main(argv):
     # =====================================================================
     # 로깅 설정: 파일 핸들러 추가
     # =====================================================================
-    log_dir = os.path.join(SCRIPT_DIR, "logs", "safety_neuron_detection")
+    log_dir = os.path.join(SCRIPT_DIR, "logs", "neuron_detection")
     os.makedirs(log_dir, exist_ok=True)
-    
+
     # 파일 이름: 현재 날짜 및 시간
     log_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_file = os.path.join(log_dir, f"safety_neuron_detection_{log_timestamp}.log")
+    log_prefix = "safety_neuron" if args.safety_neuron else "utility_neuron"
+    log_file = os.path.join(log_dir, f"{log_prefix}_{log_timestamp}.log")
     
     # 파일 핸들러 설정
     file_handler = logging.FileHandler(log_file, encoding='utf-8')
@@ -996,26 +1048,37 @@ def main(argv):
     logger.info(f"Using model: {model_name}")
     logger.info(f"FFN_ACTIVE_FRACTION: {FFN_ACTIVE_FRACTION}, ATTN_ACTIVE_FRACTION: {ATTN_ACTIVE_FRACTION}")
 
-    num_prompts = args.num_prompts
-    logger.info(f"Number of prompts to process: {num_prompts}")
-    file_path = os.path.join(SCRIPT_DIR, "corpus_all", "circuit_breakers_train.json")
-    if not os.path.exists(file_path):
-        logger.error(f"Dataset file not found: {file_path}")
-        sys.exit(1)
+    num_samples = args.num_prompts
 
-    with open(file_path, "r", encoding="utf-8") as f:
-        records = json.load(f)
+    if args.safety_neuron:
+        logger.info("[Mode] Safety Neuron Detection")
+        logger.info(f"Number of prompts to process: {num_samples}")
+        file_path = os.path.join(SCRIPT_DIR, "corpus_all", "circuit_breakers_train.json")
+        if not os.path.exists(file_path):
+            logger.error(f"Dataset file not found: {file_path}")
+            sys.exit(1)
 
-    if not records:
-        logger.error(f"No valid 'prompt' entries found in: {file_path}")
-        sys.exit(1)
+        with open(file_path, "r", encoding="utf-8") as f:
+            records = json.load(f)
 
-    if len(records) > num_prompts:
-        records = records[:num_prompts]
+        if not records:
+            logger.error(f"No valid 'prompt' entries found in: {file_path}")
+            sys.exit(1)
 
-    lines = [item.get("prompt", "") for item in records]
+        if len(records) > num_samples:
+            records = records[:num_samples]
 
-    logger.info(f"Processing {len(lines)} prompts from {file_path}")
+        lines = [item.get("prompt", "") for item in records]
+        logger.info(f"Processing {len(lines)} prompts from {file_path}")
+
+    else:  # args.utility_neuron
+        logger.info("[Mode] Utility Neuron Detection (Wikipedia)")
+        logger.info(f"Number of Wikipedia documents to process: {num_samples}")
+        lines = load_wikipedia_data(num_samples=num_samples)
+        if not lines:
+            logger.error("Failed to load Wikipedia data")
+            sys.exit(1)
+        logger.info(f"Processing {len(lines)} Wikipedia documents")
 
     # 각 prompt x에 대해 Nx를 수집
     ffn_up_sets: List[Dict[int, Set[int]]] = []
@@ -1054,7 +1117,10 @@ def main(argv):
     # 결과 저장
     output_dir = os.path.join(SCRIPT_DIR, "output_neurons")
     os.makedirs(output_dir, exist_ok=True)
-    output_file = os.path.join(output_dir, f"safety_neuron_accelerated_{log_timestamp}.txt")
+    if args.safety_neuron:
+        output_file = os.path.join(output_dir, f"safety_neuron_accelerated_{log_timestamp}.txt")
+    else:
+        output_file = os.path.join(output_dir, f"utility_neurons_{len(ffn_up_sets)}_{log_timestamp}.txt")
 
     with open(output_file, "w", encoding="utf-8") as f:
         # Dict[int, Set[int]] -> str으로 저장
@@ -1077,13 +1143,14 @@ def main(argv):
     total_model_neurons = calculate_model_total_neurons()
     actual_sparsity = total_safety_neurons / total_model_neurons if total_model_neurons > 0 else 0
     
+    mode_label = "Safety" if args.safety_neuron else "Utility"
     logger.info(f"\n{'='*70}")
-    logger.info("Safety Neuron Detection Results")
+    logger.info(f"{mode_label} Neuron Detection Results")
     logger.info(f"{'='*70}")
     logger.info(f"Model: {model_name}")
-    logger.info(f"Total safety neurons: {total_safety_neurons:,}")
+    logger.info(f"Total {mode_label.lower()} neurons: {total_safety_neurons:,}")
     logger.info(f"Total model neurons (q/k/v/o + gate/up/down): {total_model_neurons:,}")
-    logger.info(f"Detected safety neuron percentage: {actual_sparsity*100:.4f}%")
+    logger.info(f"Detected {mode_label.lower()} neuron percentage: {actual_sparsity*100:.4f}%")
     logger.info(f"Output: {output_file}")
     logger.info(f"Log: {log_file}")
     logger.info(f"{'='*70}\n")
