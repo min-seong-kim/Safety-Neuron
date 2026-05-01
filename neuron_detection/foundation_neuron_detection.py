@@ -1,6 +1,6 @@
 """
 python foundation_neuron_detection.py 1000 \
-    --model_name meta-llama/Llama-3.1-8B \
+    --model_name meta-llama/Llama-3.2-3B-Instruct \
     --ffn_active_fraction 0.01 \
     --attn_active_fraction 0.01
 

@@ -123,7 +123,6 @@ neuron_detection/wikipedia_cache/
 neuron_detection/corpus_all/
 
 # Training outputs and logs
-output*/
 outputs/
 runs/
 tensorboard_logs/
@@ -135,4 +134,5 @@ temp_training_data.json
 
 # Log files
 *.log
-logs/
+!logs/
+!logs/**

@@ -8,16 +8,25 @@ Instruct 모델 기준:
 
 Example Usage:
 python finetune_hendrycks_math_full_params.py \
-    --model_path kmseong/llama3.1_8b_instruct-Safety-FT-lr3e-5  \
-    --output_dir ./full_finetune_MATH_8b_instruct-lr1e-5 \
-    --upload_name kmseong/llama3.1_8b_instruct_MATH_full_ft-lr1e-5
+    --model_path kmseong/llama3_2_3b-instruct-Safety-FT-lr5e-5  \
+    --learning_rate 3e-5 --epochs 3 \
+    --output_dir ./full_finetune_MATH_8b_instruct-lr3e-5 \
+    --upload_name kmseong/llama3_2_3b_instruct_MATH_lr3e-5
 
     
 python finetune_hendrycks_math_full_params.py \
     --model_path kmseong/llama3.1_8b_instruct-Safety-FT-lr3e-5 \
     --output_dir ./lora_math_llama3.1_8b \
     --lora --lora_r 16 --lora_alpha 32 \
-    --upload_name kmseong/llama3.1_8b_instruct_MATH_lora_ft-lr1e-5
+    --upload_name kmseong/llama3.1_8b_instruct_MATH_lora_ft-lr3e-5
+
+Safety 10% mixing + full parameter:
+python finetune_hendrycks_math_full_params.py \
+    --model_path kmseong/llama3_2_3b-instruct-SSFT-lr3e-5 \
+    --output_dir ./full_math_llama3_2_3b_safetymix \
+    --learning_rate 3e-5 --epochs 3 \
+    --safety_mix_ratio 0.1 \
+    --upload_name kmseong/llama3_2_3b-instruct-math_safeInstr_10p_lr3e-5
 """
 
 import argparse
@@ -32,7 +41,7 @@ import logging
 
 import wandb
 import torch
-from datasets import load_dataset, concatenate_datasets
+from datasets import load_dataset, Dataset as HFDataset, concatenate_datasets
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
@@ -46,7 +55,7 @@ try:
 except ImportError:
     _peft_available = False
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 def parse_args():
     p = argparse.ArgumentParser(description="Full Parameter Finetune SN-Tuned Model on Hendrycks MATH")
@@ -62,6 +71,11 @@ def parse_args():
     p.add_argument("--num_eval_samples", type=int, default=0)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--math_train_on_mixed_formats", action="store_true", default=False)
+    p.add_argument("--safety_data_path", type=str,
+                   default="/home/yonsei_jong/Safety-Neuron/neuron_detection/corpus_all/circuit_breakers_train.json",
+                   help="Safety dataset JSON path (circuit_breakers_train.json format)")
+    p.add_argument("--safety_mix_ratio", type=float, default=0.0,
+                   help="Safety data ratio relative to Hendrycks MATH train size (e.g. 0.1 = 10%%, 0=disabled)")
 
     p.add_argument("--batch_size", type=int, default=4)
     p.add_argument("--eval_batch_size", type=int, default=4)
@@ -347,6 +361,7 @@ def main():
     logger.info(f"   ├─ Subjects: {args.math_subjects}")
     logger.info(f"   ├─ Levels: {args.math_levels}")
     logger.info(f"   ├─ Train samples: {args.num_train_samples}")
+    logger.info(f"   ├─ Safety mix ratio: {args.safety_mix_ratio}")
     logger.info(f"   ├─ Batch size: {args.batch_size}")
     logger.info(f"   ├─ Grad accum: {args.grad_accum}")
     logger.info(f"   ├─ Epochs: {args.epochs}")
@@ -454,6 +469,40 @@ def main():
         desc="Tokenizing Hendrycks MATH train",
     )
 
+    # Safety data mixing
+    if args.safety_mix_ratio > 0:
+        safety_path = args.safety_data_path
+        if not os.path.exists(safety_path):
+            logger.error(f"Safety dataset not found: {safety_path}")
+            raise FileNotFoundError(f"Safety dataset not found: {safety_path}")
+
+        with open(safety_path, "r", encoding="utf-8") as f:
+            safety_raw = json.load(f)
+
+        num_safety = int(len(train_tok) * args.safety_mix_ratio)
+        rng = random.Random(args.seed)
+        sampled = rng.sample(safety_raw, min(num_safety, len(safety_raw)))
+
+        def preprocess_safety(ex):
+            return tokenize_math_sft_example(
+                ex.get("prompt", ""),
+                ex.get("llama3_output", ""),
+                tokenizer,
+                args.max_length,
+                model_path,
+            )
+
+        safety_hf = HFDataset.from_list(sampled)
+        safety_tok = safety_hf.map(
+            preprocess_safety,
+            remove_columns=safety_hf.column_names,
+            desc="Tokenizing safety data",
+        )
+
+        train_tok = concatenate_datasets([train_tok, safety_tok]).shuffle(seed=args.seed)
+        logger.info(f"✅ Safety data mixed: {len(safety_tok)} samples (ratio={args.safety_mix_ratio})")
+        logger.info(f"   Total training samples: {len(train_tok)} (MATH {len(train_ds)} + Safety {len(safety_tok)})")
+
     eval_tok = None
     if args.num_eval_samples and args.num_eval_samples > 0:
         eval_tok = train_tok.select(range(min(args.num_eval_samples, len(train_tok))))
@@ -507,6 +556,8 @@ def main():
             "lora_r": args.lora_r if args.lora else None,
             "lora_alpha": args.lora_alpha if args.lora else None,
             "lora_dropout": args.lora_dropout if args.lora else None,
+            "safety_mix_ratio": args.safety_mix_ratio,
+            "safety_data_path": args.safety_data_path if args.safety_mix_ratio > 0 else None,
         },
     )
 
@@ -553,6 +604,8 @@ def main():
         "dtype": "bf16" if args.bf16 else ("fp16" if args.fp16 else "fp32"),
         "input_formatting": "chat template" if is_instruct_model(model_path) else "Question/Answer plain text",
         "prompt_masking": "assistant-only loss",
+        "safety_mix_ratio": args.safety_mix_ratio,
+        "safety_data_path": args.safety_data_path if args.safety_mix_ratio > 0 else None,
     }
 
     config_path = os.path.join(args.output_dir, "finetune_config.json")

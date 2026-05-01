@@ -11,16 +11,16 @@ Instruct 모델 기준:
 
 Example Usage:
 python finetune_hendrycks_math_freeze_sn.py \
-    --model_path kmseong/llama3.1_8b_instruct_only_rsn_tuned_lr3e-5 \
-    --safety_neurons_file ./output_neurons/critical_safety_neuron_20260418_204749.txt \
-    --output_dir ./math_ft_8b_instruct_freeze_rsn_lr1e-5 \
-    --upload_name kmseong/math_ft_8b_instruct_freeze_rsn_lr1e-5
+    --model_path kmseong/llama3_2_3b_instruct_only_sn_tuned_lr5e-5 \
+    --safety_neurons_file ./output_neurons/safety_neuron_accelerated_20260428_170849.txt \
+    --output_dir ./math_ft_8b_instruct_freeze_sn_lr5e-5 \
+    --upload_name kmseong/llama3_2_3b_instruct_sn_tuned_math_ft_lr5e-5
 
 python finetune_hendrycks_math_freeze_sn.py \
-    --model_path kmseong/llama2_7b_chat_only_rsn_tuned_lr3e-5 \
-    --safety_neurons_file ./output_neurons/critical_safety_neuron_20260418_204636.txt \
-    --output_dir ./math_ft_chat_after_rsn_tune_freeze_rsn_lr3e-5 \
-    --upload_name kmseong/llama2_7b_chat_math_ft_freeze_rsn_lr3e-5
+    --model_path kmseong/llama3_2_3b_instruct_only_rsn_tuned_lr5e-5 \
+    --safety_neurons_file ./output_neurons/critical_safety_neuron_20260428_175103.txt \
+    --output_dir ./math_ft_chat_after_rsn_tune_freeze_rsn_lr5e-5 \
+    --upload_name kmseong/llama3_2_3b_instruct_rsn_tuned_math_ft_lr5e-5
     
 """
 

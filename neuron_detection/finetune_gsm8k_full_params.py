@@ -9,10 +9,11 @@ python finetune_gsm8k_full_params.py \
     --output_dir ./full_finetune_llama3.1_8b_instruct_gsm8k_ssft3e-5_lr1e-5
 
 python finetune_gsm8k_full_params.py \
-    --model_path kmseong/llama2_7b-Safety-FT-lr3e-5 \
-    --output_dir ./full_finetune_llama2_7b_base_gsm8k_lr5e-5 \
+    --model_path kmseong/llama3_2_3b-instruct-Safety-FT-lr5e-5-20260428_160224 \
+    --output_dir ./full_finetune_llama3_2_3b_instruct_gsm8k_lr5e-5 \
     --learning_rate 5e-5 --epochs 3 \
-    --upload_name kmseong/llama2_7b-base-gsm8k_ssft_lr5e-5
+    --upload_name kmseong/llama3_2_3b-instruct-gsm8k_ssft_lr5e-5
+
 LoRA:
 python finetune_gsm8k_full_params.py \
     --model_path kmseong/llama2_7b-Safety-FT-lr3e-5 \
@@ -27,8 +28,8 @@ python finetune_gsm8k_full_params.py \
     --model_path kmseong/llama2_7b-chat-Safety-FT-lr5e-5 \
     --output_dir ./full_gsm8k_llama2_7b_safetymix \
     --learning_rate 5e-5 --epochs 3 \
-    --safety_mix_ratio 0.05 \
-    --upload_name kmseong/llama2_7b-chat-gsm8k_safelnstr_5p_lr5e-5
+    --safety_mix_ratio 0.1 \
+    --upload_name kmseong/llama2_7b-chat-gsm8k_safelnstr_10p_lr5e-5
 
 
 """

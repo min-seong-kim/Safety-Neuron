@@ -12,18 +12,18 @@ Safety Neuron Tuning (SN-Tune)
 python sn_tune.py \
     --neuron_file ./output_neurons/llama_2_7b_chat_safety_neuron_accelerated_20260416_160653.txt \
     --dataset_file ./corpus_all/circuit_breakers_train.json \
-    --local_model_name ./only_sn_tuned_model_llama2_7b_chat_lr3e-5 \
+    --local_model_name ./only_sn_tuned_model_llama2_7b_lr5e-5 \
     --model_name meta-llama/Llama-2-7b-chat-hf \
-    --upload_name kmseong/llama2_7b_chat_only_sn_tuned_lr3e-5_shuffle
+    --upload_name kmseong/llama2_7b_only_sn_tuned_lr5e-5
   
 
 # RSN-Tune
 python sn_tune.py \
     --neuron_file ./output_neurons/critical_safety_neuron_20260418_204636.txt \
     --dataset_file ./corpus_all/circuit_breakers_train.json \
-    --local_model_name ./only_rsn_tuned_model_llama2_7b_chat_lr3e-5 \
+    --local_model_name ./only_rsn_tuned_model_llama2_7b_chat_lr5e-5 \
     --model_name meta-llama/Llama-2-7b-chat-hf \
-    --upload_name kmseong/llama2_7b_chat_only_rsn_tuned_lr3e-5
+    --upload_name kmseong/llama2_7b_chat_only_rsn_tuned_lr5e-5
 
 """
 
@@ -45,7 +45,7 @@ from contextlib import nullcontext
 import wandb
 
 logger = logging.getLogger(__name__)
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 # =====================================================================
 # Configuration
@@ -54,7 +54,7 @@ DEFAULT_MODEL_NAME = "meta-llama/Llama-2-7b-chat-hf"
 NUM_LAYERS = 32
 
 # SN-Tune hyperparameters
-LEARNING_RATE = 3e-5
+LEARNING_RATE = 5e-5
 NUM_EPOCHS = 3
 BATCH_SIZE = 4
 GRAD_ACCUM_STEPS = 4

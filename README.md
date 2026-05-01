@@ -1,3 +1,57 @@
+# GSM8K Full parameter FT
+model_path에 safety FT model을 넣고 hyper parameter는 base: 3e-5, instruct: 5e-5, epochs: 3
+
+python finetune_gsm8k_full_params.py \
+    --model_path kmseong/llama2_7b-Safety-FT-lr3e-5 \
+    --output_dir ./full_finetune_llama2_7b_base_gsm8k_lr5e-5 \
+    --learning_rate 5e-5 --epochs 3 \
+    --upload_name kmseong/llama2_7b-base-gsm8k_ssft_lr5e-5
+
+# SafeInstr
+이 기법은 특별한 거 없이 downstream FT 시 safety dataset을 몇 % 추가해서 같이 학습시키는 방식입니다.
+safety mix ratio를 5%~10% 정도로 넣어주시면 됩니다.
+
+python finetune_gsm8k_full_params.py \
+    --model_path kmseong/llama2_7b-chat-Safety-FT-lr5e-5 \
+    --output_dir ./full_gsm8k_llama2_7b_safetymix \
+    --learning_rate 5e-5 --epochs 3 \
+    --safety_mix_ratio 0.05 \
+    --upload_name kmseong/llama2_7b-chat-gsm8k_safelnstr_5p_lr5e-5
+
+
+# SN-Tune
+3가지 과정: 1. safety neuron detection, 2. safety neuron tuning, 3. Downstream FT with freeze safety neuron.
+
+1. safety neuron detection
+비율은 0.05로 한번 돌려보고 safety neuron %가 약 1%이내로 나오면 그걸로 사용하면 됩니다.
+
+python safety_neuron_detection_v2.py 4994 \
+    --model_name meta-llama/Llama-3.1-8B \
+    --ffn_active_fraction 0.05 \
+    --attn_active_fraction 0.05
+
+2. safety neuron tuning
+찾은 safety neuron들을 neuron_file에 넣고 학습시킬 base model을 model_name에 넣으면 됩니다.
+
+python sn_tune.py \
+    --neuron_file ./output_neurons/llama_2_7b_chat_safety_neuron_accelerated_20260416_160653.txt \
+    --dataset_file ./corpus_all/circuit_breakers_train.json \
+    --local_model_name ./only_sn_tuned_model_llama2_7b_chat_lr3e-5 \
+    --model_name meta-llama/Llama-2-7b-chat-hf \
+    --upload_name kmseong/llama2_7b_chat_only_sn_tuned_lr3e-5_shuffle
+
+3. Downstream FT with freeze safety neuron
+학습시킨 sn model을 가지고 이전에 찾은 safety neuron을  safety neuron file에 넣고 적절한 lr로 학습시키면 됩니다.
+
+python finetune_gsm8k_freeze_sn.py \
+    --model_path kmseong/llama2_7b_only_sn_tuned_lr3e-5 \
+    --safety_neurons_file /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/llama_2_7b_base_safety_neuron_accelerated_20260417_003734.txt \
+    --output_dir ./llama2_7b_base_gsm8k_ft_freeze_sn_lr3e-5 \
+    --learning_rate 3e-5 --epochs 3 \
+    --upload_name kmseong/llama2_7b_base_gsm8k_ft_freeze_sn_lr3e-5
+
+
+
 # [ICLR 2025] Understanding and Enhancing Safety Mechanisms of LLMs via Safety-Specific Neuron
 
 This repository contains code for the paper "[Understanding and Enhancing Safety Mechanisms of LLMs via Safety-Specific Neuron](https://openreview.net/pdf?id=yR47RmND1m)". 

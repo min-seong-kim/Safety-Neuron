@@ -1,12 +1,12 @@
 """
 llama 3.1 8B
 python upload_sn_tuned_model.py \
-    --upload_pair ./full_finetune_llama3.1_8b_instruct_gsm8k_ssft3e-5_lr1e-5 kmseong/llama3.1_8b_instruct_gsm8k_full_ft_lr1e-5 \
+    --upload_pair ./llama2_7b_chat_medqa_ft_freeze_rsn_lr1e-5_20260501_133851 kmseong/llama2_7b_base_medqa_ft_freeze_rsn_lr1e-5 \
     --upload_pair ./math_ft_8b_instruct_freeze_rsn_lr1e-5_20260420_004336 kmseong/llama3.1_8b_instruct_math_ft_freeze_rsn_lr1e-5_new 
 
 llama 2 7B
 python upload_sn_tuned_model.py \
-    --upload_pair /home/yonsei_jong/SafeDelta/finetuned_models/gsm8k-llama2-7b-chat-safeft kmseong/llama2_7b_chat_safedelta_only_gsm8k \
+    --upload_pair /home/yonsei_jong/resta/saved_models/resta_recovered_gamma0.3 kmseong/llama2_7b_chat_medaq_resta_gamma0.3 \
 """
 
 import argparse
