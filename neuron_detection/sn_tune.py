@@ -10,20 +10,20 @@ Safety Neuron Tuning (SN-Tune)
 
 # SN-Tune with custom model
 python sn_tune.py \
-    --neuron_file ./output_neurons/llama_2_7b_chat_safety_neuron_accelerated_20260416_160653.txt \
+    --neuron_file ./output_neurons/safety_neuron_accelerated_20260502_013602.txt \
     --dataset_file ./corpus_all/circuit_breakers_train.json \
     --local_model_name ./only_sn_tuned_model_llama2_7b_lr5e-5 \
     --model_name meta-llama/Llama-2-7b-chat-hf \
-    --upload_name kmseong/llama2_7b_only_sn_tuned_lr5e-5
-  
+    --upload_name kmseong/llama2_7b_chat_only_sn_tuned_lr5e-5_revised
+
 
 # RSN-Tune
 python sn_tune.py \
-    --neuron_file ./output_neurons/critical_safety_neuron_20260418_204636.txt \
+    --neuron_file ./output_neurons/critical_safety_neuron_20260502_022558.txt \
     --dataset_file ./corpus_all/circuit_breakers_train.json \
     --local_model_name ./only_rsn_tuned_model_llama2_7b_chat_lr5e-5 \
     --model_name meta-llama/Llama-2-7b-chat-hf \
-    --upload_name kmseong/llama2_7b_chat_only_rsn_tuned_lr5e-5
+    --upload_name kmseong/llama2_7b_chat_only_rsn_tuned_lr5e-5_revised
 
 """
 

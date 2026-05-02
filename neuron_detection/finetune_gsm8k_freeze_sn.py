@@ -7,18 +7,19 @@ Trainer + AdamW 8-bit optimizer (bitsandbytes) 사용으로 메모리 효율성 
 
 Example Usage:
 python finetune_gsm8k_freeze_sn.py \
-    --model_path kmseong/llama2_7b_only_sn_tuned_lr3e-5 \
-    --safety_neurons_file /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/llama_2_7b_base_safety_neuron_accelerated_20260417_003734.txt \
-    --output_dir ./llama2_7b_base_gsm8k_ft_freeze_sn_lr7e-5 \
-    --learning_rate 2.5e-5 --epochs 3 \
-    --upload_name kmseong/llama2_7b_base_gsm8k_ft_freeze_sn_lr7e-5
+    --model_path kmseong/llama2_7b_chat_only_sn_tuned_lr5e-5_revised \
+    --safety_neurons_file /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/safety_neuron_accelerated_20260502_013602.txt \
+    --output_dir ./llama2_7b_base_gsm8k_ft_freeze_sn_lr5e-5 \
+    --learning_rate 5e-5 --epochs 3 \
+    --upload_name kmseong/llama2_7b_base_gsm8k_ft_freeze_sn_lr5e-5_revised
 
 
 python finetune_gsm8k_freeze_sn.py \
-    --model_path kmseong/llama2_7b_chat_only_rsn_tuned_lr3e-5 \
-    --safety_neurons_file /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/critical_safety_neuron_20260418_204636.txt \
-    --output_dir ./llama2_7b_chat_gsm8k_ft_freeze_rsn_lr7e-5_new \
-    --upload_name kmseong/llama2_7b_chat_gsm8k_ft_freeze_rsn_lr7e-5_new
+    --model_path kmseong/llama2_7b_chat_only_rsn_tuned_lr5e-5_revised \
+    --safety_neurons_file /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/critical_safety_neuron_20260502_022558.txt \
+    --output_dir ./llama2_7b_chat_gsm8k_ft_freeze_rsn_lr5e-5_new \
+    --learning_rate 5e-5 --epochs 3 \
+    --upload_name kmseong/llama2_7b_chat_gsm8k_ft_freeze_rsn_lr5e-5_new_revised
 
 
 

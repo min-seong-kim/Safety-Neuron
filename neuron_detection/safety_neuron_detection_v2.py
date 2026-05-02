@@ -1,17 +1,33 @@
 '''
-# Safety neuron detection (from circuit_breakers_train.json)
+Usage (current implementation)
+==============================
+
+This script follows the original GitHub detection style:
+- use scores computed/stored inside patched transformers `modeling_llama.py`
+- select layer-wise fixed top-k indices
+    - attention top-k: 200
+    - FFN top-k: 1200
+- take intersection across prompts to get final neurons
+
+1) Safety neuron detection (from corpus_all/circuit_breakers_train.json)
 python safety_neuron_detection_v2.py 4994 \
-    --model_name meta-llama/Llama-3.2-3B-Instruct \
-    --ffn_active_fraction 0.05 \
-    --attn_active_fraction 0.05 \
+    --model_name meta-llama/Llama-2-7b-chat-hf \
+    --top_number_ffn 1200 \
+    --top_number_attn 200 \
     --safety_neuron
 
-# Utility neuron detection (from Wikipedia)
+2) Utility neuron detection (from Wikipedia)
 python safety_neuron_detection_v2.py 1000 \
-    --model_name meta-llama/Llama-3.2-3B-Instruct \
-    --ffn_active_fraction 0.05 \
-    --attn_active_fraction 0.05 \
+    --model_name meta-llama/Llama-2-7b-chat-hf \
+    --top_number_ffn 300 \
+    --top_number_attn 50 \
     --utility_neuron
+
+Notes
+-----
+- `num_prompts` is the number of samples used for intersection.
+- For instruct/chat models, input is built by `apply_chat_template(...)`.
+- `--top_number_attn` and `--top_number_ffn` control per-layer top-k selection.
 '''
 from neuron_percentage_utils import calculate_total_model_neurons_from_config
 
@@ -31,6 +47,7 @@ import torch.nn.functional as F
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datetime import datetime
 from datasets import load_dataset
+import numpy as np
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
@@ -57,23 +74,11 @@ model = None
 NUM_LAYERS = 0
 
 # ------------------------------------------------------------------
-# Threshold hyperparameters
-# ------------------------------------------------------------------
-DEFAULT_FFN_ACTIVE_FRACTION = 0.15
-DEFAULT_ATTN_ACTIVE_FRACTION = 0.15
-FFN_ACTIVE_FRACTION = DEFAULT_FFN_ACTIVE_FRACTION
-ATTN_ACTIVE_FRACTION = DEFAULT_ATTN_ACTIVE_FRACTION
-MIN_NEURONS_FOR_QUANTILE = 10
-
-# ------------------------------------------------------------------
 # Accelerated detection hyperparameters
 # ------------------------------------------------------------------
-ATTN_QUERY_WINDOW = None      # None이면 전체 query position 사용
-CAPTURE_HIDDEN_TO_CPU = False # hidden input을 GPU에 유지
 DETAIL_LOG_PROMPT_LIMIT = 3
-NEG_INF = -1e9
-
-USE_FULL_DIM_PARALLEL_QK = True
+TOP_NUMBER_ATTN = 2000
+TOP_NUMBER_FFN = 12000
 
 
 def initialize_model_and_tokenizer(selected_model_name: str):
@@ -98,7 +103,7 @@ def initialize_model_and_tokenizer(selected_model_name: str):
 
 def parse_args(argv):
     parser = argparse.ArgumentParser(
-        description="Safety neuron detection with configurable model and thresholds"
+        description="Safety neuron detection with configurable model and per-layer top-k"
     )
     parser.add_argument(
         "num_prompts",
@@ -112,18 +117,16 @@ def parse_args(argv):
         help="HuggingFace model name or path",
     )
     parser.add_argument(
-        "--ffn_active_fraction",
-        type=float,
-        default=DEFAULT_FFN_ACTIVE_FRACTION,
-        help="Global top fraction for FFN neurons (0~1)",
+        "--top_number_ffn",
+        type=int,
+        default=TOP_NUMBER_FFN,
+        help="Per-layer top-k for FFN neuron selection",
     )
     parser.add_argument(
-        "--attn_active_fraction",
-        "--attn_activ_fraction",
-        dest="attn_active_fraction",
-        type=float,
-        default=DEFAULT_ATTN_ACTIVE_FRACTION,
-        help="Global top fraction for attention neurons (0~1)",
+        "--top_number_attn",
+        type=int,
+        default=TOP_NUMBER_ATTN,
+        help="Per-layer top-k for attention neuron selection",
     )
 
     mode_group = parser.add_mutually_exclusive_group(required=True)
@@ -140,10 +143,10 @@ def parse_args(argv):
 
     args = parser.parse_args(argv)
 
-    if not (0.0 < args.ffn_active_fraction <= 1.0):
-        parser.error("--ffn_active_fraction must be in (0, 1].")
-    if not (0.0 < args.attn_active_fraction <= 1.0):
-        parser.error("--attn_active_fraction must be in (0, 1].")
+    if args.top_number_ffn <= 0:
+        parser.error("--top_number_ffn must be a positive integer.")
+    if args.top_number_attn <= 0:
+        parser.error("--top_number_attn must be a positive integer.")
 
     return args
 
@@ -253,264 +256,25 @@ def build_causal_mask_for_query_subset(
     return k_positions.unsqueeze(0) <= q_positions.unsqueeze(1)      # [Q, T]
 
 
-def compute_ffn_importance_from_hffn(
-    hffn: torch.Tensor,             # [B, T, I]
-    down_proj_weight: torch.Tensor  # [H, I]
-) -> torch.Tensor:
-    """
-    Eq. (9)-style efficient importance:
-    contribution of neuron k is hffn[..., k] * Wdown[:, k]
-
-    importance[k] = || contribution_k ||_2^2
-                  = sum_{b,t} hffn[b,t,k]^2 * ||Wdown[:,k]||_2^2
-    """
-    h_sq = hffn.float().pow(2).sum(dim=(0, 1))                # [I]
-    w_sq = down_proj_weight.float().pow(2).sum(dim=0)         # [I]
-    return h_sq * w_sq                                        # [I]
-
-
-def compute_q_importance_parallel(
-    base_scores: torch.Tensor,  # [B, Hq, Q, T]
-    base_probs: torch.Tensor,   # [B, Hq, Q, T]
-    q_used: torch.Tensor,       # [B, Q, Hq, D]
-    k_rep: torch.Tensor,        # [B, T, Hq, D]
-    head_dim: int,
-    prompt_idx: int,
-    layer_idx: int,
-) -> torch.Tensor:
-    """
-    More paper-like parallel Q importance.
-    Per head, compute all D dimensions simultaneously.
-    Returns flattened importance [Hq * D]
-    """
-    device = base_scores.device
-    _, num_heads, _, _ = base_scores.shape
-    d = head_dim
-
-    q_importance = torch.zeros(num_heads, d, device=device, dtype=torch.float32)
-
-    for h in range(num_heads):
-        scores_h = base_scores[:, h, :, :]   # [B, Q, T]
-        probs_h = base_probs[:, h, :, :]     # [B, Q, T]
-        q_h = q_used[:, :, h, :].float()     # [B, Q, D]
-        k_h = k_rep[:, :, h, :].float()      # [B, T, D]
-
-        # delta: [B, Q, T, D]
-        delta = q_h.unsqueeze(2) * k_h.unsqueeze(1)
-
-        # perturbed_scores: [B, Q, T, D]
-        perturbed_scores = scores_h.unsqueeze(-1) - (delta / math.sqrt(head_dim))
-        perturbed_probs = torch.softmax(perturbed_scores, dim=2)
-
-        diff = perturbed_probs - probs_h.unsqueeze(-1)
-        imp = diff.pow(2).sum(dim=(0, 1, 2))   # [D]
-        q_importance[h] = imp
-
-        if should_log_detail(prompt_idx):
-            logger.debug(
-                f"[Prompt {prompt_idx}][Layer {layer_idx}][Q head {h}] "
-                f"delta_shape={tuple(delta.shape)}, imp_shape={tuple(imp.shape)}"
-            )
-
-    if should_log_detail(prompt_idx):
-        log_tensor_stats("q_importance_parallel", q_importance, prompt_idx, layer_idx)
-
-    return q_importance.reshape(-1).detach()
-
-
-def compute_k_importance_parallel(
-    base_scores: torch.Tensor,  # [B, Hq, Q, T]
-    base_probs: torch.Tensor,   # [B, Hq, Q, T]
-    q_used: torch.Tensor,       # [B, Q, Hq, D]
-    k_orig: torch.Tensor,       # [B, T, Hkv, D]
-    num_kv_groups: int,
-    head_dim: int,
-    prompt_idx: int,
-    layer_idx: int,
-) -> torch.Tensor:
-    """
-    More paper-like parallel K importance.
-    Per KV head, compute all D dimensions simultaneously.
-    Returns flattened importance [Hkv * D]
-    """
-    device = base_scores.device
-    _, _, _, _ = base_scores.shape
-    _, _, num_kv_heads, d = k_orig.shape
-
-    k_importance = torch.zeros(num_kv_heads, d, device=device, dtype=torch.float32)
-
-    for kvh in range(num_kv_heads):
-        h_start = kvh * num_kv_groups
-        h_end = (kvh + 1) * num_kv_groups
-
-        k_h = k_orig[:, :, kvh, :].float()              # [B, T, D]
-        scores_grp = base_scores[:, h_start:h_end]      # [B, g, Q, T]
-        probs_grp = base_probs[:, h_start:h_end]        # [B, g, Q, T]
-        q_grp = q_used[:, :, h_start:h_end, :].float()  # [B, Q, g, D]
-
-        imp_total = torch.zeros(d, device=device, dtype=torch.float32)
-
-        for g in range(h_end - h_start):
-            scores_h = scores_grp[:, g, :, :]   # [B, Q, T]
-            probs_h = probs_grp[:, g, :, :]     # [B, Q, T]
-            q_h = q_grp[:, :, g, :]             # [B, Q, D]
-
-            # delta: [B, Q, T, D]
-            delta = q_h.unsqueeze(2) * k_h.unsqueeze(1)
-
-            perturbed_scores = scores_h.unsqueeze(-1) - (delta / math.sqrt(head_dim))
-            perturbed_probs = torch.softmax(perturbed_scores, dim=2)
-
-            diff = perturbed_probs - probs_h.unsqueeze(-1)
-            imp = diff.pow(2).sum(dim=(0, 1, 2))   # [D]
-            imp_total += imp
-
-        k_importance[kvh] = imp_total
-
-        if should_log_detail(prompt_idx):
-            logger.debug(
-                f"[Prompt {prompt_idx}][Layer {layer_idx}][K kv_head {kvh}] "
-                f"imp_total_shape={tuple(imp_total.shape)}"
-            )
-
-    if should_log_detail(prompt_idx):
-        log_tensor_stats("k_importance_parallel", k_importance, prompt_idx, layer_idx)
-
-    return k_importance.reshape(-1).detach()
-
-
-def compute_v_importance_linear(
-    base_probs: torch.Tensor,      # [B, Hq, Q, T]
-    v_orig: torch.Tensor,          # [B, T, Hkv, D]
-    o_proj_weight: torch.Tensor,   # [hidden, hidden]
-    num_kv_groups: int,
-    prompt_idx: int,
-    layer_idx: int,
-) -> torch.Tensor:
-    """
-    V is in the linear part after softmax, so we use an Eq. (9)-style linear importance.
-
-    Approximation:
-    - compute context contribution caused by each original V neuron
-    - scale by || corresponding o_proj column ||^2
-    - aggregate over all repeated heads that share the same KV head
-
-    Returns flattened importance [Hkv * D]
-    """
-    device = base_probs.device
-    _, num_heads, q_len, seq_len = base_probs.shape
-    _, _, num_kv_heads, head_dim = v_orig.shape
-
-    # o_proj columns correspond to concatenated [Hq, D]
-    o_col_norm_sq = o_proj_weight.float().pow(2).sum(dim=0).view(num_heads, head_dim)  # [Hq, D]
-
-    v_importance = torch.zeros(num_kv_heads, head_dim, device=device, dtype=torch.float32)
-
-    for kvh in range(num_kv_heads):
-        h_start = kvh * num_kv_groups
-        h_end = (kvh + 1) * num_kv_groups
-
-        probs_grp = base_probs[:, h_start:h_end, :, :]         # [B, g, Q, T]
-        v_h = v_orig[:, :, kvh, :].float()                     # [B, T, D]
-        o_norm_grp = o_col_norm_sq[h_start:h_end, :]           # [g, D]
-
-        # ctx[b, g, q, d] = sum_t probs[b,g,q,t] * v[b,t,d]
-        ctx = torch.einsum("bgqt,btd->bgqd", probs_grp, v_h)   # [B, g, Q, D]
-        ctx_sq_sum = ctx.pow(2).sum(dim=(0, 2))                # [g, D]
-
-        v_importance[kvh] = (ctx_sq_sum * o_norm_grp).sum(dim=0)
-
-    if should_log_detail(prompt_idx):
-        log_tensor_stats("v_importance", v_importance, prompt_idx, layer_idx)
-
-    return v_importance.reshape(-1).detach()
-
-def select_by_threshold(importance: torch.Tensor,
-                        active_fraction: float) -> Set[int]:
-    """
-    Given a 1D importance vector [D], select indices whose importance >= epsilon,
-    where epsilon is chosen as the (1 - active_fraction) quantile.
-
-    importance: torch.Tensor, shape [D]
-    active_fraction: e.g., 0.005 (top 0.5%)
-
-    Returns:
-        Set of neuron indices (as integers) above threshold.
-        - Importance는 activation의 절댓값(L1)에 기반
-        - 각 query x마다 상위 active_fraction%의 뉴런을 선택 (Nx)
-    """
-    if importance.numel() == 0:
-        logger.info("select_by_threshold: Empty importance tensor")
+def select_topk_indices(score: Optional[torch.Tensor], top_k: int) -> Set[int]:
+    """Select top-k indices from a 1D score vector."""
+    if score is None:
         return set()
 
-    # If too few neurons, fall back to empty set
-    if importance.numel() < MIN_NEURONS_FOR_QUANTILE:
-        logger.info(f"select_by_threshold: Too few neurons ({importance.numel()} < {MIN_NEURONS_FOR_QUANTILE})")
+    if isinstance(score, torch.Tensor):
+        arr = score.detach().float().view(-1).cpu().numpy()
+    else:
+        arr = np.asarray(score, dtype=np.float32).reshape(-1)
+
+    if arr.size == 0:
         return set()
 
-    # Compute epsilon = quantile(importance, 1 - active_fraction)
-    # Eq. (2): Nx = { N_i^(l) | Imp(N_i^(l)|x) >= epsilon }
-    q = max(0.0, min(1.0, 1.0 - active_fraction))
-    epsilon = torch.quantile(importance, q)
+    k = min(top_k, arr.size)
+    if k <= 0:
+        return set()
 
-    # Select neurons above threshold
-    active_mask = importance >= epsilon
-    indices = torch.nonzero(active_mask, as_tuple=False).view(-1)
-
-    return {idx.item() for idx in indices}
-
-
-def select_global_by_threshold(
-    layer_importance: Dict[int, torch.Tensor],
-    active_fraction: float,
-    module_name: str,
-) -> Dict[int, Set[int]]:
-    """
-    Select active neurons with one global threshold per module by aggregating
-    importance values from all layers.
-
-    layer_importance: layer_idx -> importance tensor [D_layer]
-    active_fraction: global top-k fraction to keep across all layers
-    module_name: only for debug logging
-
-    Returns:
-      layer_idx -> selected neuron index set within that layer
-    """
-    result: Dict[int, Set[int]] = {layer_idx: set() for layer_idx in range(NUM_LAYERS)}
-
-    non_empty = {
-        layer_idx: imp
-        for layer_idx, imp in layer_importance.items()
-        if imp is not None and imp.numel() > 0
-    }
-    if not non_empty:
-        logger.info(f"select_global_by_threshold[{module_name}]: no activations captured")
-        return result
-
-    all_importance = torch.cat([imp.view(-1) for imp in non_empty.values()], dim=0)
-    if all_importance.numel() < MIN_NEURONS_FOR_QUANTILE:
-        logger.info(
-            f"select_global_by_threshold[{module_name}]: too few neurons "
-            f"({all_importance.numel()} < {MIN_NEURONS_FOR_QUANTILE})"
-        )
-        return result
-
-    q = max(0.0, min(1.0, 1.0 - active_fraction))
-    epsilon = torch.quantile(all_importance, q)
-
-    selected_total = 0
-    for layer_idx, imp in non_empty.items():
-        active_mask = imp >= epsilon
-        indices = torch.nonzero(active_mask, as_tuple=False).view(-1)
-        selected = set(indices.tolist())
-        result[layer_idx] = selected
-        selected_total += len(selected)
-
-    logger.debug(
-        f"select_global_by_threshold[{module_name}]: total_neurons={all_importance.numel()}, "
-        f"selected={selected_total}, active_fraction={active_fraction}, epsilon={epsilon.item():.6f}"
-    )
-    return result
+    indices = np.argsort(arr)[-k:][::-1]
+    return {int(idx) for idx in indices.tolist()}
 
 
 def detect_safety_neurons_threshold(
@@ -525,12 +289,7 @@ def detect_safety_neurons_threshold(
         Dict[int, Set[int]],
     ]
 ]:
-    """
-    Accelerated Safety Neuron Detection version.
-
-    Returns:
-      ffn_up_dict, ffn_down_dict, q_dict, k_dict, v_dict
-    """
+    """Original GitHub style detection: use forward-stored scores + per-layer fixed top-k."""
     ffn_up_dict: Dict[int, Set[int]] = {layer_idx: set() for layer_idx in range(NUM_LAYERS)}
     ffn_down_dict: Dict[int, Set[int]] = {layer_idx: set() for layer_idx in range(NUM_LAYERS)}
     q_dict: Dict[int, Set[int]] = {layer_idx: set() for layer_idx in range(NUM_LAYERS)}
@@ -572,342 +331,53 @@ def detect_safety_neurons_threshold(
             f"has_attention_mask={'attention_mask' in inputs}, device={device}"
         )
 
-        # ------------------------------------------------------------
-        # 2) Capture only hidden-state inputs of self_attn / mlp
-        #    (much safer than storing q/k/v/up/gate outputs for all layers)
-        # ------------------------------------------------------------
-        captured_inputs: Dict[str, torch.Tensor] = {}
+        # --------------------------------------------------------
+        # 2) Run real model forward once to populate module-internal scores
+        # --------------------------------------------------------
+        with torch.no_grad():
+            _ = model(
+                input_ids=inputs["input_ids"],
+                attention_mask=inputs.get("attention_mask"),
+                output_hidden_states=False,
+                return_dict=True,
+            )
 
-        def get_attn_pre_hook(name: str):
-            def hook(module, args, kwargs):
-                x = None
-
-                # 1) keyword argument로 들어오는 경우
-                if kwargs is not None and "hidden_states" in kwargs and kwargs["hidden_states"] is not None:
-                    x = kwargs["hidden_states"]
-
-                # 2) 혹시 positional로 들어오는 경우 fallback
-                elif args is not None and len(args) > 0 and args[0] is not None:
-                    x = args[0]
-
-                if x is None:
-                    logger.debug(f"[Prompt {prompt_idx}] attn pre_hook {name}: hidden_states not found")
-                    return
-
-                x = x.detach()
-                if CAPTURE_HIDDEN_TO_CPU:
-                    x = x.to("cpu")
-                    logger.debug(f"[Prompt {prompt_idx}] captured {name} on CPU")
-                else:
-                    logger.debug(f"[Prompt {prompt_idx}] captured {name} on GPU")
-
-                captured_inputs[name] = x
-
-            return hook
-
-
-        def get_mlp_pre_hook(name: str):
-            def hook(module, module_inputs):
-                if not module_inputs:
-                    logger.debug(f"[Prompt {prompt_idx}] mlp pre_hook {name}: empty input tuple")
-                    return
-
-                x = module_inputs[0].detach()
-                if CAPTURE_HIDDEN_TO_CPU:
-                    x = x.to("cpu")
-                    logger.debug(f"[Prompt {prompt_idx}] captured {name} on CPU")
-                else:
-                    logger.debug(f"[Prompt {prompt_idx}] captured {name} on GPU")
-
-                captured_inputs[name] = x
-
-            return hook
-
-        hooks = []
+        # --------------------------------------------------------
+        # 3) Per-layer fixed top-k selection from forward-stored scores
+        # --------------------------------------------------------
         for layer_idx in range(NUM_LAYERS):
             layer = model.model.layers[layer_idx]
 
-            hooks.append(
-                layer.self_attn.register_forward_pre_hook(
-                    get_attn_pre_hook(f"layer_{layer_idx}_attn_in"),
-                    with_kwargs=True,
-                )
-            )
+            ffn_up_score = getattr(layer.mlp, "_last_ffn_up_score", None)
+            ffn_down_score = getattr(layer.mlp, "_last_ffn_down_score", None)
+            q_score = getattr(layer.self_attn, "_last_q_score", None)
+            k_score = getattr(layer.self_attn, "_last_k_score", None)
+            v_score = getattr(layer.self_attn, "_last_v_score", None)
 
-            hooks.append(
-                layer.mlp.register_forward_pre_hook(
-                    get_mlp_pre_hook(f"layer_{layer_idx}_mlp_in")
-                )
-            )
-
-        try:
-            # --------------------------------------------------------
-            # 3) Forward pass once
-            # --------------------------------------------------------
-            with torch.no_grad():
-                _ = model(
-                    input_ids=inputs["input_ids"],
-                    attention_mask=inputs.get("attention_mask"),
-                    output_hidden_states=False,
-                    return_dict=True,
+            if any(score is None for score in [ffn_up_score, ffn_down_score, q_score, k_score, v_score]):
+                raise RuntimeError(
+                    f"Missing forward-captured score tensor(s) at layer {layer_idx}. "
+                    "Ensure patched modeling_llama.py is loaded."
                 )
 
-            expected_keys = []
-            for li in range(NUM_LAYERS):
-                expected_keys.append(f"layer_{li}_attn_in")
-                expected_keys.append(f"layer_{li}_mlp_in")
+            ffn_up_dict[layer_idx] = select_topk_indices(ffn_up_score, TOP_NUMBER_FFN)
+            ffn_down_dict[layer_idx] = select_topk_indices(ffn_down_score, TOP_NUMBER_FFN)
+            q_dict[layer_idx] = select_topk_indices(q_score, TOP_NUMBER_ATTN)
+            k_dict[layer_idx] = select_topk_indices(k_score, TOP_NUMBER_ATTN)
+            v_dict[layer_idx] = select_topk_indices(v_score, TOP_NUMBER_ATTN)
 
-            missing_keys = [k for k in expected_keys if k not in captured_inputs]
+        if should_log_detail(prompt_idx):
+            ffn_up_total = sum(len(v) for v in ffn_up_dict.values())
+            ffn_down_total = sum(len(v) for v in ffn_down_dict.values())
+            q_total = sum(len(v) for v in q_dict.values())
+            k_total = sum(len(v) for v in k_dict.values())
+            v_total = sum(len(v) for v in v_dict.values())
 
             logger.debug(
-                f"[Prompt {prompt_idx}] forward done. captured_keys={len(captured_inputs)} "
-                f"(expected={NUM_LAYERS * 2}), missing_keys_count={len(missing_keys)}"
+                f"[Prompt {prompt_idx}] selected neurons by top-k: "
+                f"ffn_up={ffn_up_total}, ffn_down={ffn_down_total}, "
+                f"q={q_total}, k={k_total}, v={v_total}"
             )
-
-            if should_log_detail(prompt_idx):
-                logger.debug(f"[Prompt {prompt_idx}] missing_keys={missing_keys}")
-
-            # --------------------------------------------------------
-            # 4) Layer-wise accelerated importance computation
-            # --------------------------------------------------------
-            ffn_up_importance: Dict[int, torch.Tensor] = {}
-            ffn_down_importance: Dict[int, torch.Tensor] = {}
-            q_importance: Dict[int, torch.Tensor] = {}
-            k_importance: Dict[int, torch.Tensor] = {}
-            v_importance: Dict[int, torch.Tensor] = {}
-
-            for layer_idx in range(NUM_LAYERS):
-                layer_t0 = time.perf_counter()
-                layer = model.model.layers[layer_idx]
-
-                attn_key = f"layer_{layer_idx}_attn_in"
-                mlp_key = f"layer_{layer_idx}_mlp_in"
-
-                if attn_key not in captured_inputs:
-                    raise RuntimeError(f"Missing captured input: {attn_key}")
-                if mlp_key not in captured_inputs:
-                    raise RuntimeError(f"Missing captured input: {mlp_key}")
-
-                try:
-                    # ------------------------------------------------
-                    # Bring hidden inputs back to module device/dtype
-                    # ------------------------------------------------
-                    attn_in = captured_inputs.pop(attn_key)
-                    mlp_in = captured_inputs.pop(mlp_key)
-
-                    attn_dtype = layer.self_attn.q_proj.weight.dtype
-                    mlp_dtype = layer.mlp.up_proj.weight.dtype
-                    layer_device = layer.self_attn.q_proj.weight.device
-
-                    attn_x = attn_in.to(device=layer_device, dtype=attn_dtype, non_blocking=True)
-                    mlp_x = mlp_in.to(device=layer_device, dtype=mlp_dtype, non_blocking=True)
-
-                    if should_log_detail(prompt_idx):
-                        logger.debug(
-                            f"[Prompt {prompt_idx}][Layer {layer_idx}] "
-                            f"attn_in_shape={tuple(attn_x.shape)}, mlp_in_shape={tuple(mlp_x.shape)}, "
-                            f"attn_dtype={attn_x.dtype}, mlp_dtype={mlp_x.dtype}, device={attn_x.device}"
-                        )
-
-                    # ------------------------------------------------
-                    # FFN accelerated importance
-                    # hffn = SiLU(Wgate(x)) * Wup(x)
-                    # importance via Wdown
-                    # ------------------------------------------------
-                    gate_out = layer.mlp.gate_proj(mlp_x)          # [B, T, I]
-                    up_out = layer.mlp.up_proj(mlp_x)              # [B, T, I]
-                    hffn = F.silu(gate_out.float()) * up_out.float()
-
-                    if should_log_detail(prompt_idx):
-                        log_tensor_stats("gate_out", gate_out, prompt_idx, layer_idx)
-                        log_tensor_stats("up_out", up_out, prompt_idx, layer_idx)
-                        log_tensor_stats("hffn", hffn, prompt_idx, layer_idx)
-
-                    ffn_imp = compute_ffn_importance_from_hffn(
-                        hffn=hffn,
-                        down_proj_weight=layer.mlp.down_proj.weight,
-                    )
-                    ffn_up_importance[layer_idx] = ffn_imp
-                    ffn_down_importance[layer_idx] = ffn_imp  # paper: Wdown importance can be derived the same way
-
-                    # Free FFN temps
-                    del gate_out, up_out, hffn, mlp_x, mlp_in
-
-                    # ------------------------------------------------
-                    # Attention accelerated importance
-                    # ------------------------------------------------
-                    q_proj = layer.self_attn.q_proj(attn_x).float()  # [B, T, Hq*D]
-                    k_proj = layer.self_attn.k_proj(attn_x).float()  # [B, T, Hkv*D]
-                    v_proj = layer.self_attn.v_proj(attn_x).float()  # [B, T, Hkv*D]
-
-                    attn_meta = get_attention_metadata(layer.self_attn)
-
-                    num_heads = attn_meta["num_heads"]
-                    num_kv_heads = attn_meta["num_kv_heads"]
-                    head_dim = attn_meta["head_dim"]
-                    num_kv_groups = attn_meta["num_kv_groups"]
-
-                    if should_log_detail(prompt_idx):
-                        logger.debug(
-                            f"[Prompt {prompt_idx}][Layer {layer_idx}] attn_meta: "
-                            f"num_heads={num_heads}, num_kv_heads={num_kv_heads}, "
-                            f"head_dim={head_dim}, num_kv_groups={num_kv_groups}, "
-                            f"q_proj_weight_shape={tuple(layer.self_attn.q_proj.weight.shape)}, "
-                            f"k_proj_weight_shape={tuple(layer.self_attn.k_proj.weight.shape)}, "
-                            f"v_proj_weight_shape={tuple(layer.self_attn.v_proj.weight.shape)}, "
-                            f"o_proj_weight_shape={tuple(layer.self_attn.o_proj.weight.shape)}"
-                        )
-
-                    bsz, full_seq_len, _ = q_proj.shape
-
-                    q = q_proj.reshape(bsz, full_seq_len, num_heads, head_dim)
-                    k = k_proj.reshape(bsz, full_seq_len, num_kv_heads, head_dim)
-                    v = v_proj.reshape(bsz, full_seq_len, num_kv_heads, head_dim)
-
-                    k_rep = repeat_kv_heads(k, num_kv_groups)  # [B, T, Hq, D]
-
-                    if ATTN_QUERY_WINDOW is None:
-                        query_start = 0
-                    else:
-                        query_start = max(0, full_seq_len - ATTN_QUERY_WINDOW)
-
-                    q_used = q[:, query_start:, :, :]
-                    q_len = q_used.shape[1]
-
-                    if should_log_detail(prompt_idx):
-                        logger.debug(
-                            f"[Prompt {prompt_idx}][Layer {layer_idx}] "
-                            f"full_seq_len={full_seq_len}, query_start={query_start}, q_len_used={q_len}, "
-                            f"num_heads={num_heads}, num_kv_heads={num_kv_heads}, head_dim={head_dim}, "
-                            f"num_kv_groups={num_kv_groups}"
-                        )
-                        log_tensor_stats("q_proj", q_proj, prompt_idx, layer_idx)
-                        log_tensor_stats("k_proj", k_proj, prompt_idx, layer_idx)
-                        log_tensor_stats("v_proj", v_proj, prompt_idx, layer_idx)
-
-                    # Base attention scores using only last q_len query positions
-                    base_scores = torch.einsum("bqhd,bthd->bhqt", q_used, k_rep) / math.sqrt(head_dim)  # [B,Hq,Q,T]
-
-                    causal_mask = build_causal_mask_for_query_subset(
-                        seq_len=full_seq_len,
-                        query_start=query_start,
-                        device=base_scores.device,
-                    )  # [Q, T]
-
-                    base_scores = base_scores.masked_fill(~causal_mask.unsqueeze(0).unsqueeze(0), NEG_INF)
-
-                    if "attention_mask" in inputs and inputs["attention_mask"] is not None:
-                        key_mask = inputs["attention_mask"].to(base_scores.device).bool()  # [B, T]
-                        base_scores = base_scores.masked_fill(~key_mask.unsqueeze(1).unsqueeze(1), NEG_INF)
-
-                    base_probs = torch.softmax(base_scores, dim=-1).float()
-
-                    if should_log_detail(prompt_idx):
-                        log_tensor_stats("base_scores", base_scores, prompt_idx, layer_idx)
-                        log_tensor_stats("base_probs", base_probs, prompt_idx, layer_idx)
-
-                    q_imp = compute_q_importance_parallel(
-                        base_scores=base_scores,
-                        base_probs=base_probs,
-                        q_used=q_used,
-                        k_rep=k_rep,
-                        head_dim=head_dim,
-                        prompt_idx=prompt_idx,
-                        layer_idx=layer_idx,
-                    )
-
-                    k_imp = compute_k_importance_parallel(
-                        base_scores=base_scores,
-                        base_probs=base_probs,
-                        q_used=q_used,
-                        k_orig=k,
-                        num_kv_groups=num_kv_groups,
-                        head_dim=head_dim,
-                        prompt_idx=prompt_idx,
-                        layer_idx=layer_idx,
-                    )
-
-                    v_imp = compute_v_importance_linear(
-                        base_probs=base_probs,
-                        v_orig=v,
-                        o_proj_weight=layer.self_attn.o_proj.weight,
-                        num_kv_groups=num_kv_groups,
-                        prompt_idx=prompt_idx,
-                        layer_idx=layer_idx,
-                    )
-
-                    q_importance[layer_idx] = q_imp
-                    k_importance[layer_idx] = k_imp
-                    v_importance[layer_idx] = v_imp
-
-                    # Free attention temps
-                    del (
-                        attn_x, attn_in,
-                        q_proj, k_proj, v_proj,
-                        q, k, v, k_rep, q_used,
-                        base_scores, base_probs,
-                        q_imp, k_imp, v_imp,
-                    )
-
-                    layer_t1 = time.perf_counter()
-                    logger.debug(
-                        f"[Prompt {prompt_idx}][Layer {layer_idx}] layer importance done in "
-                        f"{layer_t1 - layer_t0:.3f}s"
-                    )
-
-                except Exception as layer_e:
-                    logger.exception(
-                        f"[Prompt {prompt_idx}][Layer {layer_idx}] "
-                        f"layer-wise accelerated importance failed: {layer_e}"
-                    )
-                    raise
-
-            # --------------------------------------------------------
-            # 5) Global threshold per module across all layers
-            # --------------------------------------------------------
-            ffn_up_dict = select_global_by_threshold(
-                ffn_up_importance,
-                FFN_ACTIVE_FRACTION,
-                module_name="ffn_up",
-            )
-            ffn_down_dict = select_global_by_threshold(
-                ffn_down_importance,
-                FFN_ACTIVE_FRACTION,
-                module_name="ffn_down",
-            )
-            q_dict = select_global_by_threshold(
-                q_importance,
-                ATTN_ACTIVE_FRACTION,
-                module_name="q",
-            )
-            k_dict = select_global_by_threshold(
-                k_importance,
-                ATTN_ACTIVE_FRACTION,
-                module_name="k",
-            )
-            v_dict = select_global_by_threshold(
-                v_importance,
-                ATTN_ACTIVE_FRACTION,
-                module_name="v",
-            )
-
-            if should_log_detail(prompt_idx):
-                ffn_up_total = sum(len(v) for v in ffn_up_dict.values())
-                ffn_down_total = sum(len(v) for v in ffn_down_dict.values())
-                q_total = sum(len(v) for v in q_dict.values())
-                k_total = sum(len(v) for v in k_dict.values())
-                v_total = sum(len(v) for v in v_dict.values())
-
-                logger.debug(
-                    f"[Prompt {prompt_idx}] selected neurons after threshold: "
-                    f"ffn_up={ffn_up_total}, ffn_down={ffn_down_total}, "
-                    f"q={q_total}, k={k_total}, v={v_total}"
-                )
-
-        finally:
-            for h in hooks:
-                h.remove()
-            captured_inputs.clear()
 
     except Exception as e:
         logger.exception(f"Error in neuron detection (Prompt {prompt_idx}): {e}")
@@ -1000,12 +470,12 @@ def load_wikipedia_data(num_samples: int = 1000) -> List[str]:
 
 
 def main(argv):
-    global FFN_ACTIVE_FRACTION, ATTN_ACTIVE_FRACTION
+    global TOP_NUMBER_FFN, TOP_NUMBER_ATTN
 
     args = parse_args(argv)
 
-    FFN_ACTIVE_FRACTION = args.ffn_active_fraction
-    ATTN_ACTIVE_FRACTION = args.attn_active_fraction
+    TOP_NUMBER_FFN = args.top_number_ffn
+    TOP_NUMBER_ATTN = args.top_number_attn
 
     initialize_model_and_tokenizer(args.model_name)
 
@@ -1046,7 +516,7 @@ def main(argv):
     logger.info(f"Log directory: {log_dir}")
     logger.info(f"Log file: {log_file}")
     logger.info(f"Using model: {model_name}")
-    logger.info(f"FFN_ACTIVE_FRACTION: {FFN_ACTIVE_FRACTION}, ATTN_ACTIVE_FRACTION: {ATTN_ACTIVE_FRACTION}")
+    logger.info(f"TOP_NUMBER_FFN: {TOP_NUMBER_FFN}, TOP_NUMBER_ATTN: {TOP_NUMBER_ATTN}")
 
     num_samples = args.num_prompts
 
