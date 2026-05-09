@@ -1,0 +1,38 @@
+2026-05-05 23:14:28 - __main__ - INFO - Log directory: /home/yonsei_jong/Safety-Neuron/neuron_detection/logs/neuron_detection
+2026-05-05 23:14:28 - __main__ - INFO - Log file: /home/yonsei_jong/Safety-Neuron/neuron_detection/logs/neuron_detection/safety_neuron_20260505_231428.log
+2026-05-05 23:14:28 - __main__ - INFO - Using model: meta-llama/Llama-2-7b-chat-hf
+2026-05-05 23:14:28 - __main__ - INFO - TOP_NUMBER_FFN: 1200, TOP_NUMBER_ATTN: 200
+2026-05-05 23:14:28 - __main__ - INFO - USE_BASIS_ROTATION_SCORE: True
+2026-05-05 23:14:28 - __main__ - INFO - BASIS_DIR: /home/yonsei_jong/Safety-WaRP-LLM/checkpoints/phase1_20260505_164049/basis
+2026-05-05 23:14:28 - __main__ - INFO - BASIS_LAYER_TYPES: ['attn_k', 'attn_q', 'attn_v', 'ffn_down', 'ffn_up']
+2026-05-05 23:14:56 - __main__ - INFO - ======================================================================
+2026-05-05 23:14:56 - __main__ - INFO - WSR-style basis-rotated scoring hooks registered
+2026-05-05 23:14:56 - __main__ - INFO -   - basis_dir: /home/yonsei_jong/Safety-WaRP-LLM/checkpoints/phase1_20260505_164049/basis
+2026-05-05 23:14:56 - __main__ - INFO -   - layer_types: ['attn_k', 'attn_q', 'attn_v', 'ffn_down', 'ffn_up']
+2026-05-05 23:14:56 - __main__ - INFO -   - hooks loaded: 160
+2026-05-05 23:14:56 - __main__ - INFO -   - skipped: 0
+2026-05-05 23:14:56 - __main__ - INFO -   - mismatched: 0
+2026-05-05 23:14:56 - __main__ - INFO -   - model forward/output is unchanged; only _last_*_score is overwritten
+2026-05-05 23:14:56 - __main__ - INFO -   - [opt] M=U@W.T precomputed; U cached on GPU (no per-prompt transfers)
+2026-05-05 23:14:56 - __main__ - INFO - ======================================================================
+2026-05-05 23:14:56 - __main__ - INFO - [Mode] Safety Neuron Detection
+2026-05-05 23:14:56 - __main__ - INFO - Number of prompts to process: 4994
+2026-05-05 23:14:57 - __main__ - INFO - Processing 4994 prompts from /home/yonsei_jong/Safety-Neuron/neuron_detection/corpus_all/circuit_breakers_train.json
+2026-05-05 23:20:13 - __main__ - INFO - Detection complete: success=4994, failed=0
+2026-05-05 23:20:20 - __main__ - INFO - [compute_intersection][ffn_up] prompts=4994, before(union)=332304, after(intersection)=3361, reduced=328943
+2026-05-05 23:20:27 - __main__ - INFO - [compute_intersection][ffn_down] prompts=4994, before(union)=332304, after(intersection)=3361, reduced=328943
+2026-05-05 23:20:29 - __main__ - INFO - [compute_intersection][q] prompts=4994, before(union)=33517, after(intersection)=3707, reduced=29810
+2026-05-05 23:20:31 - __main__ - INFO - [compute_intersection][k] prompts=4994, before(union)=33517, after(intersection)=3707, reduced=29810
+2026-05-05 23:20:32 - __main__ - INFO - [compute_intersection][v] prompts=4994, before(union)=102139, after(intersection)=521, reduced=101618
+2026-05-05 23:20:32 - __main__ - INFO - 
+======================================================================
+2026-05-05 23:20:32 - __main__ - INFO - Safety Neuron Detection Results
+2026-05-05 23:20:32 - __main__ - INFO - ======================================================================
+2026-05-05 23:20:32 - __main__ - INFO - Model: meta-llama/Llama-2-7b-chat-hf
+2026-05-05 23:20:32 - __main__ - INFO - Total safety neurons: 14,657
+2026-05-05 23:20:32 - __main__ - INFO - Total model neurons (q/k/v/o + gate/up/down): 1,359,872
+2026-05-05 23:20:32 - __main__ - INFO - Detected safety neuron percentage: 1.0778%
+2026-05-05 23:20:32 - __main__ - INFO - Output: /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/safety_neuron_accelerated_20260505_231428.txt
+2026-05-05 23:20:32 - __main__ - INFO - Log: /home/yonsei_jong/Safety-Neuron/neuron_detection/logs/neuron_detection/safety_neuron_20260505_231428.log
+2026-05-05 23:20:32 - __main__ - INFO - ======================================================================
+

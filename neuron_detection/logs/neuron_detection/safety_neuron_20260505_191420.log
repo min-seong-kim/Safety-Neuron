@@ -1,0 +1,25 @@
+2026-05-05 19:14:20 - __main__ - INFO - Log directory: /home/yonsei_jong/Safety-Neuron/neuron_detection/logs/neuron_detection
+2026-05-05 19:14:20 - __main__ - INFO - Log file: /home/yonsei_jong/Safety-Neuron/neuron_detection/logs/neuron_detection/safety_neuron_20260505_191420.log
+2026-05-05 19:14:20 - __main__ - INFO - Using model: kmseong/llama2_7b_chat-safety-rotation
+2026-05-05 19:14:20 - __main__ - INFO - TOP_NUMBER_FFN: 1200, TOP_NUMBER_ATTN: 200
+2026-05-05 19:14:20 - __main__ - INFO - [Mode] Safety Neuron Detection
+2026-05-05 19:14:20 - __main__ - INFO - Number of prompts to process: 4994
+2026-05-05 19:14:20 - __main__ - INFO - Processing 4994 prompts from /home/yonsei_jong/Safety-Neuron/neuron_detection/corpus_all/circuit_breakers_train.json
+2026-05-05 19:18:52 - __main__ - INFO - Detection complete: success=4994, failed=0
+2026-05-05 19:19:01 - __main__ - INFO - [compute_intersection][ffn_up] prompts=4994, before(union)=65214, after(intersection)=20414, reduced=44800
+2026-05-05 19:19:12 - __main__ - INFO - [compute_intersection][ffn_down] prompts=4994, before(union)=65214, after(intersection)=20414, reduced=44800
+2026-05-05 19:19:14 - __main__ - INFO - [compute_intersection][q] prompts=4994, before(union)=12708, after(intersection)=2847, reduced=9861
+2026-05-05 19:19:16 - __main__ - INFO - [compute_intersection][k] prompts=4994, before(union)=12708, after(intersection)=2847, reduced=9861
+2026-05-05 19:19:18 - __main__ - INFO - [compute_intersection][v] prompts=4994, before(union)=10391, after(intersection)=3616, reduced=6775
+2026-05-05 19:19:18 - __main__ - INFO - 
+======================================================================
+2026-05-05 19:19:18 - __main__ - INFO - Safety Neuron Detection Results
+2026-05-05 19:19:18 - __main__ - INFO - ======================================================================
+2026-05-05 19:19:18 - __main__ - INFO - Model: kmseong/llama2_7b_chat-safety-rotation
+2026-05-05 19:19:18 - __main__ - INFO - Total safety neurons: 50,138
+2026-05-05 19:19:18 - __main__ - INFO - Total model neurons (q/k/v/o + gate/up/down): 1,359,872
+2026-05-05 19:19:18 - __main__ - INFO - Detected safety neuron percentage: 3.6870%
+2026-05-05 19:19:18 - __main__ - INFO - Output: /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/safety_neuron_accelerated_20260505_191420.txt
+2026-05-05 19:19:18 - __main__ - INFO - Log: /home/yonsei_jong/Safety-Neuron/neuron_detection/logs/neuron_detection/safety_neuron_20260505_191420.log
+2026-05-05 19:19:18 - __main__ - INFO - ======================================================================
+

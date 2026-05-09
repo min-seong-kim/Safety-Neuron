@@ -1,0 +1,49 @@
+2026-05-05 18:54:54 - __main__ - INFO - Log directory: /home/yonsei_jong/Safety-Neuron/neuron_detection/logs/neuron_detection
+2026-05-05 18:54:54 - __main__ - INFO - Log file: /home/yonsei_jong/Safety-Neuron/neuron_detection/logs/neuron_detection/safety_neuron_20260505_185454.log
+2026-05-05 18:54:54 - __main__ - INFO - Using model: meta-llama/Llama-2-7b-chat-hf
+2026-05-05 18:54:54 - __main__ - INFO - TOP_NUMBER_FFN: 1200, TOP_NUMBER_ATTN: 200
+2026-05-05 18:54:54 - __main__ - INFO - [Mode] Safety Neuron Detection
+2026-05-05 18:54:54 - __main__ - INFO - Number of prompts to process: 4994
+2026-05-05 18:54:54 - __main__ - INFO - Processing 4994 prompts from /home/yonsei_jong/Safety-Neuron/neuron_detection/corpus_all/circuit_breakers_train.json
+2026-05-05 18:54:54 - __main__ - ERROR - Error in neuron detection (Prompt 0): cuDNN Frontend error: [cudnn_frontend] Error: No valid execution plans built.
+Traceback (most recent call last):
+  File "/home/yonsei_jong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2.py", line 338, in detect_safety_neurons_threshold
+    _ = model(
+  File "/home/yonsei_jong/miniconda3/envs/hb_sntune/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/yonsei_jong/miniconda3/envs/hb_sntune/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/yonsei_jong/miniconda3/envs/hb_sntune/lib/python3.10/site-packages/transformers/utils/generic.py", line 918, in wrapper
+    output = func(self, *args, **kwargs)
+  File "/home/yonsei_jong/miniconda3/envs/hb_sntune/lib/python3.10/site-packages/transformers/models/llama/modeling_llama.py", line 538, in forward
+    outputs: BaseModelOutputWithPast = self.model(
+  File "/home/yonsei_jong/miniconda3/envs/hb_sntune/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/yonsei_jong/miniconda3/envs/hb_sntune/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/yonsei_jong/miniconda3/envs/hb_sntune/lib/python3.10/site-packages/transformers/utils/generic.py", line 1072, in wrapper
+    outputs = func(self, *args, **kwargs)
+  File "/home/yonsei_jong/miniconda3/envs/hb_sntune/lib/python3.10/site-packages/transformers/models/llama/modeling_llama.py", line 474, in forward
+    hidden_states = decoder_layer(
+  File "/home/yonsei_jong/miniconda3/envs/hb_sntune/lib/python3.10/site-packages/transformers/modeling_layers.py", line 94, in __call__
+    return super().__call__(*args, **kwargs)
+  File "/home/yonsei_jong/miniconda3/envs/hb_sntune/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/yonsei_jong/miniconda3/envs/hb_sntune/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/yonsei_jong/miniconda3/envs/hb_sntune/lib/python3.10/site-packages/transformers/utils/deprecation.py", line 172, in wrapped_func
+    return func(*args, **kwargs)
+  File "/home/yonsei_jong/miniconda3/envs/hb_sntune/lib/python3.10/site-packages/transformers/models/llama/modeling_llama.py", line 373, in forward
+    hidden_states, _ = self.self_attn(
+  File "/home/yonsei_jong/miniconda3/envs/hb_sntune/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/yonsei_jong/miniconda3/envs/hb_sntune/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/yonsei_jong/miniconda3/envs/hb_sntune/lib/python3.10/site-packages/transformers/utils/deprecation.py", line 172, in wrapped_func
+    return func(*args, **kwargs)
+  File "/home/yonsei_jong/miniconda3/envs/hb_sntune/lib/python3.10/site-packages/transformers/models/llama/modeling_llama.py", line 326, in forward
+    attn_output, attn_weights = attention_interface(
+  File "/home/yonsei_jong/miniconda3/envs/hb_sntune/lib/python3.10/site-packages/transformers/integrations/sdpa_attention.py", line 96, in sdpa_attention_forward
+    attn_output = torch.nn.functional.scaled_dot_product_attention(
+RuntimeError: cuDNN Frontend error: [cudnn_frontend] Error: No valid execution plans built.
+2026-05-05 18:54:54 - __main__ - WARNING - Failed prompt idx=0

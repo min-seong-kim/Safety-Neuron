@@ -1,0 +1,16 @@
+2026-05-05 20:14:53 - __main__ - INFO - 
+======================================================================
+2026-05-05 20:14:53 - __main__ - INFO - Safety Neuron Tuning (SN-Tune)
+2026-05-05 20:14:53 - __main__ - INFO - ======================================================================
+2026-05-05 20:14:53 - __main__ - INFO - Safety neurons file: ./output_neurons/safety_neuron_accelerated_20260505_193126_original_space.txt
+2026-05-05 20:14:53 - __main__ - INFO - Safety dataset file: ./corpus_all/circuit_breakers_train.json
+2026-05-05 20:14:53 - __main__ - INFO - Output directory: ./only_sn_tuned_model_llama2_7b_lr5e-5
+
+2026-05-05 20:14:53 - __main__ - INFO - Upload target: kmseong/Llama-2-7b-chat-hf_only_sn_tuned_lr5e-5_rotation_space
+2026-05-05 20:14:53 - __main__ - INFO - Log file: ./logs/sn_tuning/sn_tune_20260505_201453.log
+
+2026-05-05 20:14:53 - __main__ - INFO - Model: meta-llama/Llama-2-7b-chat-hf
+2026-05-05 20:14:53 - __main__ - INFO - Instruct model detected: True → using chat template format
+
+2026-05-05 20:14:55 - __main__ - INFO - ✓ wandb run initialized: only_sn_tuned_model_llama2_7b_lr5e-5
+2026-05-05 20:14:55 - __main__ - INFO - Loading model and tokenizer...

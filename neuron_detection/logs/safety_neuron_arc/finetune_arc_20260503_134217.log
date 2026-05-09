@@ -1,0 +1,78 @@
+2026-05-03 13:42:17 - __main__ - INFO - 
+======================================================================
+2026-05-03 13:42:17 - __main__ - INFO -   🚀 Full Parameter ARC-Challenge Fine-tuning (SN-Tuned Model)
+2026-05-03 13:42:17 - __main__ - INFO - ======================================================================
+
+2026-05-03 13:42:17 - __main__ - INFO - Log file: ./logs/safety_neuron_arc/finetune_arc_20260503_134217.log
+2026-05-03 13:42:17 - __main__ - INFO - ⚙️  Configuration:
+2026-05-03 13:42:17 - __main__ - INFO -    ├─ SN-Tuned model: kmseong/llama2_7b-chat-Safety-FT-lr5e-5
+2026-05-03 13:42:17 - __main__ - INFO -    ├─ Dataset: allenai/ai2_arc (ARC-Challenge)
+2026-05-03 13:42:17 - __main__ - INFO -    ├─ Input formatting: chat template
+2026-05-03 13:42:17 - __main__ - INFO -    ├─ Training samples: 1119
+2026-05-03 13:42:17 - __main__ - INFO -    ├─ Batch size: 4
+2026-05-03 13:42:17 - __main__ - INFO -    ├─ Gradient accumulation: 4
+2026-05-03 13:42:17 - __main__ - INFO -    ├─ Epochs: 3
+2026-05-03 13:42:17 - __main__ - INFO -    ├─ Learning rate: 5e-05
+2026-05-03 13:42:17 - __main__ - INFO -    ├─ Weight decay: 0.01
+2026-05-03 13:42:17 - __main__ - INFO -    ├─ Optimizer: AdamW (torch)
+2026-05-03 13:42:17 - __main__ - INFO -    ├─ Warmup ratio: 0.1
+2026-05-03 13:42:17 - __main__ - INFO -    ├─ Max length: 1024
+2026-05-03 13:42:17 - __main__ - INFO -    ├─ Dtype: bf16
+2026-05-03 13:42:17 - __main__ - INFO -    └─ Output dir: ./full_finetune_llama2_7b_chat_arc_lr5e-5
+
+2026-05-03 13:42:17 - __main__ - INFO - 
+======================================================================
+2026-05-03 13:42:17 - __main__ - INFO -   [1/4] Loading Tokenizer
+2026-05-03 13:42:17 - __main__ - INFO - ======================================================================
+
+2026-05-03 13:42:17 - __main__ - INFO - Attempting to load tokenizer (local files only)...
+2026-05-03 13:42:17 - __main__ - INFO - ✓ Tokenizer loaded from local files
+2026-05-03 13:42:17 - __main__ - INFO - ✅ Tokenizer loaded successfully
+2026-05-03 13:42:17 - __main__ - INFO -    ├─ Tokenizer type: LlamaTokenizerFast
+2026-05-03 13:42:17 - __main__ - INFO -    ├─ Vocab size: 32000
+2026-05-03 13:42:17 - __main__ - INFO -    └─ Pad token: </s>
+2026-05-03 13:42:17 - __main__ - INFO - 
+======================================================================
+2026-05-03 13:42:17 - __main__ - INFO -   [2/4] Loading Model (bf16)
+2026-05-03 13:42:17 - __main__ - INFO - ======================================================================
+
+2026-05-03 13:42:17 - __main__ - INFO - Attempting to load model (local files only)...
+2026-05-03 13:42:18 - __main__ - INFO - ✓ Model loaded from local files
+2026-05-03 13:42:18 - __main__ - INFO - ✅ Model loaded successfully
+2026-05-03 13:42:18 - __main__ - INFO -    ├─ Model size: 6.74B parameters
+2026-05-03 13:42:18 - __main__ - INFO -    ├─ Trainable: 6.74B (100.00%)
+2026-05-03 13:42:18 - __main__ - INFO -    ├─ Dtype: torch.bfloat16
+2026-05-03 13:42:18 - __main__ - INFO -    └─ Gradient checkpointing: Disabled
+2026-05-03 13:42:18 - __main__ - INFO - 
+======================================================================
+2026-05-03 13:42:18 - __main__ - INFO -   [3/4] Loading ARC-Challenge Dataset
+2026-05-03 13:42:18 - __main__ - INFO - ======================================================================
+
+2026-05-03 13:42:21 - __main__ - INFO - ✅ Datasets loaded
+2026-05-03 13:42:21 - __main__ - INFO -    ├─ Train: 1119 samples
+2026-05-03 13:42:21 - __main__ - INFO - 
+======================================================================
+2026-05-03 13:42:21 - __main__ - INFO -   [3.5/4] Preprocessing Data
+2026-05-03 13:42:21 - __main__ - INFO - ======================================================================
+
+2026-05-03 13:42:21 - __main__ - INFO - 
+======================================================================
+2026-05-03 13:42:21 - __main__ - INFO -   [4/4] Training with Trainer + AdamW
+2026-05-03 13:42:21 - __main__ - INFO - ======================================================================
+
+2026-05-03 13:42:23 - __main__ - INFO - Starting training...
+2026-05-03 13:43:27 - __main__ - INFO - 
+======================================================================
+2026-05-03 13:43:27 - __main__ - INFO -   Saving Fine-tuned Model
+2026-05-03 13:43:27 - __main__ - INFO - ======================================================================
+
+2026-05-03 13:43:36 - __main__ - INFO - ✅ Fine-tuned model saved successfully to ./full_finetune_llama2_7b_chat_arc_lr5e-5
+2026-05-03 13:43:36 - __main__ - INFO - ✅ Config saved to: ./full_finetune_llama2_7b_chat_arc_lr5e-5/finetune_config.json
+2026-05-03 13:43:36 - __main__ - INFO - 
+Starting upload to Hugging Face: kmseong/llama2_7b-chat-arc_ssft_lr5e-5
+2026-05-03 13:47:19 - __main__ - INFO - ✅ Upload completed: https://huggingface.co/kmseong/llama2_7b-chat-arc_ssft_lr5e-5
+2026-05-03 13:47:19 - __main__ - INFO - 
+======================================================================
+2026-05-03 13:47:19 - __main__ - INFO -   ✅ Fine-tuning Complete!
+2026-05-03 13:47:19 - __main__ - INFO - ======================================================================
+

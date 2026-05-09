@@ -10,11 +10,11 @@ Safety Neuron Tuning (SN-Tune)
 
 # SN-Tune with custom model
 python sn_tune.py \
-    --neuron_file ./output_neurons/safety_neuron_accelerated_20260502_013602.txt \
+    --neuron_file ./output_neurons/critical_safety_neuron_20260506_003132.txt \
     --dataset_file ./corpus_all/circuit_breakers_train.json \
     --local_model_name ./only_sn_tuned_model_llama2_7b_lr5e-5 \
     --model_name meta-llama/Llama-2-7b-chat-hf \
-    --upload_name kmseong/llama2_7b_chat_only_sn_tuned_lr5e-5_revised
+    --upload_name kmseong/Llama-2-7b-chat-hf_only_rsn_tuned_lr5e-5_basis_rotation
 
 
 # RSN-Tune
@@ -45,7 +45,7 @@ from contextlib import nullcontext
 import wandb
 
 logger = logging.getLogger(__name__)
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 # =====================================================================
 # Configuration
@@ -751,8 +751,9 @@ def main(argv):
     
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        device_map="auto",
+        device_map={"": 0},
         torch_dtype=torch.bfloat16,
+        attn_implementation="eager",
     )
     model.eval()
     logger.info("✓ Model and tokenizer loaded (bfloat16)")

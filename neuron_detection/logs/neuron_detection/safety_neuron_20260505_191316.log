@@ -1,0 +1,7 @@
+2026-05-05 19:13:16 - __main__ - INFO - Log directory: /home/yonsei_jong/Safety-Neuron/neuron_detection/logs/neuron_detection
+2026-05-05 19:13:16 - __main__ - INFO - Log file: /home/yonsei_jong/Safety-Neuron/neuron_detection/logs/neuron_detection/safety_neuron_20260505_191316.log
+2026-05-05 19:13:16 - __main__ - INFO - Using model: meta-llama/Llama-2-7b-chat-hf
+2026-05-05 19:13:16 - __main__ - INFO - TOP_NUMBER_FFN: 1200, TOP_NUMBER_ATTN: 200
+2026-05-05 19:13:16 - __main__ - INFO - [Mode] Safety Neuron Detection
+2026-05-05 19:13:16 - __main__ - INFO - Number of prompts to process: 4994
+2026-05-05 19:13:16 - __main__ - INFO - Processing 4994 prompts from /home/yonsei_jong/Safety-Neuron/neuron_detection/corpus_all/circuit_breakers_train.json

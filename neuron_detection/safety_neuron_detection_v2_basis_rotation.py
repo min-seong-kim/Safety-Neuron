@@ -9,19 +9,13 @@ This script follows the original GitHub detection style:
     - FFN top-k: 1200
 - take intersection across prompts to get final neurons
 
-1) Safety neuron detection (from corpus_all/circuit_breakers_train.json)
-python safety_neuron_detection_v2.py 4994 \
-    --model_name kmseong/llama2_7b_chat-safety-rotation \
-    --top_number_ffn 400 \
-    --top_number_attn 80 \
-    --safety_neuron
-
-2) Utility neuron detection (from Wikipedia)
-python safety_neuron_detection_v2.py 1000 \
-    --model_name kmseong/llama2_7b_chat-safety-rotation \
-    --top_number_ffn 300 \
-    --top_number_attn 50 \
-    --utility_neuron
+python safety_neuron_detection_v2_basis_rotation.py 4994 \
+    --model_name meta-llama/Llama-2-13b-chat-hf \
+    --top_number_ffn 1200 \
+    --top_number_attn 200 \
+    --safety_neuron \
+    --use_basis_rotation_score \
+    --basis_dir /home/yonsei_jong/Safety-WaRP-LLM/checkpoints/phase1_20260505_164049/basis
 
 Notes
 -----
@@ -80,6 +74,26 @@ DETAIL_LOG_PROMPT_LIMIT = 3
 TOP_NUMBER_ATTN = 2000
 TOP_NUMBER_FFN = 12000
 
+# ------------------------------------------------------------------
+# WSR-style basis-rotated scoring options
+# ------------------------------------------------------------------
+# The real model forward is NOT changed.  These hooks only replace the
+# per-module score tensors used by the SN-Tune top-k/intersection detector.
+DEFAULT_BASIS_DIR = "/home/yonsei_jong/Safety-WaRP-LLM/checkpoints/phase1_20260505_164049/basis"
+USE_BASIS_ROTATION_SCORE = False
+BASIS_DIR = DEFAULT_BASIS_DIR
+BASIS_LAYER_TYPES = {"ffn_up", "ffn_down", "attn_q", "attn_k", "attn_v"}
+BASIS_HOOKS = []
+BASIS_SCORE_MODULES = {}
+
+LAYER_TYPE_TO_MODULE = {
+    "ffn_up": ("mlp", "up_proj", "_last_ffn_up_score"),
+    "ffn_down": ("mlp", "down_proj", "_last_ffn_down_score"),
+    "attn_q": ("self_attn", "q_proj", "_last_q_score"),
+    "attn_k": ("self_attn", "k_proj", "_last_k_score"),
+    "attn_v": ("self_attn", "v_proj", "_last_v_score"),
+}
+
 
 def initialize_model_and_tokenizer(selected_model_name: str):
     """Initialize global model/tokenizer after CLI args are parsed."""
@@ -129,6 +143,26 @@ def parse_args(argv):
         default=TOP_NUMBER_ATTN,
         help="Per-layer top-k for attention neuron selection",
     )
+    parser.add_argument(
+        "--use_basis_rotation_score",
+        action="store_true",
+        help=(
+            "Use WSR-style safety-basis-rotated inputs only for neuron scoring. "
+            "The model forward/output is not modified."
+        ),
+    )
+    parser.add_argument(
+        "--basis_dir",
+        type=str,
+        default=DEFAULT_BASIS_DIR,
+        help="Phase 1 safety basis directory containing ffn_up/, attn_q/, ... subfolders.",
+    )
+    parser.add_argument(
+        "--basis_layer_types",
+        type=str,
+        default="ffn_up,ffn_down,attn_q,attn_k,attn_v",
+        help="Comma-separated layer types where basis-rotated scoring is applied.",
+    )
 
     mode_group = parser.add_mutually_exclusive_group(required=True)
     mode_group.add_argument(
@@ -150,6 +184,133 @@ def parse_args(argv):
         parser.error("--top_number_attn must be a positive integer.")
 
     return args
+
+
+
+def _basis_file_candidates(basis_dir: str, layer_type: str, layer_idx: int) -> List[str]:
+    """Return likely Phase-1 basis file paths for both 0- and 1-indexed naming."""
+    return [
+        os.path.join(basis_dir, layer_type, f"layer_{layer_idx:02d}_svd.pt"),
+        os.path.join(basis_dir, layer_type, f"layer_{layer_idx + 1:02d}_svd.pt"),
+    ]
+
+
+def _load_safety_basis(basis_dir: str, layer_type: str, layer_idx: int) -> Optional[torch.Tensor]:
+    """Load Phase-1 safety basis U for one layer/module.
+
+    The saved file is expected to contain data['U'] with shape [in_dim, in_dim].
+    This function keeps U on CPU in float32; the hook moves it to the module device.
+    """
+    for path in _basis_file_candidates(basis_dir, layer_type, layer_idx):
+        if os.path.exists(path):
+            data = torch.load(path, map_location="cpu", weights_only=True)
+            U = data.get("U")
+            if U is None:
+                raise ValueError(f"Missing key 'U' in basis file: {path}")
+            return U.float().contiguous()
+    return None
+
+
+def _score_from_rotated_input_precomputed(x: torch.Tensor, M: torch.Tensor) -> torch.Tensor:
+    """Compute SN-style activation score using precomputed M = U @ W.T.
+
+    score[i] = sum_{b,t} |( x @ M )_{b,t,i}|
+    where M = U @ W.T  [in_features, out_features] is precomputed once.
+
+    Reduces 2 matmuls (x@U, then @W.T) to 1 matmul (x @ M).
+    x 는 모델의 bfloat16 그대로 사용 — float32 형변환 없음.
+    """
+    # x: [B, T, in_features], M: [in_features, out_features] (same device, bfloat16)
+    out_rot = x.detach() @ M          # [B, T, out_features]
+    return out_rot.abs().sum(dim=(0, 1)).float().cpu()  # [out_features]
+
+
+def _register_basis_rotation_score_hooks() -> None:
+    """Register forward hooks that overwrite patched modeling_llama score tensors.
+
+    The hooks do not alter module outputs.  They only replace _last_*_score
+    after each projection module has run, allowing the rest of the SN-Tune
+    detector, including per-prompt top-k and exact intersection, to remain
+    unchanged.
+
+    속도 최적화:
+    1. U 를 hook 등록 시 GPU 로 미리 이동 (매 호출마다 host→device 전송 제거)
+    2. M = U @ W.T 를 사전 계산 (hook 당 matmul 2개 → 1개)
+    3. bfloat16 그대로 사용 (float32 형변환 제거)
+    """
+    global BASIS_HOOKS, BASIS_SCORE_MODULES
+
+    # Remove stale hooks if this function is called more than once.
+    for h in BASIS_HOOKS:
+        try:
+            h.remove()
+        except Exception:
+            pass
+    BASIS_HOOKS = []
+    BASIS_SCORE_MODULES = {}
+
+    loaded = 0
+    skipped = 0
+    mismatched = 0
+
+    device = next(model.parameters()).device
+
+    for layer_idx in range(NUM_LAYERS):
+        layer = model.model.layers[layer_idx]
+        for layer_type in sorted(BASIS_LAYER_TYPES):
+            if layer_type not in LAYER_TYPE_TO_MODULE:
+                continue
+
+            sub_name, proj_name, score_attr = LAYER_TYPE_TO_MODULE[layer_type]
+            sub = getattr(layer, sub_name, None)
+            proj = getattr(sub, proj_name, None) if sub is not None else None
+            if proj is None or not hasattr(proj, "weight"):
+                skipped += 1
+                continue
+
+            U_cpu = _load_safety_basis(BASIS_DIR, layer_type, layer_idx)
+            if U_cpu is None:
+                skipped += 1
+                continue
+            if proj.weight.shape[1] != U_cpu.shape[0]:
+                logger.warning(
+                    f"[BasisScore] Skip L{layer_idx} {layer_type}: "
+                    f"weight={tuple(proj.weight.shape)}, U={tuple(U_cpu.shape)}"
+                )
+                mismatched += 1
+                continue
+
+            # ── 최적화 1: GPU 로 미리 이동 + bfloat16 으로 변환 ──────────
+            # ── 최적화 2: M = U @ W.T 사전 계산 (hook 당 matmul 1회로 감소) ─
+            with torch.no_grad():
+                U_gpu  = U_cpu.to(device=device, dtype=proj.weight.dtype)    # [in, in]
+                W      = proj.weight.detach()                                 # [out, in]
+                M      = U_gpu @ W.T                                          # [in, out]
+
+            def _make_hook(parent_module, attr_name, M_saved, lidx, ltype):
+                def hook(linear_module, inputs, output):
+                    try:
+                        score = _score_from_rotated_input_precomputed(inputs[0], M_saved)
+                        setattr(parent_module, attr_name, score)
+                    except Exception as e:
+                        logger.error(f"[BasisScore] Failed at layer={lidx}, type={ltype}: {e}")
+                        setattr(parent_module, attr_name, None)
+                return hook
+
+            BASIS_HOOKS.append(proj.register_forward_hook(_make_hook(sub, score_attr, M, layer_idx, layer_type)))
+            BASIS_SCORE_MODULES[(layer_idx, layer_type)] = True
+            loaded += 1
+
+    logger.info("=" * 70)
+    logger.info("WSR-style basis-rotated scoring hooks registered")
+    logger.info(f"  - basis_dir: {BASIS_DIR}")
+    logger.info(f"  - layer_types: {sorted(BASIS_LAYER_TYPES)}")
+    logger.info(f"  - hooks loaded: {loaded}")
+    logger.info(f"  - skipped: {skipped}")
+    logger.info(f"  - mismatched: {mismatched}")
+    logger.info("  - model forward/output is unchanged; only _last_*_score is overwritten")
+    logger.info("  - [opt] M=U@W.T precomputed; U cached on GPU (no per-prompt transfers)")
+    logger.info("=" * 70)
 
 
 def calculate_model_total_neurons() -> int:
@@ -472,11 +633,15 @@ def load_wikipedia_data(num_samples: int = 1000) -> List[str]:
 
 def main(argv):
     global TOP_NUMBER_FFN, TOP_NUMBER_ATTN
+    global USE_BASIS_ROTATION_SCORE, BASIS_DIR, BASIS_LAYER_TYPES
 
     args = parse_args(argv)
 
     TOP_NUMBER_FFN = args.top_number_ffn
     TOP_NUMBER_ATTN = args.top_number_attn
+    USE_BASIS_ROTATION_SCORE = args.use_basis_rotation_score
+    BASIS_DIR = args.basis_dir
+    BASIS_LAYER_TYPES = {x.strip() for x in args.basis_layer_types.split(",") if x.strip()}
 
     initialize_model_and_tokenizer(args.model_name)
 
@@ -518,6 +683,11 @@ def main(argv):
     logger.info(f"Log file: {log_file}")
     logger.info(f"Using model: {model_name}")
     logger.info(f"TOP_NUMBER_FFN: {TOP_NUMBER_FFN}, TOP_NUMBER_ATTN: {TOP_NUMBER_ATTN}")
+    logger.info(f"USE_BASIS_ROTATION_SCORE: {USE_BASIS_ROTATION_SCORE}")
+    if USE_BASIS_ROTATION_SCORE:
+        logger.info(f"BASIS_DIR: {BASIS_DIR}")
+        logger.info(f"BASIS_LAYER_TYPES: {sorted(BASIS_LAYER_TYPES)}")
+        _register_basis_rotation_score_hooks()
 
     num_samples = args.num_prompts
 

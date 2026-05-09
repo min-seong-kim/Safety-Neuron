@@ -7,11 +7,11 @@ Trainer + AdamW 8-bit optimizer (bitsandbytes) 사용으로 메모리 효율성 
 
 Example Usage:
 python finetune_gsm8k_freeze_sn.py \
-    --model_path kmseong/llama2_7b_chat_only_sn_tuned_lr5e-5_revised \
-    --safety_neurons_file /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/safety_neuron_accelerated_20260502_013602.txt \
-    --output_dir ./llama2_7b_base_gsm8k_ft_freeze_sn_lr5e-5 \
+    --model_path kmseong/Llama-2-7b-chat-hf_only_rsn_tuned_lr5e-5_basis_rotation \
+    --safety_neurons_file /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/critical_safety_neuron_20260506_003132.txt \
+    --output_dir ./llama2_7b_base_gsm8k_rft_freeze_rsn_lr5e-5 \
     --learning_rate 5e-5 --epochs 3 \
-    --upload_name kmseong/llama2_7b_base_gsm8k_ft_freeze_sn_lr5e-5_revised
+    --upload_name kmseong/Llama-2-7b-chat-hf_gsm8k_ft_freeze_basis_rotation_rsn_lr5e-5
 
 
 python finetune_gsm8k_freeze_sn.py \
@@ -49,7 +49,7 @@ from transformers import (
     set_seed,
 )
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 
 def parse_args():
@@ -642,6 +642,7 @@ def main():
             device_map="auto",
             local_files_only=True,
             trust_remote_code=False,
+            attn_implementation="eager",
         )
         logger.info("✓ Model loaded from local files")
     except Exception as e:
@@ -652,6 +653,7 @@ def main():
             torch_dtype=dtype,
             device_map="auto",
             trust_remote_code=False,
+            attn_implementation="eager",
         )
         logger.info("✓ Model loaded from HuggingFace Hub")
 
@@ -869,6 +871,7 @@ def main():
                 torch_dtype=torch.bfloat16,
                 device_map="auto",
                 local_files_only=True,
+                attn_implementation="eager",
             )
             del test_tokenizer
             del test_model

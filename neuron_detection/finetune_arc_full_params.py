@@ -1,37 +1,34 @@
 """
 Example Usage:
-python finetune_gsm8k_full_params.py \
+python finetune_arc_full_params.py \
     --model_path kmseong/llama2_7b-chat-Safety-FT-lr5e-5 \
-    --output_dir ./full_finetune_llama2_7b_chat_gsm8k_full_finetune_lr3e-5
+    --output_dir ./full_finetune_llama2_7b_chat_arc_lr3e-5
 
-python finetune_gsm8k_full_params.py \
+python finetune_arc_full_params.py \
     --model_path kmseong/llama3.1_8b_instruct-Safety-FT-lr3e-5 \
-    --output_dir ./full_finetune_llama3.1_8b_instruct_gsm8k_ssft3e-5_lr1e-5
+    --output_dir ./full_finetune_llama3.1_8b_instruct_arc_ssft3e-5_lr1e-5
 
-python finetune_gsm8k_full_params.py \
+python finetune_arc_full_params.py \
     --model_path kmseong/llama2_7b-chat-Safety-FT-lr5e-5 \
-    --output_dir ./full_finetune_llama2_7b_chat_gsm8k_lr5e-5 \
+    --output_dir ./full_finetune_llama2_7b_chat_arc_lr5e-5 \
     --learning_rate 5e-5 --epochs 3 \
-    --upload_name kmseong/llama2_7b-chat-gsm8k_ssft_lr5e-5_final_experiment
+    --upload_name kmseong/llama2_7b-chat-arc_ssft_lr5e-5_template
 
 LoRA:
-python finetune_gsm8k_full_params.py \
+python finetune_arc_full_params.py \
     --model_path kmseong/llama2_7b-Safety-FT-lr3e-5 \
-    --output_dir ./lora_gsm8k_llama2_7b \
+    --output_dir ./lora_arc_llama2_7b \
     --learning_rate 5e-5 --epochs 3 \
     --lora --lora_r 16 --lora_alpha 32 --lora_dropout 0.05 \
-    --upload_name kmseong/llama2_7b_base-gsm8k_lora_ft_lr5e-5
+    --upload_name kmseong/llama2_7b_base-arc_lora_ft_lr5e-5
 
-    
 Safety 10% mixing + full parameter:
-python finetune_gsm8k_full_params.py \
+python finetune_arc_full_params.py \
     --model_path kmseong/llama2_7b-chat-Safety-FT-lr5e-5 \
-    --output_dir ./full_gsm8k_llama2_7b_safetymix \
+    --output_dir ./full_arc_llama2_7b_safetymix \
     --learning_rate 5e-5 --epochs 3 \
     --safety_mix_ratio 0.1 \
-    --upload_name kmseong/llama2_7b-chat-gsm8k_safelnstr_10p_lr5e-5
-
-
+    --upload_name kmseong/llama2_7b-chat-arc_safelnstr_10p_lr5e-5
 """
 
 import argparse
@@ -59,26 +56,27 @@ try:
 except ImportError:
     _peft_available = False
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
 
 def parse_args():
-    p = argparse.ArgumentParser(description='Full Parameter Finetune SN-Tuned Model on GSM8K')
-    
+    p = argparse.ArgumentParser(description='Full Parameter Finetune SN-Tuned Model on ARC-Challenge')
+
     # model
-    p.add_argument('--model_path', type=str, 
-                    default=None,
-                    required=True,
-                    help='HuggingFace model ID or local path (SN-Tuned model)')
-    
+    p.add_argument('--model_path', type=str,
+                   default=None,
+                   required=True,
+                   help='HuggingFace model ID or local path (SN-Tuned model)')
+
     # data
-    p.add_argument("--dataset_name", type=str, default="openai/gsm8k")
-    p.add_argument("--dataset_subset", type=str, default="main")
+    p.add_argument("--dataset_name", type=str, default="allenai/ai2_arc")
+    p.add_argument("--dataset_subset", type=str, default="ARC-Challenge")
     p.add_argument("--train_split", type=str, default="train")
     p.add_argument("--eval_split", type=str, default="test")
-    p.add_argument("--num_train_samples", type=int, default=7473)
+    p.add_argument("--num_train_samples", type=int, default=1119)
     p.add_argument("--num_eval_samples", type=int, default=0)
     p.add_argument("--seed", type=int, default=42)
-    
+
     # training
     p.add_argument("--batch_size", type=int, default=4)
     p.add_argument("--eval_batch_size", type=int, default=4)
@@ -89,46 +87,47 @@ def parse_args():
     p.add_argument("--warmup_ratio", type=float, default=0.1)
     p.add_argument("--lr_scheduler_type", type=str, default="cosine")
     p.add_argument("--max_grad_norm", type=float, default=1.0)
-    
+
     # seq
     p.add_argument("--max_length", type=int, default=1024)
-    
+
     # memory/speed knobs
     p.add_argument("--bf16", action="store_true", default=True)
     p.add_argument("--fp16", action="store_true", default=False)
     p.add_argument("--gradient_checkpointing", action="store_true", default=False)
-    
+
     # logging/saving
-    p.add_argument("--output_dir", type=str, default='./gsm8k_sn_tune_full_finetune')
+    p.add_argument("--output_dir", type=str, default='./arc_sn_tune_full_finetune')
     p.add_argument("--logging_steps", type=int, default=10)
     p.add_argument("--eval_steps", type=int, default=500)
     p.add_argument("--report_to", type=str, default="none")
     p.add_argument("--num_workers", type=int, default=4)
     p.add_argument("--cache_dir", type=str, default='./cache')
     p.add_argument("--upload_name", type=str, default=None,
-                    help="Optional Hugging Face repo id (e.g., username/model-name). If set, upload after training")
+                   help="Optional Hugging Face repo id (e.g., username/model-name). If set, upload after training")
     p.add_argument("--hf_token", type=str, default=None,
-                    help="Optional Hugging Face token for upload")
+                   help="Optional Hugging Face token for upload")
 
     # Safety data mixing
     p.add_argument("--safety_data_path", type=str,
-                    default="/home/yonsei_jong/Safety-Neuron/neuron_detection/corpus_all/circuit_breakers_train.json",
-                    help="Safety dataset JSON 경로 (circuit_breakers_train.json 형식)")
+                   default="/home/yonsei_jong/Safety-Neuron/neuron_detection/corpus_all/circuit_breakers_train.json",
+                   help="Safety dataset JSON 경로 (circuit_breakers_train.json 형식)")
     p.add_argument("--safety_mix_ratio", type=float, default=0.0,
-                    help="GSM8K 데이터 수 대비 safety 데이터 비율 (e.g. 0.1 = 10%%, 0=비활성화)")
+                   help="ARC 데이터 수 대비 safety 데이터 비율 (e.g. 0.1 = 10%%, 0=비활성화)")
     p.add_argument("--lora", action="store_true",
-                    help="LoRA를 사용하여 학습 (peft 필요)")
+                   help="LoRA를 사용하여 학습 (peft 필요)")
     p.add_argument("--lora_r", type=int, default=16,
-                    help="LoRA rank (default: 16)")
+                   help="LoRA rank (default: 16)")
     p.add_argument("--lora_alpha", type=int, default=32,
-                    help="LoRA alpha (default: 32)")
+                   help="LoRA alpha (default: 32)")
     p.add_argument("--lora_dropout", type=float, default=0.05,
-                    help="LoRA dropout (default: 0.05)")
+                   help="LoRA dropout (default: 0.05)")
     p.add_argument("--lora_target_modules", type=str, nargs='+',
-                    default=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
-                    help="LoRA를 적용할 모듈 이름 목록")
+                   default=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+                   help="LoRA를 적용할 모듈 이름 목록")
 
     return p.parse_args()
+
 
 def _select_first_n(ds, n: int):
     if n is None or n <= 0:
@@ -141,26 +140,68 @@ def is_instruct_model(model_ref: str) -> bool:
     return "instruct" in str(model_ref).lower() or "chat" in str(model_ref).lower()
 
 
-def build_chat_prompt(question: str, tokenizer) -> str:
-    """베이스 모델용 프롬프트 빌딩"""
-    return f"Question: {question.strip()}\nAnswer:"
+# arc_challenge_chat.yaml 의 doc_to_text와 동일한 포맷
+ARC_CHAT_PROMPT_TEMPLATE = (
+    'Given the following question and four candidate answers (A, B, C and D), '
+    'choose the best answer.\n'
+    'Question: {question}\n'
+    '{choices}\n'
+    'Your response should end with "The best answer is [the_answer_letter]" '
+    'where the [the_answer_letter] is one of A, B, C or D.'
+)
+
+# arc_challenge_chat.yaml 의 gen_prefix
+ARC_GEN_PREFIX = "The best answer is"
 
 
-def tokenize_sft_example(question: str, answer_text: str, tokenizer, max_length: int, model_ref: str) -> Dict[str, List[int]]:
-    """SFT 형식으로 토큰화: base는 plain prompt, instruct는 chat template 사용"""
-    question = str(question).strip()
+def format_arc_question(question: str, choices: dict) -> str:
+    """arc_challenge_chat.yaml 의 doc_to_text 포맷으로 문제 생성."""
+    labels = choices["label"]
+    texts  = choices["text"]
+    letter_map = {"1": "A", "2": "B", "3": "C", "4": "D"}
+    choice_lines = []
+    for i, (lbl, txt) in enumerate(zip(labels, texts)):
+        # 레이블이 숫자(1-4)인 경우 A-D로 변환
+        letter = letter_map.get(str(lbl), str(lbl))
+        choice_lines.append(f"{letter}. {txt}")
+    choices_str = "\n".join(choice_lines)
+    return ARC_CHAT_PROMPT_TEMPLATE.format(
+        question=question.strip(),
+        choices=choices_str,
+    )
+
+
+def get_arc_answer_letter(choices: dict, answer_key: str) -> str:
+    """answerKey를 A/B/C/D 레터로 반환 (arc_challenge_chat.yaml doc_to_target 동일)."""
+    letter_map = {"1": "A", "2": "B", "3": "C", "4": "D"}
+    # answerKey가 숫자(1-4)인 경우
+    if str(answer_key) in letter_map:
+        return letter_map[str(answer_key)]
+    # answerKey가 이미 A-D인 경우
+    return str(answer_key)
+
+
+def build_arc_plain_prompt(question_with_choices: str) -> str:
+    """베이스 모델용 plain prompt (gen_prefix 포함)."""
+    return f"{question_with_choices}\n{ARC_GEN_PREFIX} "
+
+
+def tokenize_sft_example(question_with_choices: str, answer_text: str,
+                          tokenizer, max_length: int, model_ref: str) -> Dict[str, List[int]]:
+    """SFT 형식으로 토큰화: instruct는 chat template, base는 plain prompt."""
+    question_with_choices = str(question_with_choices).strip()
     answer_text = str(answer_text).strip()
 
     if is_instruct_model(model_ref):
         try:
             prompt_text = tokenizer.apply_chat_template(
-                [{"role": "user", "content": question}],
+                [{"role": "user", "content": question_with_choices}],
                 tokenize=False,
                 add_generation_prompt=True,
             )
             full_text = tokenizer.apply_chat_template(
                 [
-                    {"role": "user", "content": question},
+                    {"role": "user", "content": question_with_choices},
                     {"role": "assistant", "content": answer_text},
                 ],
                 tokenize=False,
@@ -193,7 +234,7 @@ def tokenize_sft_example(question: str, answer_text: str, tokenizer, max_length:
         except Exception:
             pass
 
-    prompt_text = build_chat_prompt(question, tokenizer)
+    prompt_text = build_arc_plain_prompt(question_with_choices)
     prompt_ids = tokenizer(
         prompt_text,
         add_special_tokens=False,
@@ -201,7 +242,6 @@ def tokenize_sft_example(question: str, answer_text: str, tokenizer, max_length:
         max_length=max_length,
     )["input_ids"]
 
-    # Ensure room for answer
     remain = max(1, max_length - len(prompt_ids))
     answer_ids = tokenizer(
         answer_text,
@@ -210,15 +250,12 @@ def tokenize_sft_example(question: str, answer_text: str, tokenizer, max_length:
         max_length=remain,
     )["input_ids"]
 
-    # Add EOS if possible and fits
     if tokenizer.eos_token_id is not None and (len(answer_ids) == 0 or answer_ids[-1] != tokenizer.eos_token_id):
         if len(prompt_ids) + len(answer_ids) < max_length:
             answer_ids = answer_ids + [tokenizer.eos_token_id]
 
     input_ids = (prompt_ids + answer_ids)[:max_length]
     attention_mask = [1] * len(input_ids)
-
-    # Loss only on answer tokens (프롬프트는 -100으로 마스킹)
     labels = ([-100] * len(prompt_ids) + answer_ids)[:max_length]
 
     return {"input_ids": input_ids, "attention_mask": attention_mask, "labels": labels}
@@ -226,7 +263,7 @@ def tokenize_sft_example(question: str, answer_text: str, tokenizer, max_length:
 
 @dataclass
 class DataCollatorForCausalLMWithPadding:
-    """패딩된 배치 생성"""
+    """패딩된 배치 생성."""
     tokenizer: AutoTokenizer
 
     def __call__(self, features: List[Dict[str, List[int]]]) -> Dict[str, torch.Tensor]:
@@ -249,39 +286,34 @@ class DataCollatorForCausalLMWithPadding:
             "labels": torch.tensor(labels, dtype=torch.long),
         }
 
+
 def setup_logging(output_dir):
-    """로깅 설정: 파일과 콘솔 모두에 출력"""
-    log_dir = "./logs/safety_neuron_gsm8k"
+    """로깅 설정: 파일과 콘솔 모두에 출력."""
+    log_dir = "./logs/safety_neuron_arc"
     os.makedirs(log_dir, exist_ok=True)
-    
-    # 파일 이름: 현재 날짜 및 시간
+
     log_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_file = os.path.join(log_dir, f"finetune_gsm8k_{log_timestamp}.log")
-    
-    # 로거 설정
+    log_file = os.path.join(log_dir, f"finetune_arc_{log_timestamp}.log")
+
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
-    
-    # 파일 핸들러
+
     file_handler = logging.FileHandler(log_file, encoding='utf-8')
     file_handler.setLevel(logging.DEBUG)
-    
-    # 콘솔 핸들러
+
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
-    
-    # 포맷터
+
     formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
     file_handler.setFormatter(formatter)
     console_handler.setFormatter(formatter)
-    
-    # 핸들러 추가
+
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
-    
+
     return logger, log_file
 
 
@@ -290,27 +322,31 @@ def main():
     args = parse_args()
     os.makedirs(args.output_dir, exist_ok=True)
     set_seed(args.seed)
-    
-    # 로컬 경로(./  또는 /로 시작)만 절대 경로로 변환, HuggingFace Hub ID는 그대로 유지
+
     raw_path = args.model_path
     is_local = raw_path.startswith("./") or raw_path.startswith("/") or raw_path.startswith("../")
     model_path = os.path.abspath(raw_path) if is_local else raw_path
 
-    # 로깅 설정
+    # Auto-detect bf16/fp16 support
+    if args.bf16 and not (torch.cuda.is_available() and torch.cuda.is_bf16_supported()):
+        args.bf16 = False
+        if not args.fp16:
+            args.fp16 = True
+
     logger, log_file = setup_logging(args.output_dir)
-    
+
     logger.info(f"\n{'='*70}")
-    logger.info(f"  🚀 Full Parameter GSM8K Fine-tuning (SN-Tuned Model)")
+    logger.info(f"  🚀 Full Parameter ARC-Challenge Fine-tuning (SN-Tuned Model)")
     logger.info(f"{'='*70}\n")
     logger.info(f"Log file: {log_file}")
-    
-    # 로컬 경로인 경우에만 존재 여부 확인
+
     if is_local and not os.path.exists(model_path):
         logger.error(f"Model path does not exist: {model_path}")
         raise FileNotFoundError(f"Model path not found: {model_path}")
-    
+
     logger.info(f"⚙️  Configuration:")
     logger.info(f"   ├─ SN-Tuned model: {model_path}")
+    logger.info(f"   ├─ Dataset: {args.dataset_name} ({args.dataset_subset})")
     logger.info(f"   ├─ Input formatting: {'chat template' if is_instruct_model(model_path) else 'base plain prompt'}")
     logger.info(f"   ├─ Training samples: {args.num_train_samples}")
     logger.info(f"   ├─ Batch size: {args.batch_size}")
@@ -328,10 +364,9 @@ def main():
     logger.info(f"\n{'='*70}")
     logger.info(f"  [1/4] Loading Tokenizer")
     logger.info(f"{'='*70}\n")
-    
+
     tokenizer = None
-    
-    # 시도 1: local_files_only=True (권장)
+
     try:
         logger.info("Attempting to load tokenizer (local files only)...")
         tokenizer = AutoTokenizer.from_pretrained(
@@ -343,36 +378,33 @@ def main():
     except Exception as e:
         logger.warning(f"Failed to load tokenizer with local_files_only: {e}")
         logger.info("Attempting to load from HuggingFace Hub...")
-        
-        # 시도 2: Hub에서 로드 (fallback)
         try:
             tokenizer = AutoTokenizer.from_pretrained(model_path)
             logger.info("✓ Tokenizer loaded from HuggingFace Hub")
         except Exception as e2:
             logger.error(f"Failed to load tokenizer: {e2}")
             raise RuntimeError(f"Could not load tokenizer from {model_path}") from e2
-    
+
     if tokenizer is None:
         raise RuntimeError(f"Tokenizer loading failed for {model_path}")
-    
+
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token = tokenizer.eos_token
-    
+
     logger.info(f"✅ Tokenizer loaded successfully")
     logger.info(f"   ├─ Tokenizer type: {type(tokenizer).__name__}")
     logger.info(f"   ├─ Vocab size: {len(tokenizer)}")
     logger.info(f"   └─ Pad token: {tokenizer.pad_token}")
 
-    # Load model with bf16
+    # Load model
     logger.info(f"\n{'='*70}")
     logger.info(f"  [2/4] Loading Model (bf16)")
     logger.info(f"{'='*70}\n")
     dtype = torch.bfloat16 if args.bf16 else (torch.float16 if args.fp16 else None)
-    
+
     model = None
     load_error = None
-    
-    # 시도 1: local_files_only=True (권장)
+
     try:
         logger.info("Attempting to load model (local files only)...")
         model = AutoModelForCausalLM.from_pretrained(
@@ -387,8 +419,6 @@ def main():
         load_error = str(e)
         logger.warning(f"Failed to load with local_files_only: {e}")
         logger.info("Attempting to load from HuggingFace Hub...")
-        
-        # 시도 2: Hub에서 로드 (fallback)
         try:
             model = AutoModelForCausalLM.from_pretrained(
                 model_path,
@@ -436,26 +466,26 @@ def main():
 
     # Load dataset
     logger.info(f"\n{'='*70}")
-    logger.info(f"  [3/4] Loading GSM8K Dataset")
+    logger.info(f"  [3/4] Loading ARC-Challenge Dataset")
     logger.info(f"{'='*70}\n")
     train_ds = load_dataset(
-        args.dataset_name, 
-        args.dataset_subset, 
+        args.dataset_name,
+        args.dataset_subset,
         split=args.train_split,
-        cache_dir=args.cache_dir
+        cache_dir=args.cache_dir,
     )
     train_ds = _select_first_n(train_ds, args.num_train_samples)
 
     eval_ds = None
     if args.num_eval_samples and args.num_eval_samples > 0:
         eval_ds = load_dataset(
-            args.dataset_name, 
-            args.dataset_subset, 
+            args.dataset_name,
+            args.dataset_subset,
             split=args.eval_split,
-            cache_dir=args.cache_dir
+            cache_dir=args.cache_dir,
         )
         eval_ds = _select_first_n(eval_ds, args.num_eval_samples)
-    
+
     logger.info(f"✅ Datasets loaded")
     logger.info(f"   ├─ Train: {len(train_ds)} samples")
     if eval_ds is not None:
@@ -465,11 +495,15 @@ def main():
     logger.info(f"\n{'='*70}")
     logger.info(f"  [3.5/4] Preprocessing Data")
     logger.info(f"{'='*70}\n")
-    
+
     def preprocess(ex):
-        question = ex["question"]
-        answer = ex["answer"]
-        return tokenize_sft_example(question, answer, tokenizer, args.max_length, model_path)
+        question_with_choices = format_arc_question(ex["question"], ex["choices"])
+        # 평가(arc_challenge_chat)와 동일: "The best answer is X" 형식
+        answer_letter = get_arc_answer_letter(ex["choices"], ex["answerKey"])
+        answer_text = f"{ARC_GEN_PREFIX} {answer_letter}"
+        return tokenize_sft_example(
+            question_with_choices, answer_text, tokenizer, args.max_length, model_path
+        )
 
     train_tok = train_ds.map(
         preprocess,
@@ -515,15 +549,15 @@ def main():
 
         train_tok = concatenate_datasets([train_tok, safety_tok]).shuffle(seed=args.seed)
         logger.info(f"✅ Safety data mixed: {len(safety_tok)} samples (ratio={args.safety_mix_ratio})")
-        logger.info(f"   Total training samples: {len(train_tok)} (GSM8K {len(train_ds)} + Safety {len(safety_tok)})")
+        logger.info(f"   Total training samples: {len(train_tok)} (ARC {len(train_ds)} + Safety {len(safety_tok)})")
 
     # Training
     logger.info(f"\n{'='*70}")
     logger.info(f"  [4/4] Training with Trainer + AdamW")
     logger.info(f"{'='*70}\n")
-    
+
     data_collator = DataCollatorForCausalLMWithPadding(tokenizer)
-    
+
     do_eval = eval_tok is not None
     training_args = TrainingArguments(
         output_dir=args.output_dir,
@@ -544,7 +578,6 @@ def main():
         fp16=args.fp16,
         report_to="wandb",
         remove_unused_columns=False,
-        # 핵심: Adam optimizer (메모리 효율적)
         optim="adamw_torch",
         dataloader_pin_memory=False,
         seed=args.seed,
@@ -553,10 +586,11 @@ def main():
     run_name = os.path.basename(os.path.normpath(args.output_dir))
     wandb.init(
         entity="gokms0509-yonsei-university",
-        project="GSM8K Full Finetuning",
+        project="ARC-Challenge Full Finetuning",
         name=run_name,
         config={
             "model_path": model_path,
+            "dataset": "allenai/ai2_arc (ARC-Challenge)",
             "learning_rate": args.learning_rate,
             "num_epochs": args.epochs,
             "batch_size": args.batch_size,
@@ -566,7 +600,6 @@ def main():
             "weight_decay": args.weight_decay,
             "warmup_ratio": args.warmup_ratio,
             "lr_scheduler": args.lr_scheduler_type,
-            "dataset": "gsm8k",
             "is_instruct": is_instruct_model(model_path),
             "lora": args.lora,
             "lora_r": args.lora_r if args.lora else None,
@@ -588,7 +621,7 @@ def main():
 
     logger.info("Starting training...")
     trainer.train()
-    
+
     # Save model
     logger.info(f"\n{'='*70}")
     logger.info(f"  Saving Fine-tuned Model")
@@ -601,14 +634,15 @@ def main():
     else:
         trainer.save_model(args.output_dir)
     tokenizer.save_pretrained(args.output_dir)
-    
+
     logger.info(f"✅ Fine-tuned model saved successfully to {args.output_dir}")
 
     # Save training config
     config = {
         'base_model': model_path,
         'fine_tuning_type': 'LoRA Fine-tuning' if args.lora else 'Full Parameter Fine-tuning',
-        'dataset': 'GSM8K',
+        'dataset': 'allenai/ai2_arc',
+        'dataset_subset': 'ARC-Challenge',
         'num_train_samples': args.num_train_samples,
         'batch_size': args.batch_size,
         'grad_accum': args.grad_accum,
@@ -626,11 +660,11 @@ def main():
         'safety_mix_ratio': args.safety_mix_ratio,
         'safety_data_path': args.safety_data_path if args.safety_mix_ratio > 0 else None,
     }
-    
+
     config_path = os.path.join(args.output_dir, 'finetune_config.json')
     with open(config_path, 'w') as f:
         json.dump(config, f, indent=2)
-    
+
     logger.info(f"✅ Config saved to: {config_path}")
 
     if args.upload_name:
@@ -643,11 +677,12 @@ def main():
         except Exception as e:
             logger.error(f"Upload failed: {e}")
             logger.error("Model was saved locally; you can upload manually with upload_sn_tuned_model.py")
-    
+
     logger.info(f"\n{'='*70}")
     logger.info(f"  ✅ Fine-tuning Complete!")
     logger.info(f"{'='*70}\n")
     wandb.finish()
+
 
 if __name__ == '__main__':
     main()
