@@ -6,7 +6,14 @@ python calculate_safety_neuron_percentage.py \
   --neuron_file ./output_neurons/safety_neuron_accelerated_20260502_013602.txt \
   --model_name meta-llama/Llama-2-7b-chat-hf
 
+python calculate_safety_neuron_percentage.py \
+  --neuron_file ./output_neurons/safety_neuron_accelerated_20260505_193126.txt \
+  --model_name meta-llama/Llama-2-7b-chat-hf
   
+python calculate_safety_neuron_percentage.py \
+  --neuron_file ./output_neurons/safety_neuron_accelerated_20260505_193126_original_space.txt \
+  --model_name meta-llama/Llama-2-7b-chat-hf
+
 """
 
 import argparse

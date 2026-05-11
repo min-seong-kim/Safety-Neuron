@@ -1,0 +1,907 @@
+2026-05-06 00:32:34 - __main__ - INFO - 
+======================================================================
+2026-05-06 00:32:34 - __main__ - INFO - Safety Neuron Tuning (SN-Tune)
+2026-05-06 00:32:34 - __main__ - INFO - ======================================================================
+2026-05-06 00:32:34 - __main__ - INFO - Safety neurons file: ./output_neurons/critical_safety_neuron_20260506_003132.txt
+2026-05-06 00:32:34 - __main__ - INFO - Safety dataset file: ./corpus_all/circuit_breakers_train.json
+2026-05-06 00:32:34 - __main__ - INFO - Output directory: ./only_sn_tuned_model_llama2_7b_lr5e-5
+
+2026-05-06 00:32:34 - __main__ - INFO - Upload target: kmseong/Llama-2-7b-chat-hf_only_rsn_tuned_lr5e-5_basis_rotation
+2026-05-06 00:32:34 - __main__ - INFO - Log file: ./logs/sn_tuning/sn_tune_20260506_003234.log
+
+2026-05-06 00:32:34 - __main__ - INFO - Model: meta-llama/Llama-2-7b-chat-hf
+2026-05-06 00:32:34 - __main__ - INFO - Instruct model detected: True → using chat template format
+
+2026-05-06 00:32:36 - __main__ - INFO - ✓ wandb run initialized: only_sn_tuned_model_llama2_7b_lr5e-5
+2026-05-06 00:32:36 - __main__ - INFO - Loading model and tokenizer...
+2026-05-06 00:32:39 - __main__ - INFO - ✓ Model and tokenizer loaded (bfloat16)
+2026-05-06 00:32:39 - __main__ - INFO - ✓ Model loaded on device: cuda:0
+2026-05-06 00:32:39 - __main__ - INFO - 
+Loading safety neurons...
+2026-05-06 00:32:39 - __main__ - INFO - Loaded safety neurons from ./output_neurons/critical_safety_neuron_20260506_003132.txt
+2026-05-06 00:32:39 - __main__ - INFO - 
+======================================================================
+2026-05-06 00:32:39 - __main__ - INFO - Safety Neurons Loaded - Detailed Breakdown
+2026-05-06 00:32:39 - __main__ - INFO - ======================================================================
+2026-05-06 00:32:39 - __main__ - INFO -   ffn_up       : 2716 neurons
+2026-05-06 00:32:39 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-06 00:32:39 - __main__ - INFO -   ffn_down     : 2716 neurons
+2026-05-06 00:32:39 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-06 00:32:39 - __main__ - INFO -   q            : 3576 neurons
+2026-05-06 00:32:39 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-06 00:32:39 - __main__ - INFO -   k            : 3576 neurons
+2026-05-06 00:32:39 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-06 00:32:39 - __main__ - INFO -   v            :  406 neurons
+2026-05-06 00:32:39 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-06 00:32:39 - __main__ - INFO - 
+Total safety neurons: 12990
+2026-05-06 00:32:39 - __main__ - INFO - ======================================================================
+
+2026-05-06 00:32:39 - __main__ - INFO - 
+Setting up gradient masking for safety neurons...
+2026-05-06 00:32:39 - __main__ - INFO - 
+======================================================================
+2026-05-06 00:32:39 - __main__ - INFO - Gradient Masking Setup Summary
+2026-05-06 00:32:39 - __main__ - INFO - ======================================================================
+2026-05-06 00:32:39 - __main__ - INFO - Total parameters: 6,738,415,616
+2026-05-06 00:32:39 - __main__ - INFO - Trainable neuron parameters (effective): 53,207,040
+2026-05-06 00:32:39 - __main__ - INFO - Frozen parameters: 6,685,208,576
+2026-05-06 00:32:39 - __main__ - INFO - Trainable ratio: 0.7896%
+2026-05-06 00:32:39 - __main__ - INFO - Gradient masking hooks registered: 160
+2026-05-06 00:32:39 - __main__ - INFO - 
+Layers with gradient masking:
+2026-05-06 00:32:39 - __main__ - INFO -   ffn_up       : 32 layers
+2026-05-06 00:32:39 - __main__ - INFO -   ffn_down     : 32 layers
+2026-05-06 00:32:39 - __main__ - INFO -   q            : 32 layers
+2026-05-06 00:32:39 - __main__ - INFO -   k            : 32 layers
+2026-05-06 00:32:39 - __main__ - INFO -   v            : 32 layers
+2026-05-06 00:32:39 - __main__ - INFO - ======================================================================
+
+2026-05-06 00:32:39 - __main__ - INFO - 
+Loading safety dataset...
+2026-05-06 00:32:39 - __main__ - INFO - Loaded 4994 samples from ./corpus_all/circuit_breakers_train.json
+2026-05-06 00:32:39 - __main__ - INFO -   Format: chat template (instruct)
+2026-05-06 00:32:39 - __main__ - INFO - ✓ DataLoader created: 1249 batches
+2026-05-06 00:32:39 - __main__ - INFO -   Total samples: 4994
+2026-05-06 00:32:39 - __main__ - INFO -   Batch size: 4
+2026-05-06 00:32:39 - __main__ - INFO -   Number of batches: 1249
+2026-05-06 00:32:39 - __main__ - INFO -   Max sequence length: 1024
+2026-05-06 00:32:39 - __main__ - INFO - 
+Starting SN-Tune training...
+2026-05-06 00:32:39 - __main__ - INFO - Starting SN-Tune training...
+2026-05-06 00:32:39 - __main__ - INFO -   Learning rate: 5e-05
+2026-05-06 00:32:39 - __main__ - INFO -   Epochs: 3
+2026-05-06 00:32:39 - __main__ - INFO -   Batch size: 4
+2026-05-06 00:32:39 - __main__ - INFO -   Grad accum steps: 4
+2026-05-06 00:32:39 - __main__ - INFO -   Effective batch size: 16
+2026-05-06 00:32:39 - __main__ - INFO -   Num batches: 1249
+2026-05-06 00:32:39 - __main__ - INFO -   Total optimization steps: 939
+2026-05-06 00:32:39 - __main__ - INFO -   Warmup steps: 93
+2026-05-06 00:32:39 - __main__ - INFO - 
+Epoch 1/3
+2026-05-06 00:32:39 - __main__ - INFO - 
+[Dataset Sample #first] (instruct / chat template)
+2026-05-06 00:32:39 - __main__ - INFO -   Keys: dict_keys(['category', 'prompt', 'output', 'llama3_output'])
+2026-05-06 00:32:39 - __main__ - INFO -   Prompt (first 100): How can I say something rude about someone's intelligence?...
+2026-05-06 00:32:39 - __main__ - INFO -   Response (first 100): I can't help you come up with something rude to say about someone's intelligence. Can I help you wit...
+2026-05-06 00:32:39 - __main__ - INFO -   prompt_length (tokens): 21
+2026-05-06 00:32:39 - __main__ - INFO -   full_ids length: 51
+2026-05-06 00:32:39 - __main__ - INFO -   Learned tokens (30): I can't help you come up with something rude to say about someone's intelligence. Can I help you with something else? </s>...
+2026-05-06 00:32:39 - __main__ - INFO -   Masked (prompt) tokens: <s> [INST] How can I say something rude about someone's intelligence? [/INST]...
+2026-05-06 00:32:39 - __main__ - INFO - 
+[First Batch Info]
+2026-05-06 00:32:39 - __main__ - INFO -   Batch size: 4
+2026-05-06 00:32:39 - __main__ - INFO -   Sequence length: 1024
+2026-05-06 00:32:39 - __main__ - INFO -   Device: cuda:0
+2026-05-06 00:32:39 - __main__ - INFO -   Valid labels (response-only): 147/4096
+2026-05-06 00:32:40 - __main__ - INFO - 
+[Gradient Check - Batch 0]
+2026-05-06 00:32:40 - __main__ - INFO -   Parameters with non-zero gradients: 160
+2026-05-06 00:32:40 - __main__ - INFO -   Parameters with zero gradients: 0
+2026-05-06 00:32:40 - __main__ - INFO -   Max gradient magnitude: 0.232422
+2026-05-06 00:32:40 - __main__ - INFO -   Batch 1: loss = 1.9805
+2026-05-06 00:32:41 - __main__ - INFO -   Batch 5: loss = 2.0154
+2026-05-06 00:32:42 - __main__ - INFO -   Batch 10: loss = 2.5491
+2026-05-06 00:32:44 - __main__ - INFO -   Batch 15: loss = 2.4464
+2026-05-06 00:32:45 - __main__ - INFO -   Batch 20: loss = 1.6111
+2026-05-06 00:32:47 - __main__ - INFO -   Batch 25: loss = 1.6537
+2026-05-06 00:32:48 - __main__ - INFO -   Batch 30: loss = 1.9782
+2026-05-06 00:32:50 - __main__ - INFO -   Batch 35: loss = 2.4779
+2026-05-06 00:32:51 - __main__ - INFO -   Batch 40: loss = 1.7995
+2026-05-06 00:32:53 - __main__ - INFO -   Batch 45: loss = 1.6976
+2026-05-06 00:32:54 - __main__ - INFO -   Batch 50: loss = 0.9803
+2026-05-06 00:32:56 - __main__ - INFO -   Batch 55: loss = 2.0713
+2026-05-06 00:32:57 - __main__ - INFO -   Batch 60: loss = 1.2145
+2026-05-06 00:32:59 - __main__ - INFO -   Batch 65: loss = 2.2644
+2026-05-06 00:33:00 - __main__ - INFO -   Batch 70: loss = 1.1736
+2026-05-06 00:33:02 - __main__ - INFO -   Batch 75: loss = 2.0762
+2026-05-06 00:33:03 - __main__ - INFO -   Batch 80: loss = 1.5810
+2026-05-06 00:33:05 - __main__ - INFO -   Batch 85: loss = 1.8972
+2026-05-06 00:33:06 - __main__ - INFO -   Batch 90: loss = 0.8131
+2026-05-06 00:33:08 - __main__ - INFO -   Batch 95: loss = 2.3448
+2026-05-06 00:33:09 - __main__ - INFO -   Batch 100: loss = 1.8652
+2026-05-06 00:33:11 - __main__ - INFO -   Batch 105: loss = 0.9389
+2026-05-06 00:33:12 - __main__ - INFO -   Batch 110: loss = 1.3435
+2026-05-06 00:33:14 - __main__ - INFO -   Batch 115: loss = 1.4284
+2026-05-06 00:33:15 - __main__ - INFO -   Batch 120: loss = 1.1199
+2026-05-06 00:33:17 - __main__ - INFO -   Batch 125: loss = 1.5611
+2026-05-06 00:33:18 - __main__ - INFO -   Batch 130: loss = 1.4512
+2026-05-06 00:33:20 - __main__ - INFO -   Batch 135: loss = 1.3046
+2026-05-06 00:33:21 - __main__ - INFO -   Batch 140: loss = 0.9841
+2026-05-06 00:33:23 - __main__ - INFO -   Batch 145: loss = 0.9524
+2026-05-06 00:33:24 - __main__ - INFO -   Batch 150: loss = 1.1099
+2026-05-06 00:33:26 - __main__ - INFO -   Batch 155: loss = 0.9308
+2026-05-06 00:33:27 - __main__ - INFO -   Batch 160: loss = 0.9815
+2026-05-06 00:33:29 - __main__ - INFO -   Batch 165: loss = 0.7243
+2026-05-06 00:33:30 - __main__ - INFO -   Batch 170: loss = 0.9740
+2026-05-06 00:33:32 - __main__ - INFO -   Batch 175: loss = 0.7148
+2026-05-06 00:33:33 - __main__ - INFO -   Batch 180: loss = 0.7694
+2026-05-06 00:33:35 - __main__ - INFO -   Batch 185: loss = 0.7862
+2026-05-06 00:33:36 - __main__ - INFO -   Batch 190: loss = 0.5816
+2026-05-06 00:33:38 - __main__ - INFO -   Batch 195: loss = 0.8727
+2026-05-06 00:33:39 - __main__ - INFO -   Batch 200: loss = 0.5894
+2026-05-06 00:33:41 - __main__ - INFO -   Batch 205: loss = 0.6915
+2026-05-06 00:33:42 - __main__ - INFO -   Batch 210: loss = 0.4761
+2026-05-06 00:33:44 - __main__ - INFO -   Batch 215: loss = 0.6122
+2026-05-06 00:33:45 - __main__ - INFO -   Batch 220: loss = 0.4750
+2026-05-06 00:33:47 - __main__ - INFO -   Batch 225: loss = 0.4193
+2026-05-06 00:33:48 - __main__ - INFO -   Batch 230: loss = 0.8928
+2026-05-06 00:33:50 - __main__ - INFO -   Batch 235: loss = 0.5206
+2026-05-06 00:33:51 - __main__ - INFO -   Batch 240: loss = 0.5495
+2026-05-06 00:33:53 - __main__ - INFO -   Batch 245: loss = 0.9060
+2026-05-06 00:33:54 - __main__ - INFO -   Batch 250: loss = 0.6134
+2026-05-06 00:33:56 - __main__ - INFO -   Batch 255: loss = 0.7048
+2026-05-06 00:33:57 - __main__ - INFO -   Batch 260: loss = 0.4403
+2026-05-06 00:33:59 - __main__ - INFO -   Batch 265: loss = 0.3411
+2026-05-06 00:34:00 - __main__ - INFO -   Batch 270: loss = 0.4643
+2026-05-06 00:34:02 - __main__ - INFO -   Batch 275: loss = 0.3755
+2026-05-06 00:34:03 - __main__ - INFO -   Batch 280: loss = 0.5869
+2026-05-06 00:34:05 - __main__ - INFO -   Batch 285: loss = 0.3090
+2026-05-06 00:34:06 - __main__ - INFO -   Batch 290: loss = 0.3176
+2026-05-06 00:34:08 - __main__ - INFO -   Batch 295: loss = 0.3080
+2026-05-06 00:34:09 - __main__ - INFO -   Batch 300: loss = 0.3702
+2026-05-06 00:34:11 - __main__ - INFO -   Batch 305: loss = 0.3946
+2026-05-06 00:34:12 - __main__ - INFO -   Batch 310: loss = 0.7914
+2026-05-06 00:34:14 - __main__ - INFO -   Batch 315: loss = 0.3682
+2026-05-06 00:34:15 - __main__ - INFO -   Batch 320: loss = 0.1794
+2026-05-06 00:34:17 - __main__ - INFO -   Batch 325: loss = 0.1682
+2026-05-06 00:34:18 - __main__ - INFO -   Batch 330: loss = 0.3081
+2026-05-06 00:34:20 - __main__ - INFO -   Batch 335: loss = 0.6700
+2026-05-06 00:34:21 - __main__ - INFO -   Batch 340: loss = 0.3330
+2026-05-06 00:34:23 - __main__ - INFO -   Batch 345: loss = 0.5313
+2026-05-06 00:34:24 - __main__ - INFO -   Batch 350: loss = 0.4220
+2026-05-06 00:34:25 - __main__ - INFO -   Batch 355: loss = 0.1605
+2026-05-06 00:34:27 - __main__ - INFO -   Batch 360: loss = 0.2342
+2026-05-06 00:34:29 - __main__ - INFO -   Batch 365: loss = 0.2153
+2026-05-06 00:34:30 - __main__ - INFO -   Batch 370: loss = 0.2224
+2026-05-06 00:34:31 - __main__ - INFO -   Batch 375: loss = 0.1812
+2026-05-06 00:34:33 - __main__ - INFO -   Batch 380: loss = 0.4362
+2026-05-06 00:34:34 - __main__ - INFO -   Batch 385: loss = 0.4024
+2026-05-06 00:34:36 - __main__ - INFO -   Batch 390: loss = 0.2502
+2026-05-06 00:34:37 - __main__ - INFO -   Batch 395: loss = 0.8008
+2026-05-06 00:34:39 - __main__ - INFO -   Batch 400: loss = 0.4622
+2026-05-06 00:34:40 - __main__ - INFO -   Batch 405: loss = 0.2742
+2026-05-06 00:34:42 - __main__ - INFO -   Batch 410: loss = 0.3896
+2026-05-06 00:34:43 - __main__ - INFO -   Batch 415: loss = 0.3013
+2026-05-06 00:34:45 - __main__ - INFO -   Batch 420: loss = 0.2659
+2026-05-06 00:34:46 - __main__ - INFO -   Batch 425: loss = 0.5975
+2026-05-06 00:34:48 - __main__ - INFO -   Batch 430: loss = 0.7271
+2026-05-06 00:34:49 - __main__ - INFO -   Batch 435: loss = 0.6797
+2026-05-06 00:34:51 - __main__ - INFO -   Batch 440: loss = 0.5425
+2026-05-06 00:34:52 - __main__ - INFO -   Batch 445: loss = 0.3369
+2026-05-06 00:34:54 - __main__ - INFO -   Batch 450: loss = 0.2532
+2026-05-06 00:34:55 - __main__ - INFO -   Batch 455: loss = 0.7728
+2026-05-06 00:34:57 - __main__ - INFO -   Batch 460: loss = 0.7514
+2026-05-06 00:34:58 - __main__ - INFO -   Batch 465: loss = 0.3530
+2026-05-06 00:35:00 - __main__ - INFO -   Batch 470: loss = 0.5229
+2026-05-06 00:35:01 - __main__ - INFO -   Batch 475: loss = 0.1225
+2026-05-06 00:35:03 - __main__ - INFO -   Batch 480: loss = 0.2244
+2026-05-06 00:35:04 - __main__ - INFO -   Batch 485: loss = 0.5151
+2026-05-06 00:35:06 - __main__ - INFO -   Batch 490: loss = 0.3072
+2026-05-06 00:35:07 - __main__ - INFO -   Batch 495: loss = 0.6627
+2026-05-06 00:35:09 - __main__ - INFO -   Batch 500: loss = 0.3206
+2026-05-06 00:35:10 - __main__ - INFO -   Batch 505: loss = 0.3739
+2026-05-06 00:35:12 - __main__ - INFO -   Batch 510: loss = 0.5349
+2026-05-06 00:35:13 - __main__ - INFO -   Batch 515: loss = 0.2850
+2026-05-06 00:35:15 - __main__ - INFO -   Batch 520: loss = 0.5347
+2026-05-06 00:35:16 - __main__ - INFO -   Batch 525: loss = 0.3418
+2026-05-06 00:35:18 - __main__ - INFO -   Batch 530: loss = 0.9889
+2026-05-06 00:35:19 - __main__ - INFO -   Batch 535: loss = 0.1308
+2026-05-06 00:35:21 - __main__ - INFO -   Batch 540: loss = 0.5526
+2026-05-06 00:35:22 - __main__ - INFO -   Batch 545: loss = 0.1791
+2026-05-06 00:35:24 - __main__ - INFO -   Batch 550: loss = 0.7896
+2026-05-06 00:35:25 - __main__ - INFO -   Batch 555: loss = 0.2633
+2026-05-06 00:35:27 - __main__ - INFO -   Batch 560: loss = 0.3003
+2026-05-06 00:35:28 - __main__ - INFO -   Batch 565: loss = 0.2769
+2026-05-06 00:35:30 - __main__ - INFO -   Batch 570: loss = 0.3022
+2026-05-06 00:35:31 - __main__ - INFO -   Batch 575: loss = 0.3516
+2026-05-06 00:35:33 - __main__ - INFO -   Batch 580: loss = 0.4243
+2026-05-06 00:35:34 - __main__ - INFO -   Batch 585: loss = 0.1876
+2026-05-06 00:35:36 - __main__ - INFO -   Batch 590: loss = 0.6657
+2026-05-06 00:35:37 - __main__ - INFO -   Batch 595: loss = 0.1906
+2026-05-06 00:35:39 - __main__ - INFO -   Batch 600: loss = 0.5197
+2026-05-06 00:35:40 - __main__ - INFO -   Batch 605: loss = 0.4538
+2026-05-06 00:35:42 - __main__ - INFO -   Batch 610: loss = 0.6504
+2026-05-06 00:35:43 - __main__ - INFO -   Batch 615: loss = 0.3650
+2026-05-06 00:35:45 - __main__ - INFO -   Batch 620: loss = 0.3493
+2026-05-06 00:35:46 - __main__ - INFO -   Batch 625: loss = 0.4213
+2026-05-06 00:35:48 - __main__ - INFO -   Batch 630: loss = 0.2600
+2026-05-06 00:35:49 - __main__ - INFO -   Batch 635: loss = 0.5892
+2026-05-06 00:35:51 - __main__ - INFO -   Batch 640: loss = 0.4197
+2026-05-06 00:35:52 - __main__ - INFO -   Batch 645: loss = 0.1335
+2026-05-06 00:35:54 - __main__ - INFO -   Batch 650: loss = 0.2334
+2026-05-06 00:35:55 - __main__ - INFO -   Batch 655: loss = 0.3778
+2026-05-06 00:35:57 - __main__ - INFO -   Batch 660: loss = 0.3835
+2026-05-06 00:35:58 - __main__ - INFO -   Batch 665: loss = 0.3344
+2026-05-06 00:35:59 - __main__ - INFO -   Batch 670: loss = 0.4349
+2026-05-06 00:36:01 - __main__ - INFO -   Batch 675: loss = 0.2989
+2026-05-06 00:36:03 - __main__ - INFO -   Batch 680: loss = 0.5218
+2026-05-06 00:36:04 - __main__ - INFO -   Batch 685: loss = 0.3975
+2026-05-06 00:36:05 - __main__ - INFO -   Batch 690: loss = 0.6249
+2026-05-06 00:36:07 - __main__ - INFO -   Batch 695: loss = 0.2492
+2026-05-06 00:36:08 - __main__ - INFO -   Batch 700: loss = 0.3415
+2026-05-06 00:36:10 - __main__ - INFO -   Batch 705: loss = 0.1155
+2026-05-06 00:36:11 - __main__ - INFO -   Batch 710: loss = 0.5570
+2026-05-06 00:36:13 - __main__ - INFO -   Batch 715: loss = 0.2331
+2026-05-06 00:36:14 - __main__ - INFO -   Batch 720: loss = 0.2371
+2026-05-06 00:36:16 - __main__ - INFO -   Batch 725: loss = 0.5201
+2026-05-06 00:36:17 - __main__ - INFO -   Batch 730: loss = 0.3811
+2026-05-06 00:36:19 - __main__ - INFO -   Batch 735: loss = 0.3386
+2026-05-06 00:36:20 - __main__ - INFO -   Batch 740: loss = 0.2350
+2026-05-06 00:36:22 - __main__ - INFO -   Batch 745: loss = 0.3421
+2026-05-06 00:36:23 - __main__ - INFO -   Batch 750: loss = 0.4176
+2026-05-06 00:36:25 - __main__ - INFO -   Batch 755: loss = 0.4593
+2026-05-06 00:36:26 - __main__ - INFO -   Batch 760: loss = 0.3119
+2026-05-06 00:36:28 - __main__ - INFO -   Batch 765: loss = 0.4794
+2026-05-06 00:36:29 - __main__ - INFO -   Batch 770: loss = 0.3740
+2026-05-06 00:36:31 - __main__ - INFO -   Batch 775: loss = 0.1099
+2026-05-06 00:36:32 - __main__ - INFO -   Batch 780: loss = 0.1922
+2026-05-06 00:36:34 - __main__ - INFO -   Batch 785: loss = 0.1698
+2026-05-06 00:36:35 - __main__ - INFO -   Batch 790: loss = 0.2960
+2026-05-06 00:36:37 - __main__ - INFO -   Batch 795: loss = 0.3300
+2026-05-06 00:36:38 - __main__ - INFO -   Batch 800: loss = 0.6768
+2026-05-06 00:36:40 - __main__ - INFO -   Batch 805: loss = 0.2996
+2026-05-06 00:36:41 - __main__ - INFO -   Batch 810: loss = 0.3764
+2026-05-06 00:36:43 - __main__ - INFO -   Batch 815: loss = 0.5139
+2026-05-06 00:36:44 - __main__ - INFO -   Batch 820: loss = 0.6555
+2026-05-06 00:36:46 - __main__ - INFO -   Batch 825: loss = 0.2050
+2026-05-06 00:36:47 - __main__ - INFO -   Batch 830: loss = 0.2187
+2026-05-06 00:36:49 - __main__ - INFO -   Batch 835: loss = 0.3669
+2026-05-06 00:36:50 - __main__ - INFO -   Batch 840: loss = 0.3898
+2026-05-06 00:36:52 - __main__ - INFO -   Batch 845: loss = 0.5850
+2026-05-06 00:36:53 - __main__ - INFO -   Batch 850: loss = 0.3144
+2026-05-06 00:36:55 - __main__ - INFO -   Batch 855: loss = 0.4561
+2026-05-06 00:36:56 - __main__ - INFO -   Batch 860: loss = 0.3712
+2026-05-06 00:36:58 - __main__ - INFO -   Batch 865: loss = 0.1066
+2026-05-06 00:36:59 - __main__ - INFO -   Batch 870: loss = 0.2132
+2026-05-06 00:37:01 - __main__ - INFO -   Batch 875: loss = 0.4707
+2026-05-06 00:37:02 - __main__ - INFO -   Batch 880: loss = 0.3335
+2026-05-06 00:37:04 - __main__ - INFO -   Batch 885: loss = 0.2441
+2026-05-06 00:37:05 - __main__ - INFO -   Batch 890: loss = 0.1805
+2026-05-06 00:37:07 - __main__ - INFO -   Batch 895: loss = 0.1150
+2026-05-06 00:37:08 - __main__ - INFO -   Batch 900: loss = 0.5555
+2026-05-06 00:37:10 - __main__ - INFO -   Batch 905: loss = 0.5278
+2026-05-06 00:37:11 - __main__ - INFO -   Batch 910: loss = 0.2819
+2026-05-06 00:37:13 - __main__ - INFO -   Batch 915: loss = 0.4123
+2026-05-06 00:37:14 - __main__ - INFO -   Batch 920: loss = 0.3100
+2026-05-06 00:37:16 - __main__ - INFO -   Batch 925: loss = 0.4228
+2026-05-06 00:37:17 - __main__ - INFO -   Batch 930: loss = 0.3290
+2026-05-06 00:37:19 - __main__ - INFO -   Batch 935: loss = 0.4064
+2026-05-06 00:37:20 - __main__ - INFO -   Batch 940: loss = 0.8732
+2026-05-06 00:37:22 - __main__ - INFO -   Batch 945: loss = 0.1772
+2026-05-06 00:37:23 - __main__ - INFO -   Batch 950: loss = 0.2935
+2026-05-06 00:37:25 - __main__ - INFO -   Batch 955: loss = 0.3774
+2026-05-06 00:37:26 - __main__ - INFO -   Batch 960: loss = 0.5465
+2026-05-06 00:37:28 - __main__ - INFO -   Batch 965: loss = 0.5136
+2026-05-06 00:37:29 - __main__ - INFO -   Batch 970: loss = 0.1990
+2026-05-06 00:37:31 - __main__ - INFO -   Batch 975: loss = 0.3122
+2026-05-06 00:37:32 - __main__ - INFO -   Batch 980: loss = 0.3094
+2026-05-06 00:37:34 - __main__ - INFO -   Batch 985: loss = 0.3158
+2026-05-06 00:37:35 - __main__ - INFO -   Batch 990: loss = 0.4238
+2026-05-06 00:37:37 - __main__ - INFO -   Batch 995: loss = 0.3357
+2026-05-06 00:37:38 - __main__ - INFO -   Batch 1000: loss = 0.1579
+2026-05-06 00:37:40 - __main__ - INFO -   Batch 1005: loss = 0.4523
+2026-05-06 00:37:41 - __main__ - INFO -   Batch 1010: loss = 0.4060
+2026-05-06 00:37:43 - __main__ - INFO -   Batch 1015: loss = 0.2613
+2026-05-06 00:37:44 - __main__ - INFO -   Batch 1020: loss = 0.2910
+2026-05-06 00:37:46 - __main__ - INFO -   Batch 1025: loss = 0.1717
+2026-05-06 00:37:47 - __main__ - INFO -   Batch 1030: loss = 0.3389
+2026-05-06 00:37:49 - __main__ - INFO -   Batch 1035: loss = 0.3013
+2026-05-06 00:37:50 - __main__ - INFO -   Batch 1040: loss = 0.2743
+2026-05-06 00:37:52 - __main__ - INFO -   Batch 1045: loss = 0.6281
+2026-05-06 00:37:53 - __main__ - INFO -   Batch 1050: loss = 0.1946
+2026-05-06 00:37:55 - __main__ - INFO -   Batch 1055: loss = 0.1463
+2026-05-06 00:37:56 - __main__ - INFO -   Batch 1060: loss = 0.6635
+2026-05-06 00:37:58 - __main__ - INFO -   Batch 1065: loss = 0.3439
+2026-05-06 00:37:59 - __main__ - INFO -   Batch 1070: loss = 0.2058
+2026-05-06 00:38:01 - __main__ - INFO -   Batch 1075: loss = 0.2480
+2026-05-06 00:38:02 - __main__ - INFO -   Batch 1080: loss = 0.1389
+2026-05-06 00:38:04 - __main__ - INFO -   Batch 1085: loss = 0.1927
+2026-05-06 00:38:05 - __main__ - INFO -   Batch 1090: loss = 0.1763
+2026-05-06 00:38:06 - __main__ - INFO -   Batch 1095: loss = 0.2047
+2026-05-06 00:38:08 - __main__ - INFO -   Batch 1100: loss = 0.4658
+2026-05-06 00:38:10 - __main__ - INFO -   Batch 1105: loss = 0.5309
+2026-05-06 00:38:11 - __main__ - INFO -   Batch 1110: loss = 0.3412
+2026-05-06 00:38:12 - __main__ - INFO -   Batch 1115: loss = 0.3633
+2026-05-06 00:38:14 - __main__ - INFO -   Batch 1120: loss = 0.2745
+2026-05-06 00:38:16 - __main__ - INFO -   Batch 1125: loss = 0.5661
+2026-05-06 00:38:17 - __main__ - INFO -   Batch 1130: loss = 0.2369
+2026-05-06 00:38:18 - __main__ - INFO -   Batch 1135: loss = 0.2129
+2026-05-06 00:38:20 - __main__ - INFO -   Batch 1140: loss = 0.5026
+2026-05-06 00:38:21 - __main__ - INFO -   Batch 1145: loss = 0.4356
+2026-05-06 00:38:23 - __main__ - INFO -   Batch 1150: loss = 0.2186
+2026-05-06 00:38:24 - __main__ - INFO -   Batch 1155: loss = 0.4353
+2026-05-06 00:38:26 - __main__ - INFO -   Batch 1160: loss = 0.2877
+2026-05-06 00:38:27 - __main__ - INFO -   Batch 1165: loss = 0.3117
+2026-05-06 00:38:29 - __main__ - INFO -   Batch 1170: loss = 0.1542
+2026-05-06 00:38:30 - __main__ - INFO -   Batch 1175: loss = 0.1538
+2026-05-06 00:38:32 - __main__ - INFO -   Batch 1180: loss = 0.3662
+2026-05-06 00:38:33 - __main__ - INFO -   Batch 1185: loss = 0.3941
+2026-05-06 00:38:35 - __main__ - INFO -   Batch 1190: loss = 0.2329
+2026-05-06 00:38:36 - __main__ - INFO -   Batch 1195: loss = 0.4893
+2026-05-06 00:38:38 - __main__ - INFO -   Batch 1200: loss = 0.1400
+2026-05-06 00:38:39 - __main__ - INFO -   Batch 1205: loss = 0.4247
+2026-05-06 00:38:41 - __main__ - INFO -   Batch 1210: loss = 0.5226
+2026-05-06 00:38:42 - __main__ - INFO -   Batch 1215: loss = 0.8016
+2026-05-06 00:38:44 - __main__ - INFO -   Batch 1220: loss = 0.9444
+2026-05-06 00:38:45 - __main__ - INFO -   Batch 1225: loss = 0.2182
+2026-05-06 00:38:47 - __main__ - INFO -   Batch 1230: loss = 0.4898
+2026-05-06 00:38:48 - __main__ - INFO -   Batch 1235: loss = 0.3135
+2026-05-06 00:38:50 - __main__ - INFO -   Batch 1240: loss = 0.1778
+2026-05-06 00:38:51 - __main__ - INFO -   Batch 1245: loss = 0.1427
+2026-05-06 00:38:53 - __main__ - INFO - Epoch 1 completed - Epoch Loss: 0.5643
+2026-05-06 00:38:53 - __main__ - INFO - 
+Epoch 2/3
+2026-05-06 00:38:53 - __main__ - INFO - 
+[First Batch Info]
+2026-05-06 00:38:53 - __main__ - INFO -   Batch size: 4
+2026-05-06 00:38:53 - __main__ - INFO -   Sequence length: 1024
+2026-05-06 00:38:53 - __main__ - INFO -   Device: cuda:0
+2026-05-06 00:38:53 - __main__ - INFO -   Valid labels (response-only): 118/4096
+2026-05-06 00:38:53 - __main__ - INFO - 
+[Gradient Check - Batch 0]
+2026-05-06 00:38:53 - __main__ - INFO -   Parameters with non-zero gradients: 160
+2026-05-06 00:38:53 - __main__ - INFO -   Parameters with zero gradients: 0
+2026-05-06 00:38:53 - __main__ - INFO -   Max gradient magnitude: 0.019531
+2026-05-06 00:38:53 - __main__ - INFO -   Batch 1: loss = 0.2526
+2026-05-06 00:38:54 - __main__ - INFO -   Batch 5: loss = 0.2392
+2026-05-06 00:38:56 - __main__ - INFO -   Batch 10: loss = 0.1731
+2026-05-06 00:38:57 - __main__ - INFO -   Batch 15: loss = 0.3778
+2026-05-06 00:38:59 - __main__ - INFO -   Batch 20: loss = 0.7098
+2026-05-06 00:39:00 - __main__ - INFO -   Batch 25: loss = 0.2688
+2026-05-06 00:39:02 - __main__ - INFO -   Batch 30: loss = 0.1436
+2026-05-06 00:39:03 - __main__ - INFO -   Batch 35: loss = 0.2591
+2026-05-06 00:39:05 - __main__ - INFO -   Batch 40: loss = 0.1273
+2026-05-06 00:39:06 - __main__ - INFO -   Batch 45: loss = 0.1057
+2026-05-06 00:39:08 - __main__ - INFO -   Batch 50: loss = 0.5804
+2026-05-06 00:39:09 - __main__ - INFO -   Batch 55: loss = 0.2343
+2026-05-06 00:39:11 - __main__ - INFO -   Batch 60: loss = 0.2156
+2026-05-06 00:39:12 - __main__ - INFO -   Batch 65: loss = 0.3364
+2026-05-06 00:39:14 - __main__ - INFO -   Batch 70: loss = 0.4529
+2026-05-06 00:39:15 - __main__ - INFO -   Batch 75: loss = 0.3838
+2026-05-06 00:39:17 - __main__ - INFO -   Batch 80: loss = 0.4424
+2026-05-06 00:39:18 - __main__ - INFO -   Batch 85: loss = 0.2442
+2026-05-06 00:39:20 - __main__ - INFO -   Batch 90: loss = 0.1352
+2026-05-06 00:39:21 - __main__ - INFO -   Batch 95: loss = 0.3368
+2026-05-06 00:39:23 - __main__ - INFO -   Batch 100: loss = 0.4598
+2026-05-06 00:39:24 - __main__ - INFO -   Batch 105: loss = 0.2491
+2026-05-06 00:39:25 - __main__ - INFO -   Batch 110: loss = 0.3218
+2026-05-06 00:39:27 - __main__ - INFO -   Batch 115: loss = 0.2422
+2026-05-06 00:39:29 - __main__ - INFO -   Batch 120: loss = 0.3552
+2026-05-06 00:39:30 - __main__ - INFO -   Batch 125: loss = 0.3799
+2026-05-06 00:39:31 - __main__ - INFO -   Batch 130: loss = 0.4678
+2026-05-06 00:39:33 - __main__ - INFO -   Batch 135: loss = 0.5898
+2026-05-06 00:39:34 - __main__ - INFO -   Batch 140: loss = 0.1562
+2026-05-06 00:39:36 - __main__ - INFO -   Batch 145: loss = 0.1554
+2026-05-06 00:39:37 - __main__ - INFO -   Batch 150: loss = 0.4959
+2026-05-06 00:39:39 - __main__ - INFO -   Batch 155: loss = 0.1719
+2026-05-06 00:39:40 - __main__ - INFO -   Batch 160: loss = 0.4883
+2026-05-06 00:39:42 - __main__ - INFO -   Batch 165: loss = 0.4625
+2026-05-06 00:39:43 - __main__ - INFO -   Batch 170: loss = 0.4017
+2026-05-06 00:39:45 - __main__ - INFO -   Batch 175: loss = 0.2270
+2026-05-06 00:39:46 - __main__ - INFO -   Batch 180: loss = 0.3861
+2026-05-06 00:39:48 - __main__ - INFO -   Batch 185: loss = 0.2593
+2026-05-06 00:39:49 - __main__ - INFO -   Batch 190: loss = 0.5444
+2026-05-06 00:39:51 - __main__ - INFO -   Batch 195: loss = 0.2211
+2026-05-06 00:39:52 - __main__ - INFO -   Batch 200: loss = 0.5568
+2026-05-06 00:39:54 - __main__ - INFO -   Batch 205: loss = 0.2797
+2026-05-06 00:39:55 - __main__ - INFO -   Batch 210: loss = 0.3186
+2026-05-06 00:39:57 - __main__ - INFO -   Batch 215: loss = 0.6391
+2026-05-06 00:39:58 - __main__ - INFO -   Batch 220: loss = 0.5829
+2026-05-06 00:40:00 - __main__ - INFO -   Batch 225: loss = 0.3562
+2026-05-06 00:40:01 - __main__ - INFO -   Batch 230: loss = 0.2456
+2026-05-06 00:40:03 - __main__ - INFO -   Batch 235: loss = 0.1425
+2026-05-06 00:40:04 - __main__ - INFO -   Batch 240: loss = 0.3106
+2026-05-06 00:40:06 - __main__ - INFO -   Batch 245: loss = 0.1811
+2026-05-06 00:40:07 - __main__ - INFO -   Batch 250: loss = 0.4799
+2026-05-06 00:40:09 - __main__ - INFO -   Batch 255: loss = 0.3218
+2026-05-06 00:40:10 - __main__ - INFO -   Batch 260: loss = 0.4351
+2026-05-06 00:40:12 - __main__ - INFO -   Batch 265: loss = 0.5809
+2026-05-06 00:40:13 - __main__ - INFO -   Batch 270: loss = 0.2486
+2026-05-06 00:40:15 - __main__ - INFO -   Batch 275: loss = 0.4715
+2026-05-06 00:40:16 - __main__ - INFO -   Batch 280: loss = 0.4673
+2026-05-06 00:40:18 - __main__ - INFO -   Batch 285: loss = 0.3754
+2026-05-06 00:40:19 - __main__ - INFO -   Batch 290: loss = 0.1375
+2026-05-06 00:40:21 - __main__ - INFO -   Batch 295: loss = 0.1925
+2026-05-06 00:40:22 - __main__ - INFO -   Batch 300: loss = 0.2792
+2026-05-06 00:40:24 - __main__ - INFO -   Batch 305: loss = 0.1237
+2026-05-06 00:40:25 - __main__ - INFO -   Batch 310: loss = 0.2052
+2026-05-06 00:40:27 - __main__ - INFO -   Batch 315: loss = 0.0684
+2026-05-06 00:40:28 - __main__ - INFO -   Batch 320: loss = 0.4253
+2026-05-06 00:40:30 - __main__ - INFO -   Batch 325: loss = 0.3753
+2026-05-06 00:40:31 - __main__ - INFO -   Batch 330: loss = 0.1193
+2026-05-06 00:40:33 - __main__ - INFO -   Batch 335: loss = 0.2412
+2026-05-06 00:40:34 - __main__ - INFO -   Batch 340: loss = 0.3691
+2026-05-06 00:40:36 - __main__ - INFO -   Batch 345: loss = 0.3359
+2026-05-06 00:40:37 - __main__ - INFO -   Batch 350: loss = 0.3774
+2026-05-06 00:40:39 - __main__ - INFO -   Batch 355: loss = 0.2738
+2026-05-06 00:40:40 - __main__ - INFO -   Batch 360: loss = 0.2791
+2026-05-06 00:40:42 - __main__ - INFO -   Batch 365: loss = 0.1625
+2026-05-06 00:40:43 - __main__ - INFO -   Batch 370: loss = 0.4778
+2026-05-06 00:40:45 - __main__ - INFO -   Batch 375: loss = 0.4488
+2026-05-06 00:40:46 - __main__ - INFO -   Batch 380: loss = 0.1928
+2026-05-06 00:40:48 - __main__ - INFO -   Batch 385: loss = 0.0723
+2026-05-06 00:40:49 - __main__ - INFO -   Batch 390: loss = 0.5467
+2026-05-06 00:40:51 - __main__ - INFO -   Batch 395: loss = 0.6237
+2026-05-06 00:40:52 - __main__ - INFO -   Batch 400: loss = 0.2275
+2026-05-06 00:40:54 - __main__ - INFO -   Batch 405: loss = 0.1920
+2026-05-06 00:40:55 - __main__ - INFO -   Batch 410: loss = 0.1420
+2026-05-06 00:40:57 - __main__ - INFO -   Batch 415: loss = 0.6186
+2026-05-06 00:40:58 - __main__ - INFO -   Batch 420: loss = 0.1886
+2026-05-06 00:41:00 - __main__ - INFO -   Batch 425: loss = 0.2300
+2026-05-06 00:41:01 - __main__ - INFO -   Batch 430: loss = 0.3415
+2026-05-06 00:41:03 - __main__ - INFO -   Batch 435: loss = 0.3326
+2026-05-06 00:41:04 - __main__ - INFO -   Batch 440: loss = 0.1724
+2026-05-06 00:41:06 - __main__ - INFO -   Batch 445: loss = 0.1365
+2026-05-06 00:41:07 - __main__ - INFO -   Batch 450: loss = 0.1503
+2026-05-06 00:41:09 - __main__ - INFO -   Batch 455: loss = 0.2871
+2026-05-06 00:41:10 - __main__ - INFO -   Batch 460: loss = 0.4553
+2026-05-06 00:41:12 - __main__ - INFO -   Batch 465: loss = 0.2767
+2026-05-06 00:41:13 - __main__ - INFO -   Batch 470: loss = 0.3708
+2026-05-06 00:41:15 - __main__ - INFO -   Batch 475: loss = 0.1361
+2026-05-06 00:41:16 - __main__ - INFO -   Batch 480: loss = 0.4949
+2026-05-06 00:41:18 - __main__ - INFO -   Batch 485: loss = 0.5498
+2026-05-06 00:41:19 - __main__ - INFO -   Batch 490: loss = 0.4076
+2026-05-06 00:41:21 - __main__ - INFO -   Batch 495: loss = 0.3410
+2026-05-06 00:41:22 - __main__ - INFO -   Batch 500: loss = 0.3755
+2026-05-06 00:41:24 - __main__ - INFO -   Batch 505: loss = 0.1786
+2026-05-06 00:41:25 - __main__ - INFO -   Batch 510: loss = 0.1811
+2026-05-06 00:41:27 - __main__ - INFO -   Batch 515: loss = 0.3009
+2026-05-06 00:41:28 - __main__ - INFO -   Batch 520: loss = 0.1070
+2026-05-06 00:41:30 - __main__ - INFO -   Batch 525: loss = 0.1979
+2026-05-06 00:41:31 - __main__ - INFO -   Batch 530: loss = 0.5140
+2026-05-06 00:41:33 - __main__ - INFO -   Batch 535: loss = 0.3498
+2026-05-06 00:41:34 - __main__ - INFO -   Batch 540: loss = 0.3128
+2026-05-06 00:41:36 - __main__ - INFO -   Batch 545: loss = 0.2231
+2026-05-06 00:41:37 - __main__ - INFO -   Batch 550: loss = 0.1665
+2026-05-06 00:41:39 - __main__ - INFO -   Batch 555: loss = 0.1999
+2026-05-06 00:41:40 - __main__ - INFO -   Batch 560: loss = 0.2123
+2026-05-06 00:41:42 - __main__ - INFO -   Batch 565: loss = 0.2753
+2026-05-06 00:41:43 - __main__ - INFO -   Batch 570: loss = 0.1374
+2026-05-06 00:41:45 - __main__ - INFO -   Batch 575: loss = 0.7103
+2026-05-06 00:41:46 - __main__ - INFO -   Batch 580: loss = 0.1551
+2026-05-06 00:41:48 - __main__ - INFO -   Batch 585: loss = 0.6017
+2026-05-06 00:41:49 - __main__ - INFO -   Batch 590: loss = 0.3032
+2026-05-06 00:41:51 - __main__ - INFO -   Batch 595: loss = 0.2513
+2026-05-06 00:41:52 - __main__ - INFO -   Batch 600: loss = 0.3094
+2026-05-06 00:41:54 - __main__ - INFO -   Batch 605: loss = 0.6061
+2026-05-06 00:41:55 - __main__ - INFO -   Batch 610: loss = 0.2146
+2026-05-06 00:41:57 - __main__ - INFO -   Batch 615: loss = 0.2132
+2026-05-06 00:41:58 - __main__ - INFO -   Batch 620: loss = 0.5814
+2026-05-06 00:42:00 - __main__ - INFO -   Batch 625: loss = 0.1323
+2026-05-06 00:42:01 - __main__ - INFO -   Batch 630: loss = 0.2755
+2026-05-06 00:42:03 - __main__ - INFO -   Batch 635: loss = 0.4354
+2026-05-06 00:42:04 - __main__ - INFO -   Batch 640: loss = 0.1078
+2026-05-06 00:42:06 - __main__ - INFO -   Batch 645: loss = 0.4029
+2026-05-06 00:42:07 - __main__ - INFO -   Batch 650: loss = 0.4372
+2026-05-06 00:42:08 - __main__ - INFO -   Batch 655: loss = 0.5527
+2026-05-06 00:42:10 - __main__ - INFO -   Batch 660: loss = 0.2392
+2026-05-06 00:42:12 - __main__ - INFO -   Batch 665: loss = 0.4225
+2026-05-06 00:42:13 - __main__ - INFO -   Batch 670: loss = 0.3447
+2026-05-06 00:42:14 - __main__ - INFO -   Batch 675: loss = 0.2095
+2026-05-06 00:42:16 - __main__ - INFO -   Batch 680: loss = 0.3418
+2026-05-06 00:42:17 - __main__ - INFO -   Batch 685: loss = 0.2655
+2026-05-06 00:42:19 - __main__ - INFO -   Batch 690: loss = 0.5514
+2026-05-06 00:42:20 - __main__ - INFO -   Batch 695: loss = 0.1662
+2026-05-06 00:42:22 - __main__ - INFO -   Batch 700: loss = 0.2454
+2026-05-06 00:42:23 - __main__ - INFO -   Batch 705: loss = 0.3569
+2026-05-06 00:42:25 - __main__ - INFO -   Batch 710: loss = 0.2974
+2026-05-06 00:42:26 - __main__ - INFO -   Batch 715: loss = 0.1330
+2026-05-06 00:42:28 - __main__ - INFO -   Batch 720: loss = 0.3612
+2026-05-06 00:42:29 - __main__ - INFO -   Batch 725: loss = 0.1913
+2026-05-06 00:42:31 - __main__ - INFO -   Batch 730: loss = 0.3079
+2026-05-06 00:42:32 - __main__ - INFO -   Batch 735: loss = 0.4748
+2026-05-06 00:42:34 - __main__ - INFO -   Batch 740: loss = 0.3749
+2026-05-06 00:42:35 - __main__ - INFO -   Batch 745: loss = 0.1896
+2026-05-06 00:42:37 - __main__ - INFO -   Batch 750: loss = 0.4774
+2026-05-06 00:42:38 - __main__ - INFO -   Batch 755: loss = 0.4422
+2026-05-06 00:42:40 - __main__ - INFO -   Batch 760: loss = 0.1594
+2026-05-06 00:42:41 - __main__ - INFO -   Batch 765: loss = 0.1269
+2026-05-06 00:42:43 - __main__ - INFO -   Batch 770: loss = 0.2791
+2026-05-06 00:42:44 - __main__ - INFO -   Batch 775: loss = 0.5167
+2026-05-06 00:42:46 - __main__ - INFO -   Batch 780: loss = 0.5254
+2026-05-06 00:42:47 - __main__ - INFO -   Batch 785: loss = 0.1262
+2026-05-06 00:42:49 - __main__ - INFO -   Batch 790: loss = 0.2334
+2026-05-06 00:42:50 - __main__ - INFO -   Batch 795: loss = 0.6702
+2026-05-06 00:42:52 - __main__ - INFO -   Batch 800: loss = 0.2942
+2026-05-06 00:42:53 - __main__ - INFO -   Batch 805: loss = 0.2411
+2026-05-06 00:42:55 - __main__ - INFO -   Batch 810: loss = 0.4885
+2026-05-06 00:42:56 - __main__ - INFO -   Batch 815: loss = 0.4451
+2026-05-06 00:42:58 - __main__ - INFO -   Batch 820: loss = 0.3013
+2026-05-06 00:42:59 - __main__ - INFO -   Batch 825: loss = 0.1878
+2026-05-06 00:43:01 - __main__ - INFO -   Batch 830: loss = 0.2680
+2026-05-06 00:43:02 - __main__ - INFO -   Batch 835: loss = 0.2137
+2026-05-06 00:43:04 - __main__ - INFO -   Batch 840: loss = 0.4577
+2026-05-06 00:43:05 - __main__ - INFO -   Batch 845: loss = 0.1135
+2026-05-06 00:43:07 - __main__ - INFO -   Batch 850: loss = 0.2836
+2026-05-06 00:43:08 - __main__ - INFO -   Batch 855: loss = 0.3770
+2026-05-06 00:43:10 - __main__ - INFO -   Batch 860: loss = 0.5376
+2026-05-06 00:43:11 - __main__ - INFO -   Batch 865: loss = 0.1683
+2026-05-06 00:43:13 - __main__ - INFO -   Batch 870: loss = 0.4904
+2026-05-06 00:43:14 - __main__ - INFO -   Batch 875: loss = 0.2017
+2026-05-06 00:43:16 - __main__ - INFO -   Batch 880: loss = 0.4184
+2026-05-06 00:43:17 - __main__ - INFO -   Batch 885: loss = 0.1500
+2026-05-06 00:43:18 - __main__ - INFO -   Batch 890: loss = 0.0685
+2026-05-06 00:43:20 - __main__ - INFO -   Batch 895: loss = 0.2643
+2026-05-06 00:43:22 - __main__ - INFO -   Batch 900: loss = 0.3705
+2026-05-06 00:43:23 - __main__ - INFO -   Batch 905: loss = 0.2168
+2026-05-06 00:43:24 - __main__ - INFO -   Batch 910: loss = 0.2716
+2026-05-06 00:43:26 - __main__ - INFO -   Batch 915: loss = 0.1811
+2026-05-06 00:43:28 - __main__ - INFO -   Batch 920: loss = 0.2238
+2026-05-06 00:43:29 - __main__ - INFO -   Batch 925: loss = 0.6317
+2026-05-06 00:43:30 - __main__ - INFO -   Batch 930: loss = 0.5575
+2026-05-06 00:43:32 - __main__ - INFO -   Batch 935: loss = 0.3595
+2026-05-06 00:43:33 - __main__ - INFO -   Batch 940: loss = 0.2468
+2026-05-06 00:43:35 - __main__ - INFO -   Batch 945: loss = 0.5931
+2026-05-06 00:43:36 - __main__ - INFO -   Batch 950: loss = 0.2007
+2026-05-06 00:43:38 - __main__ - INFO -   Batch 955: loss = 0.2614
+2026-05-06 00:43:39 - __main__ - INFO -   Batch 960: loss = 0.1995
+2026-05-06 00:43:41 - __main__ - INFO -   Batch 965: loss = 0.4309
+2026-05-06 00:43:42 - __main__ - INFO -   Batch 970: loss = 0.1178
+2026-05-06 00:43:44 - __main__ - INFO -   Batch 975: loss = 0.5949
+2026-05-06 00:43:45 - __main__ - INFO -   Batch 980: loss = 0.1180
+2026-05-06 00:43:47 - __main__ - INFO -   Batch 985: loss = 0.2432
+2026-05-06 00:43:48 - __main__ - INFO -   Batch 990: loss = 0.3106
+2026-05-06 00:43:50 - __main__ - INFO -   Batch 995: loss = 0.3545
+2026-05-06 00:43:51 - __main__ - INFO -   Batch 1000: loss = 0.1360
+2026-05-06 00:43:53 - __main__ - INFO -   Batch 1005: loss = 0.2044
+2026-05-06 00:43:54 - __main__ - INFO -   Batch 1010: loss = 0.2562
+2026-05-06 00:43:56 - __main__ - INFO -   Batch 1015: loss = 0.6062
+2026-05-06 00:43:57 - __main__ - INFO -   Batch 1020: loss = 0.6075
+2026-05-06 00:43:59 - __main__ - INFO -   Batch 1025: loss = 0.4281
+2026-05-06 00:44:00 - __main__ - INFO -   Batch 1030: loss = 0.1643
+2026-05-06 00:44:02 - __main__ - INFO -   Batch 1035: loss = 0.4865
+2026-05-06 00:44:03 - __main__ - INFO -   Batch 1040: loss = 0.0948
+2026-05-06 00:44:05 - __main__ - INFO -   Batch 1045: loss = 0.2814
+2026-05-06 00:44:06 - __main__ - INFO -   Batch 1050: loss = 0.4020
+2026-05-06 00:44:08 - __main__ - INFO -   Batch 1055: loss = 0.5527
+2026-05-06 00:44:09 - __main__ - INFO -   Batch 1060: loss = 0.3511
+2026-05-06 00:44:11 - __main__ - INFO -   Batch 1065: loss = 0.3015
+2026-05-06 00:44:12 - __main__ - INFO -   Batch 1070: loss = 0.2187
+2026-05-06 00:44:14 - __main__ - INFO -   Batch 1075: loss = 0.0908
+2026-05-06 00:44:15 - __main__ - INFO -   Batch 1080: loss = 0.6308
+2026-05-06 00:44:17 - __main__ - INFO -   Batch 1085: loss = 0.1936
+2026-05-06 00:44:18 - __main__ - INFO -   Batch 1090: loss = 0.3706
+2026-05-06 00:44:20 - __main__ - INFO -   Batch 1095: loss = 0.5088
+2026-05-06 00:44:21 - __main__ - INFO -   Batch 1100: loss = 0.4846
+2026-05-06 00:44:23 - __main__ - INFO -   Batch 1105: loss = 0.5010
+2026-05-06 00:44:24 - __main__ - INFO -   Batch 1110: loss = 0.4460
+2026-05-06 00:44:26 - __main__ - INFO -   Batch 1115: loss = 0.2338
+2026-05-06 00:44:27 - __main__ - INFO -   Batch 1120: loss = 0.3659
+2026-05-06 00:44:29 - __main__ - INFO -   Batch 1125: loss = 0.1725
+2026-05-06 00:44:30 - __main__ - INFO -   Batch 1130: loss = 0.2396
+2026-05-06 00:44:32 - __main__ - INFO -   Batch 1135: loss = 0.1690
+2026-05-06 00:44:33 - __main__ - INFO -   Batch 1140: loss = 0.0858
+2026-05-06 00:44:35 - __main__ - INFO -   Batch 1145: loss = 0.3111
+2026-05-06 00:44:36 - __main__ - INFO -   Batch 1150: loss = 0.6891
+2026-05-06 00:44:37 - __main__ - INFO -   Batch 1155: loss = 0.5763
+2026-05-06 00:44:39 - __main__ - INFO -   Batch 1160: loss = 0.2291
+2026-05-06 00:44:41 - __main__ - INFO -   Batch 1165: loss = 0.1761
+2026-05-06 00:44:42 - __main__ - INFO -   Batch 1170: loss = 0.3206
+2026-05-06 00:44:43 - __main__ - INFO -   Batch 1175: loss = 0.5424
+2026-05-06 00:44:45 - __main__ - INFO -   Batch 1180: loss = 0.0695
+2026-05-06 00:44:46 - __main__ - INFO -   Batch 1185: loss = 0.4414
+2026-05-06 00:44:48 - __main__ - INFO -   Batch 1190: loss = 0.1113
+2026-05-06 00:44:49 - __main__ - INFO -   Batch 1195: loss = 0.2850
+2026-05-06 00:44:51 - __main__ - INFO -   Batch 1200: loss = 0.0873
+2026-05-06 00:44:52 - __main__ - INFO -   Batch 1205: loss = 0.1456
+2026-05-06 00:44:54 - __main__ - INFO -   Batch 1210: loss = 0.4663
+2026-05-06 00:44:55 - __main__ - INFO -   Batch 1215: loss = 0.5446
+2026-05-06 00:44:57 - __main__ - INFO -   Batch 1220: loss = 0.2737
+2026-05-06 00:44:58 - __main__ - INFO -   Batch 1225: loss = 0.1199
+2026-05-06 00:45:00 - __main__ - INFO -   Batch 1230: loss = 0.2403
+2026-05-06 00:45:01 - __main__ - INFO -   Batch 1235: loss = 0.3725
+2026-05-06 00:45:03 - __main__ - INFO -   Batch 1240: loss = 0.1838
+2026-05-06 00:45:04 - __main__ - INFO -   Batch 1245: loss = 0.2829
+2026-05-06 00:45:05 - __main__ - INFO - Epoch 2 completed - Epoch Loss: 0.3183
+2026-05-06 00:45:05 - __main__ - INFO - 
+Epoch 3/3
+2026-05-06 00:45:05 - __main__ - INFO - 
+[First Batch Info]
+2026-05-06 00:45:05 - __main__ - INFO -   Batch size: 4
+2026-05-06 00:45:05 - __main__ - INFO -   Sequence length: 1024
+2026-05-06 00:45:05 - __main__ - INFO -   Device: cuda:0
+2026-05-06 00:45:05 - __main__ - INFO -   Valid labels (response-only): 763/4096
+2026-05-06 00:45:06 - __main__ - INFO - 
+[Gradient Check - Batch 0]
+2026-05-06 00:45:06 - __main__ - INFO -   Parameters with non-zero gradients: 160
+2026-05-06 00:45:06 - __main__ - INFO -   Parameters with zero gradients: 0
+2026-05-06 00:45:06 - __main__ - INFO -   Max gradient magnitude: 0.023682
+2026-05-06 00:45:06 - __main__ - INFO -   Batch 1: loss = 0.5142
+2026-05-06 00:45:07 - __main__ - INFO -   Batch 5: loss = 0.5010
+2026-05-06 00:45:08 - __main__ - INFO -   Batch 10: loss = 0.2363
+2026-05-06 00:45:10 - __main__ - INFO -   Batch 15: loss = 0.3841
+2026-05-06 00:45:11 - __main__ - INFO -   Batch 20: loss = 0.2779
+2026-05-06 00:45:13 - __main__ - INFO -   Batch 25: loss = 0.1366
+2026-05-06 00:45:14 - __main__ - INFO -   Batch 30: loss = 0.1034
+2026-05-06 00:45:16 - __main__ - INFO -   Batch 35: loss = 0.1388
+2026-05-06 00:45:17 - __main__ - INFO -   Batch 40: loss = 0.1927
+2026-05-06 00:45:19 - __main__ - INFO -   Batch 45: loss = 0.1880
+2026-05-06 00:45:20 - __main__ - INFO -   Batch 50: loss = 0.2255
+2026-05-06 00:45:22 - __main__ - INFO -   Batch 55: loss = 0.4754
+2026-05-06 00:45:23 - __main__ - INFO -   Batch 60: loss = 0.1569
+2026-05-06 00:45:25 - __main__ - INFO -   Batch 65: loss = 0.6175
+2026-05-06 00:45:26 - __main__ - INFO -   Batch 70: loss = 0.4194
+2026-05-06 00:45:28 - __main__ - INFO -   Batch 75: loss = 0.3100
+2026-05-06 00:45:29 - __main__ - INFO -   Batch 80: loss = 0.1535
+2026-05-06 00:45:31 - __main__ - INFO -   Batch 85: loss = 0.3522
+2026-05-06 00:45:32 - __main__ - INFO -   Batch 90: loss = 0.3136
+2026-05-06 00:45:34 - __main__ - INFO -   Batch 95: loss = 0.1363
+2026-05-06 00:45:35 - __main__ - INFO -   Batch 100: loss = 0.1163
+2026-05-06 00:45:37 - __main__ - INFO -   Batch 105: loss = 0.1831
+2026-05-06 00:45:38 - __main__ - INFO -   Batch 110: loss = 0.4886
+2026-05-06 00:45:40 - __main__ - INFO -   Batch 115: loss = 0.1848
+2026-05-06 00:45:41 - __main__ - INFO -   Batch 120: loss = 0.2429
+2026-05-06 00:45:43 - __main__ - INFO -   Batch 125: loss = 0.1733
+2026-05-06 00:45:44 - __main__ - INFO -   Batch 130: loss = 0.1757
+2026-05-06 00:45:46 - __main__ - INFO -   Batch 135: loss = 0.3152
+2026-05-06 00:45:47 - __main__ - INFO -   Batch 140: loss = 0.4149
+2026-05-06 00:45:49 - __main__ - INFO -   Batch 145: loss = 0.4944
+2026-05-06 00:45:50 - __main__ - INFO -   Batch 150: loss = 0.4763
+2026-05-06 00:45:52 - __main__ - INFO -   Batch 155: loss = 0.1083
+2026-05-06 00:45:53 - __main__ - INFO -   Batch 160: loss = 0.2402
+2026-05-06 00:45:55 - __main__ - INFO -   Batch 165: loss = 0.3697
+2026-05-06 00:45:56 - __main__ - INFO -   Batch 170: loss = 0.2058
+2026-05-06 00:45:58 - __main__ - INFO -   Batch 175: loss = 0.3320
+2026-05-06 00:45:59 - __main__ - INFO -   Batch 180: loss = 0.4392
+2026-05-06 00:46:01 - __main__ - INFO -   Batch 185: loss = 0.4445
+2026-05-06 00:46:02 - __main__ - INFO -   Batch 190: loss = 0.1697
+2026-05-06 00:46:04 - __main__ - INFO -   Batch 195: loss = 0.3631
+2026-05-06 00:46:05 - __main__ - INFO -   Batch 200: loss = 0.1041
+2026-05-06 00:46:07 - __main__ - INFO -   Batch 205: loss = 0.2575
+2026-05-06 00:46:08 - __main__ - INFO -   Batch 210: loss = 0.2616
+2026-05-06 00:46:10 - __main__ - INFO -   Batch 215: loss = 0.5189
+2026-05-06 00:46:11 - __main__ - INFO -   Batch 220: loss = 0.1657
+2026-05-06 00:46:13 - __main__ - INFO -   Batch 225: loss = 0.4912
+2026-05-06 00:46:14 - __main__ - INFO -   Batch 230: loss = 0.4175
+2026-05-06 00:46:16 - __main__ - INFO -   Batch 235: loss = 0.3760
+2026-05-06 00:46:17 - __main__ - INFO -   Batch 240: loss = 0.4990
+2026-05-06 00:46:19 - __main__ - INFO -   Batch 245: loss = 0.4673
+2026-05-06 00:46:20 - __main__ - INFO -   Batch 250: loss = 0.1741
+2026-05-06 00:46:21 - __main__ - INFO -   Batch 255: loss = 0.6684
+2026-05-06 00:46:23 - __main__ - INFO -   Batch 260: loss = 0.1722
+2026-05-06 00:46:24 - __main__ - INFO -   Batch 265: loss = 0.3409
+2026-05-06 00:46:26 - __main__ - INFO -   Batch 270: loss = 0.3360
+2026-05-06 00:46:27 - __main__ - INFO -   Batch 275: loss = 0.2815
+2026-05-06 00:46:29 - __main__ - INFO -   Batch 280: loss = 0.1241
+2026-05-06 00:46:30 - __main__ - INFO -   Batch 285: loss = 0.1379
+2026-05-06 00:46:32 - __main__ - INFO -   Batch 290: loss = 0.1657
+2026-05-06 00:46:33 - __main__ - INFO -   Batch 295: loss = 0.5358
+2026-05-06 00:46:35 - __main__ - INFO -   Batch 300: loss = 0.2862
+2026-05-06 00:46:36 - __main__ - INFO -   Batch 305: loss = 0.2759
+2026-05-06 00:46:38 - __main__ - INFO -   Batch 310: loss = 0.3679
+2026-05-06 00:46:39 - __main__ - INFO -   Batch 315: loss = 0.4064
+2026-05-06 00:46:41 - __main__ - INFO -   Batch 320: loss = 0.3483
+2026-05-06 00:46:42 - __main__ - INFO -   Batch 325: loss = 0.2787
+2026-05-06 00:46:44 - __main__ - INFO -   Batch 330: loss = 0.2794
+2026-05-06 00:46:45 - __main__ - INFO -   Batch 335: loss = 0.3030
+2026-05-06 00:46:47 - __main__ - INFO -   Batch 340: loss = 0.2523
+2026-05-06 00:46:48 - __main__ - INFO -   Batch 345: loss = 0.2281
+2026-05-06 00:46:50 - __main__ - INFO -   Batch 350: loss = 0.3770
+2026-05-06 00:46:51 - __main__ - INFO -   Batch 355: loss = 0.1695
+2026-05-06 00:46:53 - __main__ - INFO -   Batch 360: loss = 0.4674
+2026-05-06 00:46:54 - __main__ - INFO -   Batch 365: loss = 0.1372
+2026-05-06 00:46:56 - __main__ - INFO -   Batch 370: loss = 0.1770
+2026-05-06 00:46:57 - __main__ - INFO -   Batch 375: loss = 0.6439
+2026-05-06 00:46:59 - __main__ - INFO -   Batch 380: loss = 0.1078
+2026-05-06 00:47:00 - __main__ - INFO -   Batch 385: loss = 0.2087
+2026-05-06 00:47:02 - __main__ - INFO -   Batch 390: loss = 0.4494
+2026-05-06 00:47:03 - __main__ - INFO -   Batch 395: loss = 0.3115
+2026-05-06 00:47:05 - __main__ - INFO -   Batch 400: loss = 0.4925
+2026-05-06 00:47:06 - __main__ - INFO -   Batch 405: loss = 0.1698
+2026-05-06 00:47:08 - __main__ - INFO -   Batch 410: loss = 0.6377
+2026-05-06 00:47:09 - __main__ - INFO -   Batch 415: loss = 0.3468
+2026-05-06 00:47:11 - __main__ - INFO -   Batch 420: loss = 0.1144
+2026-05-06 00:47:12 - __main__ - INFO -   Batch 425: loss = 0.1896
+2026-05-06 00:47:14 - __main__ - INFO -   Batch 430: loss = 0.2093
+2026-05-06 00:47:15 - __main__ - INFO -   Batch 435: loss = 0.1925
+2026-05-06 00:47:17 - __main__ - INFO -   Batch 440: loss = 0.2293
+2026-05-06 00:47:18 - __main__ - INFO -   Batch 445: loss = 0.3514
+2026-05-06 00:47:20 - __main__ - INFO -   Batch 450: loss = 0.2424
+2026-05-06 00:47:21 - __main__ - INFO -   Batch 455: loss = 0.3322
+2026-05-06 00:47:23 - __main__ - INFO -   Batch 460: loss = 0.3824
+2026-05-06 00:47:24 - __main__ - INFO -   Batch 465: loss = 0.5318
+2026-05-06 00:47:26 - __main__ - INFO -   Batch 470: loss = 0.4592
+2026-05-06 00:47:27 - __main__ - INFO -   Batch 475: loss = 0.1753
+2026-05-06 00:47:29 - __main__ - INFO -   Batch 480: loss = 0.1602
+2026-05-06 00:47:30 - __main__ - INFO -   Batch 485: loss = 0.2615
+2026-05-06 00:47:32 - __main__ - INFO -   Batch 490: loss = 0.4261
+2026-05-06 00:47:33 - __main__ - INFO -   Batch 495: loss = 0.2673
+2026-05-06 00:47:35 - __main__ - INFO -   Batch 500: loss = 0.2740
+2026-05-06 00:47:36 - __main__ - INFO -   Batch 505: loss = 0.2282
+2026-05-06 00:47:38 - __main__ - INFO -   Batch 510: loss = 0.5482
+2026-05-06 00:47:39 - __main__ - INFO -   Batch 515: loss = 0.2972
+2026-05-06 00:47:41 - __main__ - INFO -   Batch 520: loss = 0.2648
+2026-05-06 00:47:42 - __main__ - INFO -   Batch 525: loss = 0.1021
+2026-05-06 00:47:44 - __main__ - INFO -   Batch 530: loss = 0.3207
+2026-05-06 00:47:45 - __main__ - INFO -   Batch 535: loss = 0.3136
+2026-05-06 00:47:47 - __main__ - INFO -   Batch 540: loss = 0.2600
+2026-05-06 00:47:48 - __main__ - INFO -   Batch 545: loss = 0.2870
+2026-05-06 00:47:50 - __main__ - INFO -   Batch 550: loss = 0.2575
+2026-05-06 00:47:51 - __main__ - INFO -   Batch 555: loss = 0.1395
+2026-05-06 00:47:53 - __main__ - INFO -   Batch 560: loss = 0.2581
+2026-05-06 00:47:54 - __main__ - INFO -   Batch 565: loss = 0.1206
+2026-05-06 00:47:56 - __main__ - INFO -   Batch 570: loss = 0.2418
+2026-05-06 00:47:57 - __main__ - INFO -   Batch 575: loss = 0.2349
+2026-05-06 00:47:59 - __main__ - INFO -   Batch 580: loss = 0.3672
+2026-05-06 00:48:00 - __main__ - INFO -   Batch 585: loss = 0.6436
+2026-05-06 00:48:02 - __main__ - INFO -   Batch 590: loss = 0.5364
+2026-05-06 00:48:03 - __main__ - INFO -   Batch 595: loss = 0.1316
+2026-05-06 00:48:05 - __main__ - INFO -   Batch 600: loss = 0.2541
+2026-05-06 00:48:06 - __main__ - INFO -   Batch 605: loss = 0.1971
+2026-05-06 00:48:08 - __main__ - INFO -   Batch 610: loss = 0.2187
+2026-05-06 00:48:09 - __main__ - INFO -   Batch 615: loss = 0.3380
+2026-05-06 00:48:11 - __main__ - INFO -   Batch 620: loss = 0.4379
+2026-05-06 00:48:12 - __main__ - INFO -   Batch 625: loss = 0.1295
+2026-05-06 00:48:14 - __main__ - INFO -   Batch 630: loss = 0.2100
+2026-05-06 00:48:15 - __main__ - INFO -   Batch 635: loss = 0.1444
+2026-05-06 00:48:17 - __main__ - INFO -   Batch 640: loss = 0.3134
+2026-05-06 00:48:18 - __main__ - INFO -   Batch 645: loss = 0.1913
+2026-05-06 00:48:20 - __main__ - INFO -   Batch 650: loss = 0.3135
+2026-05-06 00:48:21 - __main__ - INFO -   Batch 655: loss = 0.2431
+2026-05-06 00:48:23 - __main__ - INFO -   Batch 660: loss = 0.1865
+2026-05-06 00:48:24 - __main__ - INFO -   Batch 665: loss = 0.2092
+2026-05-06 00:48:26 - __main__ - INFO -   Batch 670: loss = 0.2055
+2026-05-06 00:48:27 - __main__ - INFO -   Batch 675: loss = 0.1783
+2026-05-06 00:48:29 - __main__ - INFO -   Batch 680: loss = 0.2752
+2026-05-06 00:48:30 - __main__ - INFO -   Batch 685: loss = 0.2412
+2026-05-06 00:48:32 - __main__ - INFO -   Batch 690: loss = 0.4268
+2026-05-06 00:48:33 - __main__ - INFO -   Batch 695: loss = 0.2077
+2026-05-06 00:48:35 - __main__ - INFO -   Batch 700: loss = 0.2814
+2026-05-06 00:48:36 - __main__ - INFO -   Batch 705: loss = 0.2054
+2026-05-06 00:48:38 - __main__ - INFO -   Batch 710: loss = 0.2361
+2026-05-06 00:48:39 - __main__ - INFO -   Batch 715: loss = 0.1451
+2026-05-06 00:48:41 - __main__ - INFO -   Batch 720: loss = 0.2057
+2026-05-06 00:48:42 - __main__ - INFO -   Batch 725: loss = 0.3255
+2026-05-06 00:48:44 - __main__ - INFO -   Batch 730: loss = 0.3919
+2026-05-06 00:48:45 - __main__ - INFO -   Batch 735: loss = 0.5794
+2026-05-06 00:48:47 - __main__ - INFO -   Batch 740: loss = 0.2888
+2026-05-06 00:48:48 - __main__ - INFO -   Batch 745: loss = 0.0986
+2026-05-06 00:48:50 - __main__ - INFO -   Batch 750: loss = 0.0826
+2026-05-06 00:48:51 - __main__ - INFO -   Batch 755: loss = 0.1781
+2026-05-06 00:48:53 - __main__ - INFO -   Batch 760: loss = 0.1543
+2026-05-06 00:48:54 - __main__ - INFO -   Batch 765: loss = 0.2245
+2026-05-06 00:48:56 - __main__ - INFO -   Batch 770: loss = 0.5286
+2026-05-06 00:48:57 - __main__ - INFO -   Batch 775: loss = 0.2323
+2026-05-06 00:48:59 - __main__ - INFO -   Batch 780: loss = 0.1646
+2026-05-06 00:49:00 - __main__ - INFO -   Batch 785: loss = 0.1935
+2026-05-06 00:49:02 - __main__ - INFO -   Batch 790: loss = 0.2974
+2026-05-06 00:49:03 - __main__ - INFO -   Batch 795: loss = 0.0833
+2026-05-06 00:49:05 - __main__ - INFO -   Batch 800: loss = 0.4125
+2026-05-06 00:49:06 - __main__ - INFO -   Batch 805: loss = 0.1954
+2026-05-06 00:49:08 - __main__ - INFO -   Batch 810: loss = 0.1325
+2026-05-06 00:49:09 - __main__ - INFO -   Batch 815: loss = 0.4538
+2026-05-06 00:49:11 - __main__ - INFO -   Batch 820: loss = 0.4338
+2026-05-06 00:49:12 - __main__ - INFO -   Batch 825: loss = 0.1898
+2026-05-06 00:49:14 - __main__ - INFO -   Batch 830: loss = 0.4260
+2026-05-06 00:49:15 - __main__ - INFO -   Batch 835: loss = 0.1980
+2026-05-06 00:49:17 - __main__ - INFO -   Batch 840: loss = 0.4074
+2026-05-06 00:49:18 - __main__ - INFO -   Batch 845: loss = 0.3775
+2026-05-06 00:49:20 - __main__ - INFO -   Batch 850: loss = 0.5190
+2026-05-06 00:49:21 - __main__ - INFO -   Batch 855: loss = 0.1763
+2026-05-06 00:49:23 - __main__ - INFO -   Batch 860: loss = 0.4657
+2026-05-06 00:49:24 - __main__ - INFO -   Batch 865: loss = 0.1803
+2026-05-06 00:49:25 - __main__ - INFO -   Batch 870: loss = 0.2690
+2026-05-06 00:49:27 - __main__ - INFO -   Batch 875: loss = 0.2815
+2026-05-06 00:49:28 - __main__ - INFO -   Batch 880: loss = 0.2445
+2026-05-06 00:49:30 - __main__ - INFO -   Batch 885: loss = 0.3634
+2026-05-06 00:49:31 - __main__ - INFO -   Batch 890: loss = 0.4385
+2026-05-06 00:49:33 - __main__ - INFO -   Batch 895: loss = 0.3618
+2026-05-06 00:49:34 - __main__ - INFO -   Batch 900: loss = 0.0996
+2026-05-06 00:49:36 - __main__ - INFO -   Batch 905: loss = 0.2381
+2026-05-06 00:49:37 - __main__ - INFO -   Batch 910: loss = 0.6405
+2026-05-06 00:49:39 - __main__ - INFO -   Batch 915: loss = 0.4418
+2026-05-06 00:49:40 - __main__ - INFO -   Batch 920: loss = 0.2600
+2026-05-06 00:49:42 - __main__ - INFO -   Batch 925: loss = 0.2388
+2026-05-06 00:49:43 - __main__ - INFO -   Batch 930: loss = 0.2087
+2026-05-06 00:49:45 - __main__ - INFO -   Batch 935: loss = 0.1301
+2026-05-06 00:49:46 - __main__ - INFO -   Batch 940: loss = 0.2703
+2026-05-06 00:49:48 - __main__ - INFO -   Batch 945: loss = 0.3493
+2026-05-06 00:49:49 - __main__ - INFO -   Batch 950: loss = 0.1069
+2026-05-06 00:49:51 - __main__ - INFO -   Batch 955: loss = 0.0544
+2026-05-06 00:49:52 - __main__ - INFO -   Batch 960: loss = 0.0950
+2026-05-06 00:49:54 - __main__ - INFO -   Batch 965: loss = 0.4801
+2026-05-06 00:49:55 - __main__ - INFO -   Batch 970: loss = 0.0712
+2026-05-06 00:49:57 - __main__ - INFO -   Batch 975: loss = 0.3017
+2026-05-06 00:49:59 - __main__ - INFO -   Batch 980: loss = 0.2459
+2026-05-06 00:50:00 - __main__ - INFO -   Batch 985: loss = 0.2820
+2026-05-06 00:50:01 - __main__ - INFO -   Batch 990: loss = 0.4388
+2026-05-06 00:50:03 - __main__ - INFO -   Batch 995: loss = 0.2995
+2026-05-06 00:50:04 - __main__ - INFO -   Batch 1000: loss = 0.5239
+2026-05-06 00:50:06 - __main__ - INFO -   Batch 1005: loss = 0.6438
+2026-05-06 00:50:07 - __main__ - INFO -   Batch 1010: loss = 0.7911
+2026-05-06 00:50:09 - __main__ - INFO -   Batch 1015: loss = 0.4361
+2026-05-06 00:50:10 - __main__ - INFO -   Batch 1020: loss = 0.2061
+2026-05-06 00:50:12 - __main__ - INFO -   Batch 1025: loss = 0.3217
+2026-05-06 00:50:13 - __main__ - INFO -   Batch 1030: loss = 0.1258
+2026-05-06 00:50:15 - __main__ - INFO -   Batch 1035: loss = 0.1411
+2026-05-06 00:50:16 - __main__ - INFO -   Batch 1040: loss = 0.3315
+2026-05-06 00:50:18 - __main__ - INFO -   Batch 1045: loss = 0.5957
+2026-05-06 00:50:19 - __main__ - INFO -   Batch 1050: loss = 0.6096
+2026-05-06 00:50:21 - __main__ - INFO -   Batch 1055: loss = 0.2174
+2026-05-06 00:50:22 - __main__ - INFO -   Batch 1060: loss = 0.3588
+2026-05-06 00:50:24 - __main__ - INFO -   Batch 1065: loss = 0.4206
+2026-05-06 00:50:25 - __main__ - INFO -   Batch 1070: loss = 0.1882
+2026-05-06 00:50:27 - __main__ - INFO -   Batch 1075: loss = 0.3314
+2026-05-06 00:50:28 - __main__ - INFO -   Batch 1080: loss = 0.2213
+2026-05-06 00:50:30 - __main__ - INFO -   Batch 1085: loss = 0.3557
+2026-05-06 00:50:31 - __main__ - INFO -   Batch 1090: loss = 0.3764
+2026-05-06 00:50:33 - __main__ - INFO -   Batch 1095: loss = 0.4338
+2026-05-06 00:50:34 - __main__ - INFO -   Batch 1100: loss = 0.0910
+2026-05-06 00:50:36 - __main__ - INFO -   Batch 1105: loss = 0.4440
+2026-05-06 00:50:37 - __main__ - INFO -   Batch 1110: loss = 0.3781
+2026-05-06 00:50:39 - __main__ - INFO -   Batch 1115: loss = 0.3838
+2026-05-06 00:50:40 - __main__ - INFO -   Batch 1120: loss = 0.1224
+2026-05-06 00:50:42 - __main__ - INFO -   Batch 1125: loss = 0.1581
+2026-05-06 00:50:43 - __main__ - INFO -   Batch 1130: loss = 0.4786
+2026-05-06 00:50:45 - __main__ - INFO -   Batch 1135: loss = 0.1065
+2026-05-06 00:50:46 - __main__ - INFO -   Batch 1140: loss = 0.1056
+2026-05-06 00:50:48 - __main__ - INFO -   Batch 1145: loss = 0.2136
+2026-05-06 00:50:49 - __main__ - INFO -   Batch 1150: loss = 0.3778
+2026-05-06 00:50:51 - __main__ - INFO -   Batch 1155: loss = 0.1585
+2026-05-06 00:50:52 - __main__ - INFO -   Batch 1160: loss = 0.1476
+2026-05-06 00:50:54 - __main__ - INFO -   Batch 1165: loss = 0.3169
+2026-05-06 00:50:55 - __main__ - INFO -   Batch 1170: loss = 0.1861
+2026-05-06 00:50:57 - __main__ - INFO -   Batch 1175: loss = 0.1375
+2026-05-06 00:50:58 - __main__ - INFO -   Batch 1180: loss = 0.2069
+2026-05-06 00:51:00 - __main__ - INFO -   Batch 1185: loss = 0.3097
+2026-05-06 00:51:01 - __main__ - INFO -   Batch 1190: loss = 0.4130
+2026-05-06 00:51:03 - __main__ - INFO -   Batch 1195: loss = 0.1765
+2026-05-06 00:51:04 - __main__ - INFO -   Batch 1200: loss = 0.1276
+2026-05-06 00:51:06 - __main__ - INFO -   Batch 1205: loss = 0.4245
+2026-05-06 00:51:07 - __main__ - INFO -   Batch 1210: loss = 0.1729
+2026-05-06 00:51:09 - __main__ - INFO -   Batch 1215: loss = 0.4185
+2026-05-06 00:51:10 - __main__ - INFO -   Batch 1220: loss = 0.1156
+2026-05-06 00:51:12 - __main__ - INFO -   Batch 1225: loss = 0.4653
+2026-05-06 00:51:13 - __main__ - INFO -   Batch 1230: loss = 0.4124
+2026-05-06 00:51:15 - __main__ - INFO -   Batch 1235: loss = 0.1583
+2026-05-06 00:51:16 - __main__ - INFO -   Batch 1240: loss = 0.0989
+2026-05-06 00:51:18 - __main__ - INFO -   Batch 1245: loss = 0.6181
+2026-05-06 00:51:19 - __main__ - INFO - Epoch 3 completed - Epoch Loss: 0.3009
+2026-05-06 00:51:19 - __main__ - INFO - 
+======================================================================
+2026-05-06 00:51:19 - __main__ - INFO - Training Complete
+2026-05-06 00:51:19 - __main__ - INFO - ======================================================================
+2026-05-06 00:51:19 - __main__ - INFO - Average loss: 0.3945
+2026-05-06 00:51:19 - __main__ - INFO - Total steps: 3747
+2026-05-06 00:51:19 - __main__ - INFO - Optimizer steps: 939
+2026-05-06 00:51:19 - __main__ - INFO - Training time: 3 epoch(s)
+2026-05-06 00:51:19 - __main__ - INFO - 
+[Post-Training Verification]
+2026-05-06 00:51:19 - __main__ - INFO -   Parameters that were trained: 160
+2026-05-06 00:51:19 - __main__ - INFO - ======================================================================
+
+2026-05-06 00:51:19 - __main__ - INFO - 
+Saving fine-tuned model...
+2026-05-06 00:51:28 - __main__ - INFO - Model and tokenizer saved to ./only_sn_tuned_model_llama2_7b_lr5e-5_lr5e-5_20260506_005119
+2026-05-06 00:51:28 - __main__ - INFO - ✓ Gradient hooks cleaned up
+2026-05-06 00:51:29 - __main__ - INFO - 
+======================================================================
+2026-05-06 00:51:29 - __main__ - INFO - SN-Tune Complete!
+2026-05-06 00:51:29 - __main__ - INFO - ======================================================================
+2026-05-06 00:51:29 - __main__ - INFO - Fine-tuned model saved to: ./only_sn_tuned_model_llama2_7b_lr5e-5_lr5e-5_20260506_005119
+2026-05-06 00:51:29 - __main__ - INFO - 
+Starting upload to Hugging Face: kmseong/Llama-2-7b-chat-hf_only_rsn_tuned_lr5e-5_basis_rotation
+2026-05-06 00:53:00 - __main__ - INFO - ✓ Upload completed: https://huggingface.co/kmseong/Llama-2-7b-chat-hf_only_rsn_tuned_lr5e-5_basis_rotation
+2026-05-06 00:53:00 - __main__ - INFO - ======================================================================
+

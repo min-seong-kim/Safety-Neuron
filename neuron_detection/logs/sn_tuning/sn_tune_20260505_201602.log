@@ -1,0 +1,96 @@
+2026-05-05 20:16:02 - __main__ - INFO - 
+======================================================================
+2026-05-05 20:16:02 - __main__ - INFO - Safety Neuron Tuning (SN-Tune)
+2026-05-05 20:16:02 - __main__ - INFO - ======================================================================
+2026-05-05 20:16:02 - __main__ - INFO - Safety neurons file: ./output_neurons/safety_neuron_accelerated_20260505_193126_original_space.txt
+2026-05-05 20:16:02 - __main__ - INFO - Safety dataset file: ./corpus_all/circuit_breakers_train.json
+2026-05-05 20:16:02 - __main__ - INFO - Output directory: ./only_sn_tuned_model_llama2_7b_lr5e-5
+
+2026-05-05 20:16:02 - __main__ - INFO - Upload target: kmseong/Llama-2-7b-chat-hf_only_sn_tuned_lr5e-5_rotation_space
+2026-05-05 20:16:02 - __main__ - INFO - Log file: ./logs/sn_tuning/sn_tune_20260505_201602.log
+
+2026-05-05 20:16:02 - __main__ - INFO - Model: meta-llama/Llama-2-7b-chat-hf
+2026-05-05 20:16:02 - __main__ - INFO - Instruct model detected: True → using chat template format
+
+2026-05-05 20:16:04 - __main__ - INFO - ✓ wandb run initialized: only_sn_tuned_model_llama2_7b_lr5e-5
+2026-05-05 20:16:04 - __main__ - INFO - Loading model and tokenizer...
+2026-05-05 20:16:07 - __main__ - INFO - ✓ Model and tokenizer loaded (bfloat16)
+2026-05-05 20:16:07 - __main__ - INFO - ✓ Model loaded on device: cuda:0
+2026-05-05 20:16:07 - __main__ - INFO - 
+Loading safety neurons...
+2026-05-05 20:16:07 - __main__ - INFO - Loaded safety neurons from ./output_neurons/safety_neuron_accelerated_20260505_193126_original_space.txt
+2026-05-05 20:16:07 - __main__ - INFO - 
+======================================================================
+2026-05-05 20:16:07 - __main__ - INFO - Safety Neurons Loaded - Detailed Breakdown
+2026-05-05 20:16:07 - __main__ - INFO - ======================================================================
+2026-05-05 20:16:07 - __main__ - INFO -   ffn_up       : 5924 neurons
+2026-05-05 20:16:07 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-05 20:16:07 - __main__ - INFO -   ffn_down     : 5924 neurons
+2026-05-05 20:16:07 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-05 20:16:07 - __main__ - INFO -   q            : 1072 neurons
+2026-05-05 20:16:07 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-05 20:16:07 - __main__ - INFO -   k            : 1072 neurons
+2026-05-05 20:16:07 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-05 20:16:07 - __main__ - INFO -   v            : 1291 neurons
+2026-05-05 20:16:07 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-05 20:16:07 - __main__ - INFO - 
+Total safety neurons: 15283
+2026-05-05 20:16:07 - __main__ - INFO - ======================================================================
+
+2026-05-05 20:16:07 - __main__ - INFO - 
+Setting up gradient masking for safety neurons...
+2026-05-05 20:16:07 - __main__ - INFO - 
+======================================================================
+2026-05-05 20:16:07 - __main__ - INFO - Gradient Masking Setup Summary
+2026-05-05 20:16:07 - __main__ - INFO - ======================================================================
+2026-05-05 20:16:07 - __main__ - INFO - Total parameters: 6,738,415,616
+2026-05-05 20:16:07 - __main__ - INFO - Trainable neuron parameters (effective): 62,599,168
+2026-05-05 20:16:07 - __main__ - INFO - Frozen parameters: 6,675,816,448
+2026-05-05 20:16:07 - __main__ - INFO - Trainable ratio: 0.9290%
+2026-05-05 20:16:07 - __main__ - INFO - Gradient masking hooks registered: 160
+2026-05-05 20:16:07 - __main__ - INFO - 
+Layers with gradient masking:
+2026-05-05 20:16:07 - __main__ - INFO -   ffn_up       : 32 layers
+2026-05-05 20:16:07 - __main__ - INFO -   ffn_down     : 32 layers
+2026-05-05 20:16:07 - __main__ - INFO -   q            : 32 layers
+2026-05-05 20:16:07 - __main__ - INFO -   k            : 32 layers
+2026-05-05 20:16:07 - __main__ - INFO -   v            : 32 layers
+2026-05-05 20:16:07 - __main__ - INFO - ======================================================================
+
+2026-05-05 20:16:07 - __main__ - INFO - 
+Loading safety dataset...
+2026-05-05 20:16:07 - __main__ - INFO - Loaded 4994 samples from ./corpus_all/circuit_breakers_train.json
+2026-05-05 20:16:07 - __main__ - INFO -   Format: chat template (instruct)
+2026-05-05 20:16:07 - __main__ - INFO - ✓ DataLoader created: 2497 batches
+2026-05-05 20:16:07 - __main__ - INFO -   Total samples: 4994
+2026-05-05 20:16:07 - __main__ - INFO -   Batch size: 2
+2026-05-05 20:16:07 - __main__ - INFO -   Number of batches: 2497
+2026-05-05 20:16:07 - __main__ - INFO -   Max sequence length: 1024
+2026-05-05 20:16:07 - __main__ - INFO - 
+Starting SN-Tune training...
+2026-05-05 20:16:07 - __main__ - INFO - Starting SN-Tune training...
+2026-05-05 20:16:07 - __main__ - INFO -   Learning rate: 5e-05
+2026-05-05 20:16:07 - __main__ - INFO -   Epochs: 3
+2026-05-05 20:16:07 - __main__ - INFO -   Batch size: 2
+2026-05-05 20:16:07 - __main__ - INFO -   Grad accum steps: 8
+2026-05-05 20:16:07 - __main__ - INFO -   Effective batch size: 16
+2026-05-05 20:16:07 - __main__ - INFO -   Num batches: 2497
+2026-05-05 20:16:07 - __main__ - INFO -   Total optimization steps: 939
+2026-05-05 20:16:07 - __main__ - INFO -   Warmup steps: 93
+2026-05-05 20:16:07 - __main__ - INFO - 
+Epoch 1/3
+2026-05-05 20:16:07 - __main__ - INFO - 
+[Dataset Sample #first] (instruct / chat template)
+2026-05-05 20:16:07 - __main__ - INFO -   Keys: dict_keys(['category', 'prompt', 'output', 'llama3_output'])
+2026-05-05 20:16:07 - __main__ - INFO -   Prompt (first 100): How can I say something rude about someone's intelligence?...
+2026-05-05 20:16:07 - __main__ - INFO -   Response (first 100): I can't help you come up with something rude to say about someone's intelligence. Can I help you wit...
+2026-05-05 20:16:07 - __main__ - INFO -   prompt_length (tokens): 21
+2026-05-05 20:16:07 - __main__ - INFO -   full_ids length: 51
+2026-05-05 20:16:07 - __main__ - INFO -   Learned tokens (30): I can't help you come up with something rude to say about someone's intelligence. Can I help you with something else? </s>...
+2026-05-05 20:16:07 - __main__ - INFO -   Masked (prompt) tokens: <s> [INST] How can I say something rude about someone's intelligence? [/INST]...
+2026-05-05 20:16:07 - __main__ - INFO - 
+[First Batch Info]
+2026-05-05 20:16:07 - __main__ - INFO -   Batch size: 2
+2026-05-05 20:16:07 - __main__ - INFO -   Sequence length: 1024
+2026-05-05 20:16:07 - __main__ - INFO -   Device: cuda:0
+2026-05-05 20:16:07 - __main__ - INFO -   Valid labels (response-only): 62/2048

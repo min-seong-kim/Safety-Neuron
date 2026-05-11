@@ -11,14 +11,14 @@ This script follows the original GitHub detection style:
 
 1) Safety neuron detection (from corpus_all/circuit_breakers_train.json)
 python safety_neuron_detection_v2.py 4994 \
-    --model_name meta-llama/Llama-2-7b-chat-hf \
-    --top_number_ffn 1200 \
-    --top_number_attn 200 \
+    --model_name kmseong/llama2_7b_chat-safety-rotation \
+    --top_number_ffn 400 \
+    --top_number_attn 80 \
     --safety_neuron
 
 2) Utility neuron detection (from Wikipedia)
 python safety_neuron_detection_v2.py 1000 \
-    --model_name meta-llama/Llama-2-7b-chat-hf \
+    --model_name kmseong/llama2_7b_chat-safety-rotation \
     --top_number_ffn 300 \
     --top_number_attn 50 \
     --utility_neuron
@@ -95,6 +95,7 @@ def initialize_model_and_tokenizer(selected_model_name: str):
         model_name,
         device_map={"": 0},
         torch_dtype=torch.bfloat16,
+        attn_implementation="eager",
     )
     model.eval()
 

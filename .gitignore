@@ -134,8 +134,15 @@ temp_training_data.json
 
 # Log files
 *.log
+<<<<<<< HEAD
 !logs/
 !logs/**
 !neuron_detection/logs/
 !neuron_detection/logs/*/
 !neuron_detection/logs/**
+=======
+!/logs/
+!/logs/**/*.log
+!/neuron_detection/logs/
+!/neuron_detection/logs/**/*.log
+>>>>>>> 1675b099c8a48e137e0f27c93553d80392f9bc19

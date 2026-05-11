@@ -1,0 +1,19 @@
+2026-05-05 23:06:56 - __main__ - INFO - Log directory: /home/yonsei_jong/Safety-Neuron/neuron_detection/logs/neuron_detection
+2026-05-05 23:06:56 - __main__ - INFO - Log file: /home/yonsei_jong/Safety-Neuron/neuron_detection/logs/neuron_detection/safety_neuron_20260505_230656.log
+2026-05-05 23:06:56 - __main__ - INFO - Using model: meta-llama/Llama-2-7b-chat-hf
+2026-05-05 23:06:56 - __main__ - INFO - TOP_NUMBER_FFN: 1200, TOP_NUMBER_ATTN: 200
+2026-05-05 23:06:56 - __main__ - INFO - USE_BASIS_ROTATION_SCORE: True
+2026-05-05 23:06:56 - __main__ - INFO - BASIS_DIR: /home/yonsei_jong/Safety-WaRP-LLM/checkpoints/phase1_20260505_164049/basis
+2026-05-05 23:06:56 - __main__ - INFO - BASIS_LAYER_TYPES: ['attn_k', 'attn_q', 'attn_v', 'ffn_down', 'ffn_up']
+2026-05-05 23:07:19 - __main__ - INFO - ======================================================================
+2026-05-05 23:07:19 - __main__ - INFO - WSR-style basis-rotated scoring hooks registered
+2026-05-05 23:07:19 - __main__ - INFO -   - basis_dir: /home/yonsei_jong/Safety-WaRP-LLM/checkpoints/phase1_20260505_164049/basis
+2026-05-05 23:07:19 - __main__ - INFO -   - layer_types: ['attn_k', 'attn_q', 'attn_v', 'ffn_down', 'ffn_up']
+2026-05-05 23:07:19 - __main__ - INFO -   - hooks loaded: 160
+2026-05-05 23:07:19 - __main__ - INFO -   - skipped: 0
+2026-05-05 23:07:19 - __main__ - INFO -   - mismatched: 0
+2026-05-05 23:07:19 - __main__ - INFO -   - model forward/output is unchanged; only _last_*_score is overwritten
+2026-05-05 23:07:19 - __main__ - INFO - ======================================================================
+2026-05-05 23:07:19 - __main__ - INFO - [Mode] Safety Neuron Detection
+2026-05-05 23:07:19 - __main__ - INFO - Number of prompts to process: 4994
+2026-05-05 23:07:19 - __main__ - INFO - Processing 4994 prompts from /home/yonsei_jong/Safety-Neuron/neuron_detection/corpus_all/circuit_breakers_train.json
