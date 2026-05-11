@@ -1,0 +1,7 @@
+2026-05-06 23:35:48 - __main__ - INFO - 
+======================================================================
+2026-05-06 23:35:48 - __main__ - INFO -   🚀 GSM8K Fine-tuning with Safety Neuron Freezing
+2026-05-06 23:35:48 - __main__ - INFO - ======================================================================
+
+2026-05-06 23:35:48 - __main__ - INFO - Log file: ./logs/safety_neuron_gsm8k/finetune_gsm8k_freeze_sn_20260506_233548.log
+2026-05-06 23:35:48 - __main__ - ERROR - Safety neurons file not found: /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/critical_safety_neuron_20260505_195259.txt

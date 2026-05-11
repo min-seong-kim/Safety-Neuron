@@ -136,3 +136,6 @@ temp_training_data.json
 *.log
 !logs/
 !logs/**
+!neuron_detection/logs/
+!neuron_detection/logs/*/
+!neuron_detection/logs/**

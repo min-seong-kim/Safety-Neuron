@@ -1,0 +1,267 @@
+2026-05-03 15:48:40 - __main__ - INFO - 
+======================================================================
+2026-05-03 15:48:40 - __main__ - INFO -   🚀 Hendrycks MATH Fine-tuning with Safety Neuron Freezing
+2026-05-03 15:48:40 - __main__ - INFO - ======================================================================
+
+2026-05-03 15:48:40 - __main__ - INFO - Log file: ./logs/safety_neuron_math_freeze/finetune_math_freeze_sn_20260503_154840.log
+2026-05-03 15:48:40 - __main__ - INFO - ⚙️  Configuration:
+2026-05-03 15:48:40 - __main__ - INFO -    ├─ Model:               kmseong/llama-3-8b-instruct-only-rsn-tuned-lr5e-5
+2026-05-03 15:48:40 - __main__ - INFO -    ├─ Safety neurons file: ./output_neurons/critical_safety_neuron_20260503_070748.txt
+2026-05-03 15:48:40 - __main__ - INFO -    ├─ Input formatting:    chat template
+2026-05-03 15:48:40 - __main__ - INFO -    ├─ Subjects:            all
+2026-05-03 15:48:40 - __main__ - INFO -    ├─ Levels:              all
+2026-05-03 15:48:40 - __main__ - INFO -    ├─ Train samples:       0
+2026-05-03 15:48:40 - __main__ - INFO -    ├─ Batch size:          4
+2026-05-03 15:48:40 - __main__ - INFO -    ├─ Grad accum:          4
+2026-05-03 15:48:40 - __main__ - INFO -    ├─ Epochs:              3
+2026-05-03 15:48:40 - __main__ - INFO -    ├─ LR:                  3e-05
+2026-05-03 15:48:40 - __main__ - INFO -    ├─ Strategy:            Freeze safety neurons, train others
+2026-05-03 15:48:40 - __main__ - INFO -    └─ Output dir:          ./math_ft_chat_after_rsn_tune_freeze_rsn_lr3e-5
+2026-05-03 15:48:40 - __main__ - INFO - 
+======================================================================
+2026-05-03 15:48:40 - __main__ - INFO -   [1/5] Loading Tokenizer
+2026-05-03 15:48:40 - __main__ - INFO - ======================================================================
+
+2026-05-03 15:48:40 - __main__ - INFO - ✓ Tokenizer loaded from local files
+2026-05-03 15:48:40 - __main__ - INFO - 
+======================================================================
+2026-05-03 15:48:40 - __main__ - INFO -   [2/5] Loading Model (bf16)
+2026-05-03 15:48:40 - __main__ - INFO - ======================================================================
+
+2026-05-03 15:48:43 - __main__ - INFO - ✓ Model loaded from local files
+2026-05-03 15:48:43 - __main__ - INFO - ✅ Model loaded: 8.03B parameters, dtype=torch.bfloat16
+2026-05-03 15:48:43 - __main__ - INFO - 
+======================================================================
+2026-05-03 15:48:43 - __main__ - INFO -   [3/5] Loading Safety Neurons and Setting up Freezing
+2026-05-03 15:48:43 - __main__ - INFO - ======================================================================
+
+2026-05-03 15:48:43 - __main__ - INFO - Loaded safety neurons from ./output_neurons/critical_safety_neuron_20260503_070748.txt
+2026-05-03 15:48:43 - __main__ - INFO - 
+======================================================================
+2026-05-03 15:48:43 - __main__ - INFO - Safety Neurons Loaded - Detailed Breakdown
+2026-05-03 15:48:43 - __main__ - INFO - ======================================================================
+2026-05-03 15:48:43 - __main__ - INFO -   ffn_up       : 6184 neurons
+2026-05-03 15:48:43 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-03 15:48:43 - __main__ - INFO -   ffn_down     : 6184 neurons
+2026-05-03 15:48:43 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-03 15:48:43 - __main__ - INFO -   q            : 3329 neurons
+2026-05-03 15:48:43 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-03 15:48:43 - __main__ - INFO -   k            : 3329 neurons
+2026-05-03 15:48:43 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-03 15:48:43 - __main__ - INFO -   v            : 1183 neurons
+2026-05-03 15:48:43 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-03 15:48:43 - __main__ - INFO - 
+Total safety neurons: 20209
+2026-05-03 15:48:43 - __main__ - INFO - ======================================================================
+
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=0: remapped 60 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.0.self_attn.k_proj.weight layer=0 module=k: dropped 13 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=0: remapped 29 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.0.self_attn.v_proj.weight layer=0 module=v: dropped 17 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=1: remapped 83 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.1.self_attn.k_proj.weight layer=1 module=k: dropped 36 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=1: remapped 79 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.1.self_attn.v_proj.weight layer=1 module=v: dropped 29 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=2: remapped 130 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.2.self_attn.k_proj.weight layer=2 module=k: dropped 90 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=2: remapped 11 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.2.self_attn.v_proj.weight layer=2 module=v: dropped 7 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=3: remapped 105 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.3.self_attn.k_proj.weight layer=3 module=k: dropped 74 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=3: remapped 31 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.3.self_attn.v_proj.weight layer=3 module=v: dropped 17 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=4: remapped 92 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.4.self_attn.k_proj.weight layer=4 module=k: dropped 50 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=4: remapped 25 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.4.self_attn.v_proj.weight layer=4 module=v: dropped 11 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=5: remapped 63 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.5.self_attn.k_proj.weight layer=5 module=k: dropped 37 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=5: remapped 30 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.5.self_attn.v_proj.weight layer=5 module=v: dropped 18 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=6: remapped 88 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.6.self_attn.k_proj.weight layer=6 module=k: dropped 52 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=6: remapped 38 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.6.self_attn.v_proj.weight layer=6 module=v: dropped 23 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=7: remapped 70 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.7.self_attn.k_proj.weight layer=7 module=k: dropped 39 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=7: remapped 44 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.7.self_attn.v_proj.weight layer=7 module=v: dropped 30 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=8: remapped 55 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.8.self_attn.k_proj.weight layer=8 module=k: dropped 37 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=8: remapped 43 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.8.self_attn.v_proj.weight layer=8 module=v: dropped 28 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=9: remapped 76 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.9.self_attn.k_proj.weight layer=9 module=k: dropped 37 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=9: remapped 42 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.9.self_attn.v_proj.weight layer=9 module=v: dropped 28 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=10: remapped 58 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.10.self_attn.k_proj.weight layer=10 module=k: dropped 37 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=10: remapped 37 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.10.self_attn.v_proj.weight layer=10 module=v: dropped 24 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=11: remapped 58 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.11.self_attn.k_proj.weight layer=11 module=k: dropped 34 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=11: remapped 52 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.11.self_attn.v_proj.weight layer=11 module=v: dropped 35 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=12: remapped 60 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.12.self_attn.k_proj.weight layer=12 module=k: dropped 28 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=12: remapped 38 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.12.self_attn.v_proj.weight layer=12 module=v: dropped 17 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=13: remapped 63 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.13.self_attn.k_proj.weight layer=13 module=k: dropped 45 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=13: remapped 35 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.13.self_attn.v_proj.weight layer=13 module=v: dropped 22 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=14: remapped 82 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.14.self_attn.k_proj.weight layer=14 module=k: dropped 42 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=14: remapped 35 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.14.self_attn.v_proj.weight layer=14 module=v: dropped 20 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=15: remapped 67 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.15.self_attn.k_proj.weight layer=15 module=k: dropped 37 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=15: remapped 21 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.15.self_attn.v_proj.weight layer=15 module=v: dropped 14 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=16: remapped 64 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.16.self_attn.k_proj.weight layer=16 module=k: dropped 38 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=16: remapped 24 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.16.self_attn.v_proj.weight layer=16 module=v: dropped 9 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=17: remapped 84 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.17.self_attn.k_proj.weight layer=17 module=k: dropped 52 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=17: remapped 22 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.17.self_attn.v_proj.weight layer=17 module=v: dropped 14 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=18: remapped 93 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.18.self_attn.k_proj.weight layer=18 module=k: dropped 61 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=18: remapped 14 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.18.self_attn.v_proj.weight layer=18 module=v: dropped 9 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=19: remapped 91 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.19.self_attn.k_proj.weight layer=19 module=k: dropped 58 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=19: remapped 9 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.19.self_attn.v_proj.weight layer=19 module=v: dropped 5 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=20: remapped 87 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.20.self_attn.k_proj.weight layer=20 module=k: dropped 64 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=20: remapped 7 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.20.self_attn.v_proj.weight layer=20 module=v: dropped 3 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=21: remapped 85 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.21.self_attn.k_proj.weight layer=21 module=k: dropped 55 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=21: remapped 25 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.21.self_attn.v_proj.weight layer=21 module=v: dropped 5 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=22: remapped 73 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.22.self_attn.k_proj.weight layer=22 module=k: dropped 52 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=22: remapped 5 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.22.self_attn.v_proj.weight layer=22 module=v: dropped 2 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=23: remapped 104 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.23.self_attn.k_proj.weight layer=23 module=k: dropped 69 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=23: remapped 7 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.23.self_attn.v_proj.weight layer=23 module=v: dropped 5 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=24: remapped 96 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.24.self_attn.k_proj.weight layer=24 module=k: dropped 67 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=24: remapped 16 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.24.self_attn.v_proj.weight layer=24 module=v: dropped 6 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=25: remapped 90 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.25.self_attn.k_proj.weight layer=25 module=k: dropped 59 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=25: remapped 10 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.25.self_attn.v_proj.weight layer=25 module=v: dropped 5 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=26: remapped 82 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.26.self_attn.k_proj.weight layer=26 module=k: dropped 51 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=26: remapped 12 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.26.self_attn.v_proj.weight layer=26 module=v: dropped 8 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=27: remapped 89 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.27.self_attn.k_proj.weight layer=27 module=k: dropped 54 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=27: remapped 11 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.27.self_attn.v_proj.weight layer=27 module=v: dropped 3 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=28: remapped 64 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.28.self_attn.k_proj.weight layer=28 module=k: dropped 32 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=28: remapped 8 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.28.self_attn.v_proj.weight layer=28 module=v: dropped 2 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=29: remapped 89 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.29.self_attn.k_proj.weight layer=29 module=k: dropped 62 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=29: remapped 16 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.29.self_attn.v_proj.weight layer=29 module=v: dropped 7 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=30: remapped 65 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.30.self_attn.k_proj.weight layer=30 module=k: dropped 38 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=30: remapped 7 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.30.self_attn.v_proj.weight layer=30 module=v: dropped 2 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] k layer=31: remapped 67 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.31.self_attn.k_proj.weight layer=31 module=k: dropped 29 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - [IndexRemap] v layer=31: remapped 76 indices from expanded attention space to KV space
+2026-05-03 15:48:43 - __main__ - WARNING - [IndexSanitize] model.layers.31.self_attn.v_proj.weight layer=31 module=v: dropped 12 out-of-range indices (axis_size=1024)
+2026-05-03 15:48:43 - __main__ - INFO - 
+======================================================================
+2026-05-03 15:48:43 - __main__ - INFO - Safety Neuron Freezing Setup Summary
+2026-05-03 15:48:43 - __main__ - INFO - ======================================================================
+2026-05-03 15:48:43 - __main__ - INFO - Total parameters:                        8,030,261,248
+2026-05-03 15:48:43 - __main__ - INFO - Frozen safety neuron params (effective): 74,723,328
+2026-05-03 15:48:43 - __main__ - INFO - Trainable parameters:                    8,030,261,248
+2026-05-03 15:48:43 - __main__ - INFO - Trainable ratio:            100.0000%
+2026-05-03 15:48:43 - __main__ - INFO - Frozen safety neuron ratio: 0.9305%
+2026-05-03 15:48:43 - __main__ - INFO - 
+Layers with frozen safety neurons:
+2026-05-03 15:48:43 - __main__ - INFO -   ffn_up       : 32 layers
+2026-05-03 15:48:43 - __main__ - INFO -   ffn_down     : 32 layers
+2026-05-03 15:48:43 - __main__ - INFO -   q            : 32 layers
+2026-05-03 15:48:43 - __main__ - INFO -   k            : 32 layers
+2026-05-03 15:48:43 - __main__ - INFO -   v            : 32 layers
+2026-05-03 15:48:43 - __main__ - INFO - ======================================================================
+
+2026-05-03 15:48:43 - __main__ - INFO - ✅ Freezing complete — trainable: 8.03B (100.00%)
+2026-05-03 15:48:43 - __main__ - INFO - 
+======================================================================
+2026-05-03 15:48:43 - __main__ - INFO -   [4/5] Loading Hendrycks MATH Dataset
+2026-05-03 15:48:43 - __main__ - INFO - ======================================================================
+
+2026-05-03 15:48:55 - __main__ - INFO - ✅ Train samples after filtering: 7500
+2026-05-03 15:48:55 - __main__ - INFO - 
+======================================================================
+2026-05-03 15:48:55 - __main__ - INFO -   [5/5] Training
+2026-05-03 15:48:55 - __main__ - INFO - ======================================================================
+
+2026-05-03 15:48:55 - __main__ - INFO - Starting training...
+2026-05-03 16:06:47 - __main__ - INFO - 
+======================================================================
+2026-05-03 16:06:47 - __main__ - INFO -   Saving Fine-tuned Model
+2026-05-03 16:06:47 - __main__ - INFO - ======================================================================
+
+2026-05-03 16:06:47 - __main__ - INFO - Step 1: Preparing model for saving...
+2026-05-03 16:06:48 - __main__ - INFO - Step 2: Moving model to CPU for safe serialization...
+2026-05-03 16:06:52 - __main__ - INFO - Step 3: Saving model weights...
+2026-05-03 16:06:52 - __main__ - INFO -    ├─ Using safe_serialization=True (safetensors)
+2026-05-03 16:06:52 - __main__ - INFO -    ├─ Output directory: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/math_ft_chat_after_rsn_tune_freeze_rsn_lr3e-5_20260503_160647
+2026-05-03 16:07:05 - __main__ - INFO -    └─ ✅ Model weights saved successfully
+2026-05-03 16:07:05 - __main__ - INFO - Step 4: Saving tokenizer...
+2026-05-03 16:07:05 - __main__ - INFO -    └─ ✅ Tokenizer saved
+2026-05-03 16:07:05 - __main__ - INFO - Step 5: Saving model config and generation settings...
+2026-05-03 16:07:05 - __main__ - INFO -    └─ ✅ Configs saved
+2026-05-03 16:07:05 - __main__ - INFO - Step 6: Verifying saved model integrity...
+2026-05-03 16:07:05 - __main__ - INFO -    ├─ config.json: 0.84 KB ✅
+2026-05-03 16:07:05 - __main__ - INFO -    ├─ tokenizer_config.json: 49.37 KB ✅
+2026-05-03 16:07:05 - __main__ - INFO -    ├─ tokenizer.json: 16806.56 KB ✅
+2026-05-03 16:07:05 - __main__ - INFO -    ├─ ✅ Found 5 model shard file(s)
+2026-05-03 16:07:05 - __main__ - INFO - 
+📦 Saved files:
+2026-05-03 16:07:05 - __main__ - INFO -    ├─ chat_template.jinja: 0.00 GB
+2026-05-03 16:07:05 - __main__ - INFO -    ├─ config.json: 0.00 GB
+2026-05-03 16:07:05 - __main__ - INFO -    ├─ generation_config.json: 0.00 GB
+2026-05-03 16:07:05 - __main__ - INFO -    ├─ model-00001-of-00005.safetensors: 3.99 GB
+2026-05-03 16:07:05 - __main__ - INFO -    ├─ model-00002-of-00005.safetensors: 3.93 GB
+2026-05-03 16:07:05 - __main__ - INFO -    ├─ model-00003-of-00005.safetensors: 3.93 GB
+2026-05-03 16:07:05 - __main__ - INFO -    ├─ model-00004-of-00005.safetensors: 3.17 GB
+2026-05-03 16:07:05 - __main__ - INFO -    ├─ model-00005-of-00005.safetensors: 1.05 GB
+2026-05-03 16:07:05 - __main__ - INFO -    ├─ model.safetensors.index.json: 0.00 GB
+2026-05-03 16:07:05 - __main__ - INFO -    ├─ special_tokens_map.json: 0.00 GB
+2026-05-03 16:07:05 - __main__ - INFO -    ├─ tokenizer.json: 0.02 GB
+2026-05-03 16:07:05 - __main__ - INFO -    ├─ tokenizer_config.json: 0.00 GB
+2026-05-03 16:07:05 - __main__ - INFO -    └─ Total size: 16.08 GB ✅
+2026-05-03 16:07:05 - __main__ - INFO - 
+Step 7: Final verification - attempting to load saved model...
+2026-05-03 16:07:05 - __main__ - INFO -    └─ ✅ Model verified successfully!
+2026-05-03 16:07:05 - __main__ - INFO - 
+✅✅✅ Fine-tuned model saved and verified successfully!
+2026-05-03 16:07:05 - __main__ - INFO -    Output directory: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/math_ft_chat_after_rsn_tune_freeze_rsn_lr3e-5_20260503_160647
+2026-05-03 16:07:05 - __main__ - INFO -    Total size: 16.08 GB
+2026-05-03 16:07:05 - __main__ - INFO -    Status: ✅ READY FOR EVALUATION
+2026-05-03 16:07:05 - __main__ - INFO - ✅ Config saved to ./math_ft_chat_after_rsn_tune_freeze_rsn_lr3e-5_20260503_160647/finetune_config.json
+2026-05-03 16:07:05 - __main__ - INFO - 
+Starting upload to Hugging Face: kmseong/llama-3-8b-instruct_rsn_tuned_math_ft_lr3e-5
+2026-05-03 16:10:43 - __main__ - INFO - ✅ Upload completed: https://huggingface.co/kmseong/llama-3-8b-instruct_rsn_tuned_math_ft_lr3e-5
+2026-05-03 16:10:43 - __main__ - INFO - 
+======================================================================
+2026-05-03 16:10:43 - __main__ - INFO -   ✅ Fine-tuning Complete!
+2026-05-03 16:10:43 - __main__ - INFO - ======================================================================
+

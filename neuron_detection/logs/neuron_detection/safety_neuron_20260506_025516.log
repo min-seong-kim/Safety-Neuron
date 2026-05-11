@@ -1,0 +1,20 @@
+2026-05-06 02:55:16 - __main__ - INFO - Log directory: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection
+2026-05-06 02:55:16 - __main__ - INFO - Log file: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection/safety_neuron_20260506_025516.log
+2026-05-06 02:55:16 - __main__ - INFO - Using model: meta-llama/Llama-2-13b-chat-hf
+2026-05-06 02:55:16 - __main__ - INFO - TOP_NUMBER_FFN: 1200, TOP_NUMBER_ATTN: 200
+2026-05-06 02:55:16 - __main__ - INFO - USE_BASIS_ROTATION_SCORE: True
+2026-05-06 02:55:16 - __main__ - INFO - BASIS_DIR: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-WaRP-LLM/checkpoints/phase1_20260506_014300/basis
+2026-05-06 02:55:16 - __main__ - INFO - BASIS_LAYER_TYPES: ['attn_k', 'attn_q', 'attn_v', 'ffn_down', 'ffn_up']
+2026-05-06 02:56:05 - __main__ - INFO - ======================================================================
+2026-05-06 02:56:05 - __main__ - INFO - WSR-style basis-rotated scoring hooks registered
+2026-05-06 02:56:05 - __main__ - INFO -   - basis_dir: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-WaRP-LLM/checkpoints/phase1_20260506_014300/basis
+2026-05-06 02:56:05 - __main__ - INFO -   - layer_types: ['attn_k', 'attn_q', 'attn_v', 'ffn_down', 'ffn_up']
+2026-05-06 02:56:05 - __main__ - INFO -   - hooks loaded: 200
+2026-05-06 02:56:05 - __main__ - INFO -   - skipped: 0
+2026-05-06 02:56:05 - __main__ - INFO -   - mismatched: 0
+2026-05-06 02:56:05 - __main__ - INFO -   - model forward/output is unchanged; only _last_*_score is overwritten
+2026-05-06 02:56:05 - __main__ - INFO -   - [opt] M=U@W.T precomputed; U cached on GPU (no per-prompt transfers)
+2026-05-06 02:56:05 - __main__ - INFO - ======================================================================
+2026-05-06 02:56:05 - __main__ - INFO - [Mode] Safety Neuron Detection
+2026-05-06 02:56:05 - __main__ - INFO - Number of prompts to process: 4994
+2026-05-06 02:56:05 - __main__ - INFO - Processing 4994 prompts from /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/corpus_all/circuit_breakers_train.json

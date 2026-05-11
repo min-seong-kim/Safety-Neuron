@@ -1,0 +1,25 @@
+2026-05-03 14:43:10 - __main__ - INFO - 
+======================================================================
+2026-05-03 14:43:10 - __main__ - INFO -   🚀 Full Parameter Hendrycks MATH Fine-tuning (SN-Tuned Model)
+2026-05-03 14:43:10 - __main__ - INFO - ======================================================================
+
+2026-05-03 14:43:10 - __main__ - INFO - Log file: ./logs/safety_neuron_math/finetune_math_20260503_144310.log
+2026-05-03 14:43:10 - __main__ - INFO - ⚙️  Configuration:
+2026-05-03 14:43:10 - __main__ - INFO -    ├─ Model: kmseong/Llama-3.1-8B-Instruct-ssft_lr5e-5
+2026-05-03 14:43:10 - __main__ - INFO -    ├─ Input formatting: chat template
+2026-05-03 14:43:10 - __main__ - INFO -    ├─ Subjects: all
+2026-05-03 14:43:10 - __main__ - INFO -    ├─ Levels: all
+2026-05-03 14:43:10 - __main__ - INFO -    ├─ Train samples: 0
+2026-05-03 14:43:10 - __main__ - INFO -    ├─ Safety mix ratio: 0.0
+2026-05-03 14:43:10 - __main__ - INFO -    ├─ Batch size: 4
+2026-05-03 14:43:10 - __main__ - INFO -    ├─ Grad accum: 4
+2026-05-03 14:43:10 - __main__ - INFO -    ├─ Epochs: 3
+2026-05-03 14:43:10 - __main__ - INFO -    ├─ LR: 3e-05
+2026-05-03 14:43:10 - __main__ - INFO -    └─ Output dir: ./full_finetune_MATH_8b_instruct-lr3e-5
+2026-05-03 14:43:17 - __main__ - INFO - Total parameters: 8,030,261,248
+2026-05-03 14:43:17 - __main__ - INFO - Trainable parameters: 8,030,261,248 (100.00%)
+2026-05-03 14:43:33 - __main__ - INFO - Starting training...
+2026-05-03 15:00:39 - __main__ - INFO - ✅ Fine-tuned model saved to ./full_finetune_MATH_8b_instruct-lr3e-5
+2026-05-03 15:00:39 - __main__ - INFO - ✅ Config saved to ./full_finetune_MATH_8b_instruct-lr3e-5/finetune_config.json
+2026-05-03 15:00:39 - __main__ - INFO - 
+Starting upload to Hugging Face: kmseong/llama3_1_8b_instruct_MATH_lr3e-5

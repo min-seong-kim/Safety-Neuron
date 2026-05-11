@@ -1,0 +1,14 @@
+2026-05-02 19:34:20 - __main__ - INFO - 
+======================================================================
+2026-05-02 19:34:20 - __main__ - INFO - Safety Neuron Tuning (SN-Tune)
+2026-05-02 19:34:20 - __main__ - INFO - ======================================================================
+2026-05-02 19:34:20 - __main__ - INFO - Safety neurons file: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/safety_neuron_accelerated_20260502_172603.txt
+2026-05-02 19:34:20 - __main__ - INFO - Safety dataset file: ./corpus_all/circuit_breakers_train.json
+2026-05-02 19:34:20 - __main__ - INFO - Output directory: ./only_sn_tuned_model_llama3_2_3b_lr5e-5
+
+2026-05-02 19:34:20 - __main__ - INFO - Upload target: kmseong/llama3_2_3b_instruct_only_sn_tuned_lr5e-5
+2026-05-02 19:34:20 - __main__ - INFO - Log file: ./logs/sn_tuning/sn_tune_20260502_193420.log
+
+2026-05-02 19:34:20 - __main__ - INFO - Model: meta-llama/Llama-3.2-3B-Instruct
+2026-05-02 19:34:20 - __main__ - INFO - Instruct model detected: True → using chat template format
+

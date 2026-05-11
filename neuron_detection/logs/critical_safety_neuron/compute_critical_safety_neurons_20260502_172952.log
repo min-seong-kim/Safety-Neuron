@@ -1,0 +1,84 @@
+2026-05-02 17:29:52 - __main__ - INFO - Log directory: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/critical_safety_neuron
+2026-05-02 17:29:52 - __main__ - INFO - Log file: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/critical_safety_neuron/compute_critical_safety_neurons_20260502_172952.log
+2026-05-02 17:29:52 - __main__ - INFO - 
+================================================================================
+2026-05-02 17:29:52 - __main__ - INFO - Critical Safety Neuron Computation
+2026-05-02 17:29:52 - __main__ - INFO - ================================================================================
+2026-05-02 17:29:52 - __main__ - INFO - 
+Formula: N_critical = N_safe - (N_safe ∩ N_utility)
+2026-05-02 17:29:52 - __main__ - INFO - Description: Safety neurons that do NOT overlap with utility neurons
+2026-05-02 17:29:52 - __main__ - INFO - 
+Loading safety neurons...
+2026-05-02 17:29:52 - __main__ - INFO - Loading utility neurons...
+2026-05-02 17:29:52 - __main__ - INFO - 
+Computing Critical Safety Neurons...
+2026-05-02 17:29:52 - __main__ - INFO - Computing statistics...
+2026-05-02 17:29:52 - __main__ - INFO - 
+Saving Critical Safety Neurons to /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/critical_safety_neuron_20260502_172952.txt...
+2026-05-02 17:29:52 - __main__ - INFO - 
+================================================================================
+2026-05-02 17:29:52 - __main__ - INFO - Neuron Statistics
+2026-05-02 17:29:52 - __main__ - INFO - ================================================================================
+2026-05-02 17:29:52 - __main__ - INFO - 
+📊 Overall Summary:
+2026-05-02 17:29:52 - __main__ - INFO - Category             FFN        Attention  Total     
+2026-05-02 17:29:52 - __main__ - INFO - --------------------------------------------------
+2026-05-02 17:29:52 - __main__ - INFO - safety               6606       3473       10079     
+2026-05-02 17:29:52 - __main__ - INFO - utility              1140       768        1908      
+2026-05-02 17:29:52 - __main__ - INFO - critical             5476       2709       8185      
+2026-05-02 17:29:52 - __main__ - INFO - overlap              1130       764        1894      
+2026-05-02 17:29:52 - __main__ - INFO - 
+🔍 Per-Layer Breakdown (showing layers with critical neurons > 0):
+2026-05-02 17:29:52 - __main__ - INFO - Layer      Safety     Utility    Overlap    Critical  
+2026-05-02 17:29:52 - __main__ - INFO - ----------------------------------------------------
+2026-05-02 17:29:52 - __main__ - INFO - 0          366        75         75         291       
+2026-05-02 17:29:52 - __main__ - INFO - 1          379        71         71         308       
+2026-05-02 17:29:52 - __main__ - INFO - 2          329        83         83         246       
+2026-05-02 17:29:52 - __main__ - INFO - 3          295        96         96         199       
+2026-05-02 17:29:52 - __main__ - INFO - 4          353        69         69         284       
+2026-05-02 17:29:52 - __main__ - INFO - 5          277        47         45         232       
+2026-05-02 17:29:52 - __main__ - INFO - 6          299        43         43         256       
+2026-05-02 17:29:52 - __main__ - INFO - 7          335        40         40         295       
+2026-05-02 17:29:52 - __main__ - INFO - 8          330        48         46         284       
+2026-05-02 17:29:52 - __main__ - INFO - 9          288        40         40         248       
+2026-05-02 17:29:52 - __main__ - INFO - 10         341        44         44         297       
+2026-05-02 17:29:52 - __main__ - INFO - 11         342        83         83         259       
+2026-05-02 17:29:52 - __main__ - INFO - 12         305        57         55         250       
+2026-05-02 17:29:52 - __main__ - INFO - 13         299        103        103        196       
+2026-05-02 17:29:52 - __main__ - INFO - 14         273        93         91         182       
+2026-05-02 17:29:52 - __main__ - INFO - 15         216        84         84         132       
+2026-05-02 17:29:52 - __main__ - INFO - 16         219        83         83         136       
+2026-05-02 17:29:52 - __main__ - INFO - 17         221        67         67         154       
+2026-05-02 17:29:52 - __main__ - INFO - 18         191        63         63         128       
+2026-05-02 17:29:52 - __main__ - INFO - 19         278        82         81         197       
+2026-05-02 17:29:52 - __main__ - INFO - 20         217        56         56         161       
+2026-05-02 17:29:52 - __main__ - INFO - 21         255        70         70         185       
+2026-05-02 17:29:52 - __main__ - INFO - 22         290        92         92         198       
+2026-05-02 17:29:52 - __main__ - INFO - 23         326        76         76         250       
+2026-05-02 17:29:52 - __main__ - INFO - 24         627        56         55         572       
+2026-05-02 17:29:52 - __main__ - INFO - 25         969        81         81         888       
+2026-05-02 17:29:52 - __main__ - INFO - 26         978        57         57         921       
+2026-05-02 17:29:52 - __main__ - INFO - 27         481        49         45         436       
+2026-05-02 17:29:52 - __main__ - INFO - 
+💡 Key Insights:
+2026-05-02 17:29:52 - __main__ - INFO -   • Overlap between Safety and Utility: 18.79% of Safety neurons
+2026-05-02 17:29:52 - __main__ - INFO -   • Critical neurons retained: 81.21% of Safety neurons
+2026-05-02 17:29:52 - __main__ - INFO -   • Safety vs Utility neurons ratio: 528.25%
+2026-05-02 17:29:52 - __main__ - INFO - 
+📈 Counts:
+2026-05-02 17:29:52 - __main__ - INFO -   • Safety neurons: 10079
+2026-05-02 17:29:52 - __main__ - INFO -   • Utility neurons: 1908
+2026-05-02 17:29:52 - __main__ - INFO -   • Overlapping neurons: 1894
+2026-05-02 17:29:52 - __main__ - INFO -   • Critical neurons (Safety - Overlap): 8185
+2026-05-02 17:29:52 - __main__ - INFO - Using model config for denominator: meta-llama/Llama-3.1-8B
+2026-05-02 17:29:52 - __main__ - INFO -   • Total model neurons (q/k/v/o + gate/up/down): 1,376,256
+2026-05-02 17:29:52 - __main__ - INFO -   • Critical neurons over total model neurons: 0.5947%
+2026-05-02 17:29:52 - __main__ - INFO - 
+✅ Critical Safety Neurons saved to: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/critical_safety_neuron_20260502_172952.txt
+2026-05-02 17:29:52 - __main__ - INFO - 📝 Log saved to: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/critical_safety_neuron/compute_critical_safety_neurons_20260502_172952.log
+2026-05-02 17:29:52 - __main__ - INFO - ================================================================================
+2026-05-02 17:29:52 - __main__ - INFO - 
+📋 Next Steps:
+2026-05-02 17:29:52 - __main__ - INFO -   1. Review Critical Safety Neuron statistics above
+2026-05-02 17:29:52 - __main__ - INFO -   2. Run Critical Safety Neuron fine-tuning with:
+2026-05-02 17:29:52 - __main__ - INFO -      python critical_safety_neuron_tune.py /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/critical_safety_neuron_20260502_172952.txt ./corpus_all/circuit_breakers_train.json

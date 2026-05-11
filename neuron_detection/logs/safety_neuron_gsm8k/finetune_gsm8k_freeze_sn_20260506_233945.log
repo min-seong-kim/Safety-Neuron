@@ -1,0 +1,225 @@
+2026-05-06 23:39:45 - __main__ - INFO - 
+======================================================================
+2026-05-06 23:39:45 - __main__ - INFO -   🚀 GSM8K Fine-tuning with Safety Neuron Freezing
+2026-05-06 23:39:45 - __main__ - INFO - ======================================================================
+
+2026-05-06 23:39:45 - __main__ - INFO - Log file: ./logs/safety_neuron_gsm8k/finetune_gsm8k_freeze_sn_20260506_233945.log
+2026-05-06 23:39:45 - __main__ - INFO - ⚙️  Configuration:
+2026-05-06 23:39:45 - __main__ - INFO -    ├─ SN-Tuned model: kmseong/llama-3.1-8B-only-rsn-tuned-lr5e-5
+2026-05-06 23:39:45 - __main__ - INFO -    ├─ Safety neurons file: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/critical_safety_neuron_20260505_195259.txt
+2026-05-06 23:39:45 - __main__ - INFO -    ├─ Training samples: 7473
+2026-05-06 23:39:45 - __main__ - INFO -    ├─ Input formatting: base plain prompt
+2026-05-06 23:39:45 - __main__ - INFO -    ├─ Batch size: 4
+2026-05-06 23:39:45 - __main__ - INFO -    ├─ Gradient accumulation: 4
+2026-05-06 23:39:45 - __main__ - INFO -    ├─ Epochs: 3
+2026-05-06 23:39:45 - __main__ - INFO -    ├─ Learning rate: 1e-05
+2026-05-06 23:39:45 - __main__ - INFO -    ├─ Weight decay: 0.01
+2026-05-06 23:39:45 - __main__ - INFO -    ├─ Optimizer: adamw_torch
+2026-05-06 23:39:45 - __main__ - INFO -    ├─ Warmup ratio: 0.1
+2026-05-06 23:39:45 - __main__ - INFO -    ├─ Max length: 1024
+2026-05-06 23:39:45 - __main__ - INFO -    ├─ Dtype: bf16
+2026-05-06 23:39:45 - __main__ - INFO -    ├─ Strategy: Freeze safety neurons, train others
+2026-05-06 23:39:45 - __main__ - INFO -    └─ Output dir: ./llama3.1-8B_chat_gsm8k_ft_freeze_rsn_lr1e-5_new
+
+2026-05-06 23:39:45 - __main__ - INFO - 
+======================================================================
+2026-05-06 23:39:45 - __main__ - INFO -   [1/5] Loading Tokenizer
+2026-05-06 23:39:45 - __main__ - INFO - ======================================================================
+
+2026-05-06 23:39:45 - __main__ - INFO - Attempting to load tokenizer (local files only)...
+2026-05-06 23:39:46 - __main__ - INFO - ✓ Tokenizer loaded from local files
+2026-05-06 23:39:46 - __main__ - INFO - ✅ Tokenizer loaded successfully
+2026-05-06 23:39:46 - __main__ - INFO -    ├─ Tokenizer type: PreTrainedTokenizerFast
+2026-05-06 23:39:46 - __main__ - INFO -    ├─ Vocab size: 128256
+2026-05-06 23:39:46 - __main__ - INFO -    └─ Pad token: <|end_of_text|>
+2026-05-06 23:39:46 - __main__ - INFO - 
+======================================================================
+2026-05-06 23:39:46 - __main__ - INFO -   [2/5] Loading Model (bf16)
+2026-05-06 23:39:46 - __main__ - INFO - ======================================================================
+
+2026-05-06 23:39:46 - __main__ - INFO - Attempting to load model (local files only)...
+2026-05-06 23:39:49 - __main__ - INFO - ✓ Model loaded from local files
+2026-05-06 23:39:49 - __main__ - INFO - ✅ Model loaded successfully
+2026-05-06 23:39:49 - __main__ - INFO -    ├─ Model size: 8.03B parameters
+2026-05-06 23:39:49 - __main__ - INFO -    ├─ Dtype: torch.bfloat16
+2026-05-06 23:39:49 - __main__ - INFO -    └─ Gradient checkpointing: Disabled
+2026-05-06 23:39:49 - __main__ - INFO - 
+======================================================================
+2026-05-06 23:39:49 - __main__ - INFO -   [3/5] Loading Safety Neurons and Setting up Freezing
+2026-05-06 23:39:49 - __main__ - INFO - ======================================================================
+
+2026-05-06 23:39:49 - __main__ - INFO - Loaded safety neurons from /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/critical_safety_neuron_20260505_195259.txt
+2026-05-06 23:39:49 - __main__ - INFO - 
+======================================================================
+2026-05-06 23:39:49 - __main__ - INFO - Safety Neurons Loaded - Detailed Breakdown
+2026-05-06 23:39:49 - __main__ - INFO - ======================================================================
+2026-05-06 23:39:49 - __main__ - INFO -   ffn_up       : 1444 neurons
+2026-05-06 23:39:49 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-06 23:39:49 - __main__ - INFO -   ffn_down     : 1444 neurons
+2026-05-06 23:39:49 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-06 23:39:49 - __main__ - INFO -   q            : 2089 neurons
+2026-05-06 23:39:49 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-06 23:39:49 - __main__ - INFO -   k            : 2089 neurons
+2026-05-06 23:39:49 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-06 23:39:49 - __main__ - INFO -   v            :  441 neurons
+2026-05-06 23:39:49 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-06 23:39:49 - __main__ - INFO - 
+Total safety neurons: 7507
+2026-05-06 23:39:49 - __main__ - INFO - ======================================================================
+
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=0, module=k, kept=1, dropped=12, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=0, module=v, kept=7, dropped=12, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=1, module=k, kept=0, dropped=33, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=1, module=v, kept=2, dropped=6, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=2, module=k, kept=21, dropped=92, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=2, module=v, kept=5, dropped=3, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=3, module=k, kept=21, dropped=65, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=3, module=v, kept=0, dropped=9, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=4, module=k, kept=20, dropped=61, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=4, module=v, kept=5, dropped=10, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=5, module=k, kept=33, dropped=41, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=5, module=v, kept=4, dropped=14, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=6, module=k, kept=14, dropped=59, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=6, module=v, kept=2, dropped=16, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=7, module=k, kept=21, dropped=37, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=7, module=v, kept=8, dropped=20, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=8, module=k, kept=19, dropped=29, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=8, module=v, kept=6, dropped=22, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=9, module=k, kept=9, dropped=43, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=9, module=v, kept=10, dropped=24, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=10, module=k, kept=16, dropped=38, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=10, module=v, kept=3, dropped=19, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=11, module=k, kept=15, dropped=43, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=11, module=v, kept=6, dropped=28, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=12, module=k, kept=7, dropped=22, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=12, module=v, kept=6, dropped=10, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=13, module=k, kept=14, dropped=43, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=13, module=v, kept=5, dropped=16, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=14, module=k, kept=8, dropped=45, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=14, module=v, kept=1, dropped=21, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=15, module=k, kept=3, dropped=22, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=15, module=v, kept=4, dropped=4, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=16, module=k, kept=9, dropped=24, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=16, module=v, kept=3, dropped=12, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=17, module=k, kept=10, dropped=54, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=17, module=v, kept=0, dropped=5, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=18, module=k, kept=19, dropped=54, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=18, module=v, kept=3, dropped=10, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=19, module=k, kept=23, dropped=57, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=19, module=v, kept=1, dropped=1, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=20, module=k, kept=23, dropped=68, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=20, module=v, kept=1, dropped=10, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=21, module=k, kept=30, dropped=48, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=21, module=v, kept=0, dropped=1, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=22, module=k, kept=26, dropped=67, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=22, module=v, kept=0, dropped=2, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=23, module=k, kept=19, dropped=59, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=23, module=v, kept=4, dropped=2, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=24, module=k, kept=16, dropped=74, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=24, module=v, kept=1, dropped=9, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=25, module=k, kept=28, dropped=69, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=25, module=v, kept=0, dropped=4, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=26, module=k, kept=16, dropped=60, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=26, module=v, kept=0, dropped=11, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=27, module=k, kept=22, dropped=70, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=27, module=v, kept=0, dropped=4, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=28, module=k, kept=10, dropped=47, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=28, module=v, kept=1, dropped=5, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=29, module=k, kept=26, dropped=60, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=29, module=v, kept=0, dropped=7, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=30, module=k, kept=15, dropped=46, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=30, module=v, kept=1, dropped=3, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=31, module=k, kept=8, dropped=25, dim=1024
+2026-05-06 23:39:49 - __main__ - WARNING - [Index sanitize] layer=31, module=v, kept=0, dropped=32, dim=1024
+2026-05-06 23:39:49 - __main__ - INFO - 
+======================================================================
+2026-05-06 23:39:49 - __main__ - INFO - Safety Neuron Freezing Setup Summary
+2026-05-06 23:39:49 - __main__ - INFO - ======================================================================
+2026-05-06 23:39:49 - __main__ - INFO - Total parameters: 8,030,261,248
+2026-05-06 23:39:49 - __main__ - INFO - Frozen safety neuron parameters (effective): 22,888,448
+2026-05-06 23:39:49 - __main__ - INFO - Trainable parameters: 8,030,261,248
+2026-05-06 23:39:49 - __main__ - INFO - Trainable ratio: 100.0000%
+2026-05-06 23:39:49 - __main__ - INFO - Frozen safety neuron ratio: 0.2850%
+2026-05-06 23:39:49 - __main__ - INFO - 
+Layers with frozen safety neurons:
+2026-05-06 23:39:49 - __main__ - INFO -   ffn_up       : 32 layers
+2026-05-06 23:39:49 - __main__ - INFO -   ffn_down     : 32 layers
+2026-05-06 23:39:49 - __main__ - INFO -   q            : 32 layers
+2026-05-06 23:39:49 - __main__ - INFO -   k            : 31 layers
+2026-05-06 23:39:49 - __main__ - INFO -   v            : 23 layers
+2026-05-06 23:39:49 - __main__ - INFO - ======================================================================
+
+2026-05-06 23:39:49 - __main__ - INFO - ✅ Safety neuron freezing setup complete
+2026-05-06 23:39:49 - __main__ - INFO -    ├─ Trainable: 8.03B (100.00%)
+2026-05-06 23:39:49 - __main__ - INFO - 
+======================================================================
+2026-05-06 23:39:49 - __main__ - INFO -   [4/5] Loading GSM8K Dataset
+2026-05-06 23:39:49 - __main__ - INFO - ======================================================================
+
+2026-05-06 23:39:51 - __main__ - INFO - ✅ Datasets loaded
+2026-05-06 23:39:51 - __main__ - INFO -    ├─ Train: 7473 samples
+2026-05-06 23:39:51 - __main__ - INFO - 
+======================================================================
+2026-05-06 23:39:51 - __main__ - INFO -   [4.5/5] Preprocessing Data
+2026-05-06 23:39:51 - __main__ - INFO - ======================================================================
+
+2026-05-06 23:39:53 - __main__ - INFO - ✅ Data preprocessed
+2026-05-06 23:39:53 - __main__ - INFO - 
+======================================================================
+2026-05-06 23:39:53 - __main__ - INFO -   [5/5] Training with Trainer + AdamW 8-bit
+2026-05-06 23:39:53 - __main__ - INFO - ======================================================================
+
+2026-05-06 23:39:53 - __main__ - INFO - Starting training...
+2026-05-06 23:50:36 - __main__ - INFO - 
+======================================================================
+2026-05-06 23:50:36 - __main__ - INFO -   Saving Fine-tuned Model
+2026-05-06 23:50:36 - __main__ - INFO - ======================================================================
+
+2026-05-06 23:50:36 - __main__ - INFO - Step 1: Preparing model for saving...
+2026-05-06 23:50:37 - __main__ - INFO - Step 2: Moving model to CPU for safe serialization...
+2026-05-06 23:50:41 - __main__ - INFO - Step 3: Saving model weights...
+2026-05-06 23:50:41 - __main__ - INFO -    ├─ Using safe_serialization=True (safetensors)
+2026-05-06 23:50:41 - __main__ - INFO -    ├─ Output directory: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/llama3.1-8B_chat_gsm8k_ft_freeze_rsn_lr1e-5_new_20260506_235036
+2026-05-06 23:50:53 - __main__ - INFO -    └─ ✅ Model weights saved successfully
+2026-05-06 23:50:53 - __main__ - INFO - Step 4: Saving tokenizer...
+2026-05-06 23:50:53 - __main__ - INFO -    └─ ✅ Tokenizer saved
+2026-05-06 23:50:53 - __main__ - INFO - Step 5: Saving model config and generation settings...
+2026-05-06 23:50:53 - __main__ - INFO -    └─ ✅ Configs saved
+2026-05-06 23:50:53 - __main__ - INFO - Step 6: Verifying saved model integrity...
+2026-05-06 23:50:53 - __main__ - INFO -    ├─ config.json: 0.84 KB ✅
+2026-05-06 23:50:53 - __main__ - INFO -    ├─ tokenizer_config.json: 49.49 KB ✅
+2026-05-06 23:50:53 - __main__ - INFO -    ├─ tokenizer.json: 16806.66 KB ✅
+2026-05-06 23:50:53 - __main__ - INFO -    ├─ ✅ Found 5 model shard file(s)
+2026-05-06 23:50:53 - __main__ - INFO - 
+📦 Saved files:
+2026-05-06 23:50:53 - __main__ - INFO -    ├─ config.json: 0.00 GB
+2026-05-06 23:50:53 - __main__ - INFO -    ├─ generation_config.json: 0.00 GB
+2026-05-06 23:50:53 - __main__ - INFO -    ├─ model-00001-of-00005.safetensors: 3.99 GB
+2026-05-06 23:50:53 - __main__ - INFO -    ├─ model-00002-of-00005.safetensors: 3.93 GB
+2026-05-06 23:50:53 - __main__ - INFO -    ├─ model-00003-of-00005.safetensors: 3.93 GB
+2026-05-06 23:50:53 - __main__ - INFO -    ├─ model-00004-of-00005.safetensors: 3.17 GB
+2026-05-06 23:50:53 - __main__ - INFO -    ├─ model-00005-of-00005.safetensors: 1.05 GB
+2026-05-06 23:50:53 - __main__ - INFO -    ├─ model.safetensors.index.json: 0.00 GB
+2026-05-06 23:50:53 - __main__ - INFO -    ├─ special_tokens_map.json: 0.00 GB
+2026-05-06 23:50:53 - __main__ - INFO -    ├─ tokenizer.json: 0.02 GB
+2026-05-06 23:50:53 - __main__ - INFO -    ├─ tokenizer_config.json: 0.00 GB
+2026-05-06 23:50:53 - __main__ - INFO -    └─ Total size: 16.08 GB ✅
+2026-05-06 23:50:53 - __main__ - INFO - 
+Step 7: Final verification - attempting to load saved model...
+2026-05-06 23:50:59 - __main__ - INFO -    └─ ✅ Model verified successfully!
+2026-05-06 23:50:59 - __main__ - INFO - 
+✅✅✅ Fine-tuned model saved and verified successfully!
+2026-05-06 23:50:59 - __main__ - INFO -    Output directory: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/llama3.1-8B_chat_gsm8k_ft_freeze_rsn_lr1e-5_new_20260506_235036
+2026-05-06 23:50:59 - __main__ - INFO -    Total size: 16.08 GB
+2026-05-06 23:50:59 - __main__ - INFO -    Status: ✅ READY FOR EVALUATION
+2026-05-06 23:50:59 - __main__ - INFO - 
+Saving training configuration...
+2026-05-06 23:50:59 - __main__ - INFO - ✅ Config saved to: ./llama3.1-8B_chat_gsm8k_ft_freeze_rsn_lr1e-5_new_20260506_235036/finetune_config.json
+2026-05-06 23:50:59 - __main__ - INFO - 
+Starting upload to Hugging Face: kmseong/llama3.1-8B_base_gsm8k_ft_freeze_rsn_lr1e-5
+2026-05-06 23:55:25 - __main__ - INFO - ✅ Upload completed: https://huggingface.co/kmseong/llama3.1-8B_base_gsm8k_ft_freeze_rsn_lr1e-5
+2026-05-06 23:55:25 - __main__ - INFO - 
+======================================================================
+2026-05-06 23:55:25 - __main__ - INFO -   ✅ Fine-tuning Complete!
+2026-05-06 23:55:25 - __main__ - INFO - ======================================================================
+

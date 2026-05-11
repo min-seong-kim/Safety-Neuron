@@ -10,11 +10,11 @@ Safety Neuron Tuning (SN-Tune)
 
 # SN-Tune with custom model
 python sn_tune.py \
-    --neuron_file ./output_neurons/safety_neuron_accelerated_20260502_013602.txt \
+    --neuron_file /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/safety_neuron_accelerated_20260506_031404.txt \
     --dataset_file ./corpus_all/circuit_breakers_train.json \
-    --local_model_name ./only_sn_tuned_model_llama2_7b_lr5e-5 \
-    --model_name meta-llama/Llama-2-7b-chat-hf \
-    --upload_name kmseong/llama2_7b_chat_only_sn_tuned_lr5e-5_revised
+    --local_model_name ./only_sn_tuned_model_llama2_13b_chat_lr5e-5 \
+    --model_name meta-llama/Llama-2-13b-chat-hf \
+    --upload_name kmseong/llama2_13b_chat_only_sn_tuned_rotation_space_lr5e-5
 
 
 # RSN-Tune
@@ -42,10 +42,9 @@ import logging
 from datetime import datetime
 import ast
 from contextlib import nullcontext
-import wandb
 
 logger = logging.getLogger(__name__)
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "7"
 
 # =====================================================================
 # Configuration
@@ -340,6 +339,114 @@ def setup_gradient_masking(model, safety_neurons):
         hooks: List of registered hooks (for cleanup)
     """
     hooks = []
+
+    def sanitize_indices(indices, axis_size, module_type, layer_idx, param_name):
+        """Keep only valid integer indices for the target axis to avoid CUDA index asserts."""
+        if not indices:
+            return []
+
+        valid = []
+        dropped = 0
+        seen = set()
+        for idx in indices:
+            try:
+                i = int(idx)
+            except Exception:
+                dropped += 1
+                continue
+
+            if 0 <= i < axis_size:
+                if i not in seen:
+                    valid.append(i)
+                    seen.add(i)
+            else:
+                dropped += 1
+
+        if dropped > 0:
+            logger.warning(
+                f"[IndexSanitize] {param_name} layer={layer_idx} module={module_type}: "
+                f"dropped {dropped} invalid indices (axis_size={axis_size})"
+            )
+
+        return valid
+
+    def remap_kv_indices_if_needed(indices, layer_idx, module_type, axis_size, param_name):
+        """
+        Remap k/v neuron indices when they were produced in expanded attention space
+        (num_heads * head_dim) but target parameter is in KV space
+        (num_key_value_heads * head_dim).
+        """
+        if module_type not in ('k', 'v') or not indices:
+            return indices
+
+        converted = []
+        for idx in indices:
+            try:
+                converted.append(int(idx))
+            except Exception:
+                continue
+
+        if not converted:
+            return []
+
+        # If all indices already fit target axis, no remap needed.
+        if max(converted) < axis_size:
+            return converted
+
+        attn = model.model.layers[layer_idx].self_attn
+        num_heads = getattr(attn, 'num_heads', None)
+        num_kv_heads = getattr(attn, 'num_key_value_heads', None)
+        head_dim = getattr(attn, 'head_dim', None)
+
+        # Fallback for implementations that expose these values only in model config.
+        if not isinstance(num_heads, int):
+            num_heads = getattr(model.config, 'num_attention_heads', None)
+        if not isinstance(num_kv_heads, int):
+            num_kv_heads = getattr(model.config, 'num_key_value_heads', None)
+        if not isinstance(head_dim, int):
+            cfg_hidden = getattr(model.config, 'hidden_size', None)
+            if isinstance(cfg_hidden, int) and isinstance(num_heads, int) and num_heads > 0:
+                head_dim = cfg_hidden // num_heads
+
+        if not (isinstance(num_heads, int) and isinstance(num_kv_heads, int) and isinstance(head_dim, int)):
+            logger.warning(
+                f"[IndexRemap] {param_name} layer={layer_idx} module={module_type}: "
+                "unable to resolve attention geometry; keeping raw indices"
+            )
+            return converted
+        if num_kv_heads <= 0 or num_heads <= 0 or head_dim <= 0 or num_heads % num_kv_heads != 0:
+            logger.warning(
+                f"[IndexRemap] {param_name} layer={layer_idx} module={module_type}: "
+                "invalid attention geometry; keeping raw indices"
+            )
+            return converted
+
+        n_rep = num_heads // num_kv_heads
+        expanded_size = num_heads * head_dim
+
+        remapped = []
+        remap_count = 0
+        for i in converted:
+            if i < 0:
+                continue
+            if i < axis_size:
+                remapped.append(i)
+                continue
+            if i < expanded_size:
+                head_idx = i // head_dim
+                dim_idx = i % head_dim
+                base_head_idx = head_idx // n_rep
+                new_i = base_head_idx * head_dim + dim_idx
+                remapped.append(new_i)
+                remap_count += 1
+
+        if remap_count > 0:
+            logger.info(
+                f"[IndexRemap] {param_name} layer={layer_idx} module={module_type}: "
+                f"remapped {remap_count} indices from expanded attention space to KV space"
+            )
+
+        return remapped
     total_params = 0
     trainable_neuron_params = 0
     unfrozen_modules = {'ffn_up': 0, 'ffn_down': 0, 'q': 0, 'k': 0, 'v': 0}
@@ -362,6 +469,7 @@ def setup_gradient_masking(model, safety_neurons):
         # Check module type and setup gradient masking
         if 'mlp.up_proj.weight' in name:
             neuron_indices = safety_neurons['ffn_up'].get(layer_idx, [])
+            neuron_indices = sanitize_indices(neuron_indices, param.shape[0], 'ffn_up', layer_idx, name)
             if neuron_indices:
                 param.requires_grad = True
                 # up_proj: weight shape [intermediate_dim, hidden_dim]
@@ -382,6 +490,7 @@ def setup_gradient_masking(model, safety_neurons):
         
         elif 'mlp.down_proj.weight' in name:
             neuron_indices = safety_neurons['ffn_down'].get(layer_idx, [])
+            neuron_indices = sanitize_indices(neuron_indices, param.shape[1], 'ffn_down', layer_idx, name)
             if neuron_indices:
                 param.requires_grad = True
                 # down_proj: weight shape [hidden_dim, intermediate_dim]
@@ -401,6 +510,7 @@ def setup_gradient_masking(model, safety_neurons):
         
         elif 'self_attn.q_proj.weight' in name:
             neuron_indices = safety_neurons['q'].get(layer_idx, [])
+            neuron_indices = sanitize_indices(neuron_indices, param.shape[0], 'q', layer_idx, name)
             if neuron_indices:
                 param.requires_grad = True
                 # q_proj: weight shape [hidden_dim, hidden_dim]
@@ -420,6 +530,8 @@ def setup_gradient_masking(model, safety_neurons):
         
         elif 'self_attn.k_proj.weight' in name:
             neuron_indices = safety_neurons['k'].get(layer_idx, [])
+            neuron_indices = remap_kv_indices_if_needed(neuron_indices, layer_idx, 'k', param.shape[0], name)
+            neuron_indices = sanitize_indices(neuron_indices, param.shape[0], 'k', layer_idx, name)
             if neuron_indices:
                 param.requires_grad = True
                 # k_proj: neurons are rows
@@ -438,6 +550,8 @@ def setup_gradient_masking(model, safety_neurons):
         
         elif 'self_attn.v_proj.weight' in name:
             neuron_indices = safety_neurons['v'].get(layer_idx, [])
+            neuron_indices = remap_kv_indices_if_needed(neuron_indices, layer_idx, 'v', param.shape[0], name)
+            neuron_indices = sanitize_indices(neuron_indices, param.shape[0], 'v', layer_idx, name)
             if neuron_indices:
                 param.requires_grad = True
                 # v_proj: neurons are rows
@@ -604,12 +718,12 @@ def train_sn_tune(
                 optimizer.zero_grad(set_to_none=True)
                 optimizer_steps += 1
                 global_step += 1
-                wandb.log({
-                    "train/loss": loss.item() * grad_accum_steps,
-                    "train/lr": scheduler.get_last_lr()[0],
-                    "train/optimizer_step": optimizer_steps,
-                    "train/grad_norm": grad_norm,
-                }, step=global_step)
+                logger.info(
+                    "  Optimizer step %s: lr = %.8f, grad_norm = %.6f",
+                    optimizer_steps,
+                    scheduler.get_last_lr()[0],
+                    grad_norm,
+                )
 
             loss_val = loss.item() * grad_accum_steps
             
@@ -625,7 +739,6 @@ def train_sn_tune(
         
         epoch_avg_loss = epoch_loss / len(train_dataloader)
         logger.info(f"Epoch {epoch + 1} completed - Epoch Loss: {epoch_avg_loss:.4f}")
-        wandb.log({"train/epoch_loss": epoch_avg_loss, "epoch": epoch + 1})
     
     avg_loss = total_loss / max(1, total_steps)
     logger.info(f"\n{'='*70}")
@@ -720,26 +833,6 @@ def main(argv):
     _is_instruct = is_instruct_model(model_name)
     logger.info(f"Model: {model_name}")
     logger.info(f"Instruct model detected: {_is_instruct} → using {'chat template' if _is_instruct else 'plain text'} format\n")
-
-    run_name = os.path.basename(output_dir)
-    wandb.init(
-        entity="gokms0509-yonsei-university",
-        project="SN-Tune",
-        name=run_name,
-        config={
-            "model_name": model_name,
-            "learning_rate": learning_rate,
-            "num_epochs": NUM_EPOCHS,
-            "batch_size": BATCH_SIZE,
-            "grad_accum_steps": GRAD_ACCUM_STEPS,
-            "effective_batch_size": BATCH_SIZE * GRAD_ACCUM_STEPS,
-            "max_seq_length": MAX_SEQ_LENGTH,
-            "max_samples": MAX_SAMPLES,
-            "is_instruct": _is_instruct,
-            "safety_neurons_file": os.path.basename(safety_neurons_file),
-        },
-    )
-    logger.info(f"✓ wandb run initialized: {run_name}")
     
     # =====================================================================
     # 1. Load model and tokenizer
@@ -825,8 +918,6 @@ def main(argv):
     for hook in gradient_hooks:
         hook.remove()
     logger.info("✓ Gradient hooks cleaned up")
-
-    wandb.finish()
     
     logger.info(f"\n{'='*70}")
     logger.info("SN-Tune Complete!")

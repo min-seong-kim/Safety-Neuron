@@ -1,0 +1,171 @@
+2026-05-06 04:20:12 - __main__ - INFO - 
+======================================================================
+2026-05-06 04:20:12 - __main__ - INFO -   🚀 GSM8K Fine-tuning with Safety Neuron Freezing
+2026-05-06 04:20:12 - __main__ - INFO - ======================================================================
+
+2026-05-06 04:20:12 - __main__ - INFO - Log file: ./logs/safety_neuron_gsm8k/finetune_gsm8k_freeze_sn_20260506_042012.log
+2026-05-06 04:20:12 - __main__ - INFO - ⚙️  Configuration:
+2026-05-06 04:20:12 - __main__ - INFO -    ├─ SN-Tuned model: kmseong/llama2_13b_chat_only_sn_tuned_rotation_space_lr5e-5
+2026-05-06 04:20:12 - __main__ - INFO -    ├─ Safety neurons file: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/safety_neuron_accelerated_20260506_031404.txt
+2026-05-06 04:20:12 - __main__ - INFO -    ├─ Training samples: 7473
+2026-05-06 04:20:12 - __main__ - INFO -    ├─ Input formatting: chat template
+2026-05-06 04:20:12 - __main__ - INFO -    ├─ Batch size: 4
+2026-05-06 04:20:12 - __main__ - INFO -    ├─ Gradient accumulation: 4
+2026-05-06 04:20:12 - __main__ - INFO -    ├─ Epochs: 3
+2026-05-06 04:20:12 - __main__ - INFO -    ├─ Learning rate: 5e-05
+2026-05-06 04:20:12 - __main__ - INFO -    ├─ Weight decay: 0.01
+2026-05-06 04:20:12 - __main__ - INFO -    ├─ Optimizer: adamw_torch
+2026-05-06 04:20:12 - __main__ - INFO -    ├─ Warmup ratio: 0.1
+2026-05-06 04:20:12 - __main__ - INFO -    ├─ Max length: 1024
+2026-05-06 04:20:12 - __main__ - INFO -    ├─ Dtype: bf16
+2026-05-06 04:20:12 - __main__ - INFO -    ├─ Strategy: Freeze safety neurons, train others
+2026-05-06 04:20:12 - __main__ - INFO -    └─ Output dir: ./llama2_13b_base_gsm8k_ft_freeze_sn_lr5e-5
+
+2026-05-06 04:20:12 - __main__ - INFO - 
+======================================================================
+2026-05-06 04:20:12 - __main__ - INFO -   [1/5] Loading Tokenizer
+2026-05-06 04:20:12 - __main__ - INFO - ======================================================================
+
+2026-05-06 04:20:12 - __main__ - INFO - Attempting to load tokenizer (local files only)...
+2026-05-06 04:20:12 - __main__ - WARNING - Failed to load tokenizer with local_files_only: We couldn't connect to 'https://huggingface.co' to load the files, and couldn't find them in the cached files.
+Check your internet connection or see how to run the library in offline mode at 'https://huggingface.co/docs/transformers/installation#offline-mode'.
+2026-05-06 04:20:12 - __main__ - INFO - Attempting to load from HuggingFace Hub...
+2026-05-06 04:20:18 - __main__ - INFO - ✓ Tokenizer loaded from HuggingFace Hub
+2026-05-06 04:20:18 - __main__ - INFO - ✅ Tokenizer loaded successfully
+2026-05-06 04:20:18 - __main__ - INFO -    ├─ Tokenizer type: LlamaTokenizerFast
+2026-05-06 04:20:18 - __main__ - INFO -    ├─ Vocab size: 32000
+2026-05-06 04:20:18 - __main__ - INFO -    └─ Pad token: </s>
+2026-05-06 04:20:18 - __main__ - INFO - 
+======================================================================
+2026-05-06 04:20:18 - __main__ - INFO -   [2/5] Loading Model (bf16)
+2026-05-06 04:20:18 - __main__ - INFO - ======================================================================
+
+2026-05-06 04:20:18 - __main__ - INFO - Attempting to load model (local files only)...
+2026-05-06 04:20:18 - __main__ - WARNING - Failed to load with local_files_only: We couldn't connect to 'https://huggingface.co' to load the files, and couldn't find them in the cached files.
+Check your internet connection or see how to run the library in offline mode at 'https://huggingface.co/docs/transformers/installation#offline-mode'.
+2026-05-06 04:20:18 - __main__ - INFO - Attempting to load from HuggingFace Hub...
+2026-05-06 04:21:12 - __main__ - INFO - ✓ Model loaded from HuggingFace Hub
+2026-05-06 04:21:12 - __main__ - INFO - ✅ Model loaded successfully
+2026-05-06 04:21:12 - __main__ - INFO -    ├─ Model size: 13.02B parameters
+2026-05-06 04:21:12 - __main__ - INFO -    ├─ Dtype: torch.bfloat16
+2026-05-06 04:21:12 - __main__ - INFO -    └─ Gradient checkpointing: Disabled
+2026-05-06 04:21:12 - __main__ - INFO - 
+======================================================================
+2026-05-06 04:21:12 - __main__ - INFO -   [3/5] Loading Safety Neurons and Setting up Freezing
+2026-05-06 04:21:12 - __main__ - INFO - ======================================================================
+
+2026-05-06 04:21:12 - __main__ - INFO - Loaded safety neurons from /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/safety_neuron_accelerated_20260506_031404.txt
+2026-05-06 04:21:12 - __main__ - INFO - 
+======================================================================
+2026-05-06 04:21:12 - __main__ - INFO - Safety Neurons Loaded - Detailed Breakdown
+2026-05-06 04:21:12 - __main__ - INFO - ======================================================================
+2026-05-06 04:21:12 - __main__ - INFO -   ffn_up       : 4430 neurons
+2026-05-06 04:21:12 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-06 04:21:12 - __main__ - INFO -   ffn_down     : 4430 neurons
+2026-05-06 04:21:12 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-06 04:21:12 - __main__ - INFO -   q            : 5323 neurons
+2026-05-06 04:21:12 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-06 04:21:12 - __main__ - INFO -   k            : 5323 neurons
+2026-05-06 04:21:12 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-06 04:21:12 - __main__ - INFO -   v            :  900 neurons
+2026-05-06 04:21:12 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-06 04:21:12 - __main__ - INFO - 
+Total safety neurons: 20406
+2026-05-06 04:21:12 - __main__ - INFO - ======================================================================
+
+2026-05-06 04:21:12 - __main__ - INFO - 
+======================================================================
+2026-05-06 04:21:12 - __main__ - INFO - Safety Neuron Freezing Setup Summary
+2026-05-06 04:21:12 - __main__ - INFO - ======================================================================
+2026-05-06 04:21:12 - __main__ - INFO - Total parameters: 13,015,864,320
+2026-05-06 04:21:12 - __main__ - INFO - Frozen safety neuron parameters (effective): 104,478,720
+2026-05-06 04:21:12 - __main__ - INFO - Trainable parameters: 13,015,864,320
+2026-05-06 04:21:12 - __main__ - INFO - Trainable ratio: 100.0000%
+2026-05-06 04:21:12 - __main__ - INFO - Frozen safety neuron ratio: 0.8027%
+2026-05-06 04:21:12 - __main__ - INFO - 
+Layers with frozen safety neurons:
+2026-05-06 04:21:12 - __main__ - INFO -   ffn_up       : 40 layers
+2026-05-06 04:21:12 - __main__ - INFO -   ffn_down     : 40 layers
+2026-05-06 04:21:12 - __main__ - INFO -   q            : 40 layers
+2026-05-06 04:21:12 - __main__ - INFO -   k            : 40 layers
+2026-05-06 04:21:12 - __main__ - INFO -   v            : 39 layers
+2026-05-06 04:21:12 - __main__ - INFO - ======================================================================
+
+2026-05-06 04:21:12 - __main__ - INFO - ✅ Safety neuron freezing setup complete
+2026-05-06 04:21:12 - __main__ - INFO -    ├─ Trainable: 13.02B (100.00%)
+2026-05-06 04:21:12 - __main__ - INFO - 
+======================================================================
+2026-05-06 04:21:12 - __main__ - INFO -   [4/5] Loading GSM8K Dataset
+2026-05-06 04:21:12 - __main__ - INFO - ======================================================================
+
+2026-05-06 04:21:14 - __main__ - INFO - ✅ Datasets loaded
+2026-05-06 04:21:14 - __main__ - INFO -    ├─ Train: 7473 samples
+2026-05-06 04:21:14 - __main__ - INFO - 
+======================================================================
+2026-05-06 04:21:14 - __main__ - INFO -   [4.5/5] Preprocessing Data
+2026-05-06 04:21:14 - __main__ - INFO - ======================================================================
+
+2026-05-06 04:21:15 - __main__ - INFO - ✅ Data preprocessed
+2026-05-06 04:21:15 - __main__ - INFO - 
+======================================================================
+2026-05-06 04:21:15 - __main__ - INFO -   [5/5] Training with Trainer + AdamW 8-bit
+2026-05-06 04:21:15 - __main__ - INFO - ======================================================================
+
+2026-05-06 04:21:15 - __main__ - INFO - Starting training...
+2026-05-06 04:39:32 - __main__ - INFO - 
+======================================================================
+2026-05-06 04:39:32 - __main__ - INFO -   Saving Fine-tuned Model
+2026-05-06 04:39:32 - __main__ - INFO - ======================================================================
+
+2026-05-06 04:39:32 - __main__ - INFO - Step 1: Preparing model for saving...
+2026-05-06 04:39:32 - __main__ - INFO - Step 2: Moving model to CPU for safe serialization...
+2026-05-06 04:39:39 - __main__ - INFO - Step 3: Saving model weights...
+2026-05-06 04:39:39 - __main__ - INFO -    ├─ Using safe_serialization=True (safetensors)
+2026-05-06 04:39:39 - __main__ - INFO -    ├─ Output directory: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/llama2_13b_base_gsm8k_ft_freeze_sn_lr5e-5_20260506_043932
+2026-05-06 04:40:01 - __main__ - INFO -    └─ ✅ Model weights saved successfully
+2026-05-06 04:40:01 - __main__ - INFO - Step 4: Saving tokenizer...
+2026-05-06 04:40:01 - __main__ - INFO -    └─ ✅ Tokenizer saved
+2026-05-06 04:40:01 - __main__ - INFO - Step 5: Saving model config and generation settings...
+2026-05-06 04:40:01 - __main__ - INFO -    └─ ✅ Configs saved
+2026-05-06 04:40:01 - __main__ - INFO - Step 6: Verifying saved model integrity...
+2026-05-06 04:40:01 - __main__ - INFO -    ├─ config.json: 0.68 KB ✅
+2026-05-06 04:40:01 - __main__ - INFO -    ├─ tokenizer_config.json: 0.96 KB ✅
+2026-05-06 04:40:01 - __main__ - INFO -    ├─ tokenizer.json: 3534.20 KB ✅
+2026-05-06 04:40:01 - __main__ - INFO -    ├─ ✅ Found 7 model shard file(s)
+2026-05-06 04:40:01 - __main__ - INFO - 
+📦 Saved files:
+2026-05-06 04:40:01 - __main__ - INFO -    ├─ chat_template.jinja: 0.00 GB
+2026-05-06 04:40:01 - __main__ - INFO -    ├─ config.json: 0.00 GB
+2026-05-06 04:40:01 - __main__ - INFO -    ├─ generation_config.json: 0.00 GB
+2026-05-06 04:40:01 - __main__ - INFO -    ├─ model-00001-of-00007.safetensors: 3.99 GB
+2026-05-06 04:40:01 - __main__ - INFO -    ├─ model-00002-of-00007.safetensors: 3.95 GB
+2026-05-06 04:40:01 - __main__ - INFO -    ├─ model-00003-of-00007.safetensors: 3.96 GB
+2026-05-06 04:40:01 - __main__ - INFO -    ├─ model-00004-of-00007.safetensors: 3.86 GB
+2026-05-06 04:40:01 - __main__ - INFO -    ├─ model-00005-of-00007.safetensors: 3.95 GB
+2026-05-06 04:40:01 - __main__ - INFO -    ├─ model-00006-of-00007.safetensors: 3.95 GB
+2026-05-06 04:40:01 - __main__ - INFO -    ├─ model-00007-of-00007.safetensors: 2.37 GB
+2026-05-06 04:40:01 - __main__ - INFO -    ├─ model.safetensors.index.json: 0.00 GB
+2026-05-06 04:40:01 - __main__ - INFO -    ├─ special_tokens_map.json: 0.00 GB
+2026-05-06 04:40:01 - __main__ - INFO -    ├─ tokenizer.json: 0.00 GB
+2026-05-06 04:40:01 - __main__ - INFO -    ├─ tokenizer.model: 0.00 GB
+2026-05-06 04:40:01 - __main__ - INFO -    ├─ tokenizer_config.json: 0.00 GB
+2026-05-06 04:40:01 - __main__ - INFO -    └─ Total size: 26.04 GB ✅
+2026-05-06 04:40:01 - __main__ - INFO - 
+Step 7: Final verification - attempting to load saved model...
+2026-05-06 04:40:08 - __main__ - INFO -    └─ ✅ Model verified successfully!
+2026-05-06 04:40:08 - __main__ - INFO - 
+✅✅✅ Fine-tuned model saved and verified successfully!
+2026-05-06 04:40:08 - __main__ - INFO -    Output directory: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/llama2_13b_base_gsm8k_ft_freeze_sn_lr5e-5_20260506_043932
+2026-05-06 04:40:08 - __main__ - INFO -    Total size: 26.04 GB
+2026-05-06 04:40:08 - __main__ - INFO -    Status: ✅ READY FOR EVALUATION
+2026-05-06 04:40:08 - __main__ - INFO - 
+Saving training configuration...
+2026-05-06 04:40:08 - __main__ - INFO - ✅ Config saved to: ./llama2_13b_base_gsm8k_ft_freeze_sn_lr5e-5_20260506_043932/finetune_config.json
+2026-05-06 04:40:08 - __main__ - INFO - 
+Starting upload to Hugging Face: kmseong/llama2_13b_chat_gsm8k_ft_freeze_sn_rotation_space_lr5e-5
+2026-05-06 04:46:37 - __main__ - INFO - ✅ Upload completed: https://huggingface.co/kmseong/llama2_13b_chat_gsm8k_ft_freeze_sn_rotation_space_lr5e-5
+2026-05-06 04:46:37 - __main__ - INFO - 
+======================================================================
+2026-05-06 04:46:37 - __main__ - INFO -   ✅ Fine-tuning Complete!
+2026-05-06 04:46:37 - __main__ - INFO - ======================================================================
+

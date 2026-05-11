@@ -1,0 +1,27 @@
+2026-05-02 17:22:00 - __main__ - INFO - Log directory: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection
+2026-05-02 17:22:00 - __main__ - INFO - Log file: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection/utility_neuron_20260502_172200.log
+2026-05-02 17:22:00 - __main__ - INFO - Using model: meta-llama/Llama-3.2-3B-Instruct
+2026-05-02 17:22:00 - __main__ - INFO - TOP_NUMBER_FFN: 100, TOP_NUMBER_ATTN: 50
+2026-05-02 17:22:00 - __main__ - INFO - [Mode] Utility Neuron Detection (Wikipedia)
+2026-05-02 17:22:00 - __main__ - INFO - Number of Wikipedia documents to process: 1000
+2026-05-02 17:22:00 - __main__ - INFO - Loading Wikipedia dataset (subset: 20231101.en)...
+2026-05-02 17:22:03 - __main__ - INFO - Successfully loaded 1000 Wikipedia samples
+2026-05-02 17:22:03 - __main__ - INFO - Processing 1000 Wikipedia documents
+2026-05-02 17:25:55 - __main__ - INFO - Detection complete: success=1000, failed=0
+2026-05-02 17:25:55 - __main__ - INFO - [compute_intersection][ffn_up] prompts=1000, before(union)=44095, after(intersection)=570, reduced=43525
+2026-05-02 17:25:55 - __main__ - INFO - [compute_intersection][ffn_down] prompts=1000, before(union)=44095, after(intersection)=570, reduced=43525
+2026-05-02 17:25:55 - __main__ - INFO - [compute_intersection][q] prompts=1000, before(union)=4623, after(intersection)=218, reduced=4405
+2026-05-02 17:25:55 - __main__ - INFO - [compute_intersection][k] prompts=1000, before(union)=4623, after(intersection)=218, reduced=4405
+2026-05-02 17:25:55 - __main__ - INFO - [compute_intersection][v] prompts=1000, before(union)=16497, after(intersection)=332, reduced=16165
+2026-05-02 17:25:55 - __main__ - INFO - 
+======================================================================
+2026-05-02 17:25:55 - __main__ - INFO - Utility Neuron Detection Results
+2026-05-02 17:25:55 - __main__ - INFO - ======================================================================
+2026-05-02 17:25:55 - __main__ - INFO - Model: meta-llama/Llama-3.2-3B-Instruct
+2026-05-02 17:25:55 - __main__ - INFO - Total utility neurons: 1,908
+2026-05-02 17:25:55 - __main__ - INFO - Total model neurons (q/k/v/o + gate/up/down): 774,144
+2026-05-02 17:25:55 - __main__ - INFO - Detected utility neuron percentage: 0.2465%
+2026-05-02 17:25:55 - __main__ - INFO - Output: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/utility_neurons_1000_20260502_172200.txt
+2026-05-02 17:25:55 - __main__ - INFO - Log: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection/utility_neuron_20260502_172200.log
+2026-05-02 17:25:55 - __main__ - INFO - ======================================================================
+

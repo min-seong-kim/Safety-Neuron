@@ -1,0 +1,25 @@
+2026-05-03 06:35:06 - __main__ - INFO - Log directory: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection
+2026-05-03 06:35:06 - __main__ - INFO - Log file: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection/safety_neuron_20260503_063506.log
+2026-05-03 06:35:06 - __main__ - INFO - Using model: meta-llama/Llama-2-7b-chat-hf
+2026-05-03 06:35:06 - __main__ - INFO - TOP_NUMBER_FFN: 1200, TOP_NUMBER_ATTN: 200
+2026-05-03 06:35:06 - __main__ - INFO - [Mode] Safety Neuron Detection
+2026-05-03 06:35:06 - __main__ - INFO - Number of prompts to process: 4994
+2026-05-03 06:35:06 - __main__ - INFO - Processing 4994 prompts from /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/corpus_all/circuit_breakers_train.json
+2026-05-03 06:38:49 - __main__ - INFO - Detection complete: success=4994, failed=0
+2026-05-03 06:38:56 - __main__ - INFO - [compute_intersection][ffn_up] prompts=4994, before(union)=332284, after(intersection)=3362, reduced=328922
+2026-05-03 06:39:03 - __main__ - INFO - [compute_intersection][ffn_down] prompts=4994, before(union)=332284, after(intersection)=3362, reduced=328922
+2026-05-03 06:39:05 - __main__ - INFO - [compute_intersection][q] prompts=4994, before(union)=33381, after(intersection)=2874, reduced=30507
+2026-05-03 06:39:07 - __main__ - INFO - [compute_intersection][k] prompts=4994, before(union)=33381, after(intersection)=2874, reduced=30507
+2026-05-03 06:39:09 - __main__ - INFO - [compute_intersection][v] prompts=4994, before(union)=102184, after(intersection)=526, reduced=101658
+2026-05-03 06:39:09 - __main__ - INFO - 
+======================================================================
+2026-05-03 06:39:09 - __main__ - INFO - Safety Neuron Detection Results
+2026-05-03 06:39:09 - __main__ - INFO - ======================================================================
+2026-05-03 06:39:09 - __main__ - INFO - Model: meta-llama/Llama-2-7b-chat-hf
+2026-05-03 06:39:09 - __main__ - INFO - Total safety neurons: 12,998
+2026-05-03 06:39:09 - __main__ - INFO - Total model neurons (q/k/v/o + gate/up/down): 1,359,872
+2026-05-03 06:39:09 - __main__ - INFO - Detected safety neuron percentage: 0.9558%
+2026-05-03 06:39:09 - __main__ - INFO - Output: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/safety_neuron_accelerated_20260503_063506.txt
+2026-05-03 06:39:09 - __main__ - INFO - Log: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection/safety_neuron_20260503_063506.log
+2026-05-03 06:39:09 - __main__ - INFO - ======================================================================
+

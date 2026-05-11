@@ -1,0 +1,981 @@
+2026-05-02 17:17:54 - __main__ - INFO - Log directory: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection
+2026-05-02 17:17:54 - __main__ - INFO - Log file: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection/utility_neuron_20260502_171754.log
+2026-05-02 17:17:54 - __main__ - INFO - Using model: meta-llama/Llama-3.2-3B-Instruct
+2026-05-02 17:17:54 - __main__ - INFO - TOP_NUMBER_FFN: 100, TOP_NUMBER_ATTN: 50
+2026-05-02 17:17:54 - __main__ - INFO - [Mode] Utility Neuron Detection (Wikipedia)
+2026-05-02 17:17:54 - __main__ - INFO - Number of Wikipedia documents to process: 1000
+2026-05-02 17:17:54 - __main__ - INFO - Loading Wikipedia dataset (subset: 20231101.en)...
+2026-05-02 17:17:59 - __main__ - INFO - Successfully loaded 1000 Wikipedia samples
+2026-05-02 17:17:59 - __main__ - INFO - Processing 1000 Wikipedia documents
+2026-05-02 17:17:59 - __main__ - ERROR - Error in neuron detection (Prompt 0): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:17:59 - __main__ - WARNING - Failed prompt idx=0
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 1): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=1
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 2): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=2
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 3): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=3
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 4): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=4
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 5): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=5
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 6): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=6
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 7): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=7
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 8): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=8
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 9): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=9
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 10): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=10
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 11): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=11
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 12): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=12
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 13): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=13
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 14): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=14
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 15): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=15
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 16): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=16
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 17): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=17
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 18): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=18
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 19): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=19
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 20): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=20
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 21): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=21
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 22): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=22
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 23): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=23
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 24): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=24
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 25): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=25
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 26): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=26
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 27): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=27
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 28): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=28
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 29): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=29
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 30): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=30
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 31): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=31
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 32): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=32
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 33): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=33
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 34): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=34
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 35): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=35
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 36): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=36
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 37): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=37
+2026-05-02 17:18:00 - __main__ - ERROR - Error in neuron detection (Prompt 38): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:00 - __main__ - WARNING - Failed prompt idx=38
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 39): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=39
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 40): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=40
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 41): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=41
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 42): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=42
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 43): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=43
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 44): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=44
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 45): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=45
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 46): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=46
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 47): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=47
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 48): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=48
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 49): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=49
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 50): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=50
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 51): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=51
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 52): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=52
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 53): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=53
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 54): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=54
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 55): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=55
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 56): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=56
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 57): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=57
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 58): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=58
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 59): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=59
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 60): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=60
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 61): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=61
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 62): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=62
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 63): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=63
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 64): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=64
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 65): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=65
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 66): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=66
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 67): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=67
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 68): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=68
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 69): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=69
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 70): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=70
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 71): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=71
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 72): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=72
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 73): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=73
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 74): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=74
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 75): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=75
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 76): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=76
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 77): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=77
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 78): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=78
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 79): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=79
+2026-05-02 17:18:01 - __main__ - ERROR - Error in neuron detection (Prompt 80): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:01 - __main__ - WARNING - Failed prompt idx=80
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 81): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=81
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 82): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=82
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 83): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=83
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 84): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=84
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 85): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=85
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 86): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=86
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 87): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=87
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 88): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=88
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 89): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=89
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 90): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=90
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 91): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=91
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 92): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=92
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 93): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=93
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 94): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=94
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 95): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=95
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 96): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=96
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 97): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=97
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 98): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=98
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 99): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=99
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 100): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=100
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 101): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=101
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 102): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=102
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 103): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=103
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 104): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=104
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 105): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=105
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 106): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=106
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 107): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=107
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 108): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=108
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 109): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=109
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 110): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=110
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 111): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=111
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 112): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=112
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 113): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=113
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 114): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=114
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 115): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=115
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 116): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=116
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 117): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=117
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 118): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=118
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 119): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=119
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 120): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=120
+2026-05-02 17:18:02 - __main__ - ERROR - Error in neuron detection (Prompt 121): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:02 - __main__ - WARNING - Failed prompt idx=121
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 122): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=122
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 123): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=123
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 124): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=124
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 125): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=125
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 126): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=126
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 127): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=127
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 128): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=128
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 129): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=129
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 130): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=130
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 131): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=131
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 132): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=132
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 133): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=133
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 134): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=134
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 135): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=135
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 136): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=136
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 137): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=137
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 138): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=138
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 139): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=139
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 140): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=140
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 141): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=141
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 142): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=142
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 143): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=143
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 144): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=144
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 145): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=145
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 146): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=146
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 147): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=147
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 148): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=148
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 149): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=149
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 150): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=150
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 151): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=151
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 152): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=152
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 153): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=153
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 154): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=154
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 155): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=155
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 156): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=156
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 157): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=157
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 158): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=158
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 159): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=159
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 160): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=160
+2026-05-02 17:18:03 - __main__ - ERROR - Error in neuron detection (Prompt 161): Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+Traceback (most recent call last):
+  File "/NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/safety_neuron_detection_v2_revised.py", line 383, in detect_safety_neurons_threshold
+    raise RuntimeError(
+RuntimeError: Missing forward-captured score tensor(s) at layer 0 and fallback early_exit output is not compatible (type=<class 'transformers.modeling_outputs.CausalLMOutputWithPast'>, len=N/A).
+2026-05-02 17:18:03 - __main__ - WARNING - Failed prompt idx=161

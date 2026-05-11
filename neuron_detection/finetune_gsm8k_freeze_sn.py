@@ -7,19 +7,19 @@ Trainer + AdamW 8-bit optimizer (bitsandbytes) 사용으로 메모리 효율성 
 
 Example Usage:
 python finetune_gsm8k_freeze_sn.py \
-    --model_path kmseong/llama2_7b_chat_only_sn_tuned_lr5e-5_revised \
-    --safety_neurons_file /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/safety_neuron_accelerated_20260502_013602.txt \
-    --output_dir ./llama2_7b_base_gsm8k_ft_freeze_sn_lr5e-5 \
-    --learning_rate 5e-5 --epochs 3 \
-    --upload_name kmseong/llama2_7b_base_gsm8k_ft_freeze_sn_lr5e-5_revised
+    --model_path kmseong/llama-3.1-8B-only-sn-tuned-lr5e-5 \
+    --safety_neurons_file /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/safety_neuron_accelerated_20260505_194833.txt \
+    --output_dir ./llama3.1-8B_base_gsm8k_ft_freeze_sn_lr1e-5 \
+    --learning_rate 1e-5 --epochs 3 \
+    --upload_name kmseong/llama3.1-8B_base_gsm8k_ft_freeze_sn_lr1e-5
 
 
 python finetune_gsm8k_freeze_sn.py \
-    --model_path kmseong/llama2_7b_chat_only_rsn_tuned_lr5e-5_revised \
-    --safety_neurons_file /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/critical_safety_neuron_20260502_022558.txt \
-    --output_dir ./llama2_7b_chat_gsm8k_ft_freeze_rsn_lr5e-5_new \
-    --learning_rate 5e-5 --epochs 3 \
-    --upload_name kmseong/llama2_7b_chat_gsm8k_ft_freeze_rsn_lr5e-5_new_revised
+    --model_path kmseong/llama-3.1-8B-only-rsn-tuned-lr5e-5 \
+    --safety_neurons_file /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/critical_safety_neuron_20260505_195259.txt \
+    --output_dir ./llama3.1-8B_chat_gsm8k_ft_freeze_rsn_lr1e-5_new \
+    --learning_rate 1e-5 --epochs 3 \
+    --upload_name kmseong/llama3.1-8B_base_gsm8k_ft_freeze_rsn_lr1e-5
 
 
 
@@ -38,7 +38,6 @@ from datetime import datetime
 import logging
 
 import torch
-import wandb
 from datasets import load_dataset
 from transformers import (
     AutoModelForCausalLM,
@@ -49,7 +48,7 @@ from transformers import (
     set_seed,
 )
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "5"
 
 
 def parse_args():
@@ -100,7 +99,7 @@ def parse_args():
     p.add_argument("--save_steps", type=int, default=500)
     p.add_argument("--save_total_limit", type=int, default=2)
     p.add_argument("--eval_steps", type=int, default=500)
-    p.add_argument("--report_to", type=str, default="wandb")
+    p.add_argument("--report_to", type=str, default="none")
     p.add_argument("--num_workers", type=int, default=4)
     p.add_argument("--cache_dir", type=str, default='./cache')
     p.add_argument("--upload_name", type=str, default=None,
@@ -576,29 +575,6 @@ def main():
     is_local = raw_path.startswith("./") or raw_path.startswith("/") or raw_path.startswith("../")
     model_path = os.path.abspath(raw_path) if is_local else raw_path
 
-    run_name = os.path.basename(os.path.normpath(args.output_dir))
-    wandb.init(
-        entity="gokms0509-yonsei-university",
-        project="GSM8K Freeze SN Finetuning",
-        name=run_name,
-        config={
-            "model_path": model_path,
-            "safety_neurons_file": os.path.basename(args.safety_neurons_file),
-            "strategy": "freeze_safety_neurons",
-            "learning_rate": args.learning_rate,
-            "num_epochs": args.epochs,
-            "batch_size": args.batch_size,
-            "grad_accum": args.grad_accum,
-            "effective_batch_size": args.batch_size * args.grad_accum,
-            "max_length": args.max_length,
-            "weight_decay": args.weight_decay,
-            "warmup_ratio": args.warmup_ratio,
-            "lr_scheduler": args.lr_scheduler_type,
-            "dataset": "gsm8k",
-            "is_instruct": is_instruct_model(model_path),
-        },
-    )
-
     # Load tokenizer
     logger.info(f"\n{'='*70}")
     logger.info(f"  [1/5] Loading Tokenizer")
@@ -757,7 +733,7 @@ def main():
         eval_steps=(args.eval_steps if do_eval else None),
         bf16=args.bf16,
         fp16=args.fp16,
-        report_to=args.report_to,
+        report_to="none",
         remove_unused_columns=False,
         optim=args.optim,
         dataloader_pin_memory=False,
@@ -937,7 +913,6 @@ def main():
     logger.info(f"\n{'='*70}")
     logger.info(f"  ✅ Fine-tuning Complete!")
     logger.info(f"{'='*70}\n")
-    wandb.finish()
 
 if __name__ == '__main__':
     main()

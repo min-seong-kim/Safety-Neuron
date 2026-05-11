@@ -1,0 +1,292 @@
+2026-05-02 19:35:35 - __main__ - INFO - 
+======================================================================
+2026-05-02 19:35:35 - __main__ - INFO - Safety Neuron Tuning (SN-Tune)
+2026-05-02 19:35:35 - __main__ - INFO - ======================================================================
+2026-05-02 19:35:35 - __main__ - INFO - Safety neurons file: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/safety_neuron_accelerated_20260502_172603.txt
+2026-05-02 19:35:35 - __main__ - INFO - Safety dataset file: ./corpus_all/circuit_breakers_train.json
+2026-05-02 19:35:35 - __main__ - INFO - Output directory: ./only_sn_tuned_model_llama3_2_3b_lr5e-5
+
+2026-05-02 19:35:35 - __main__ - INFO - Upload target: kmseong/llama3_2_3b_instruct_only_sn_tuned_lr5e-5
+2026-05-02 19:35:35 - __main__ - INFO - Log file: ./logs/sn_tuning/sn_tune_20260502_193535.log
+
+2026-05-02 19:35:35 - __main__ - INFO - Model: meta-llama/Llama-3.2-3B-Instruct
+2026-05-02 19:35:35 - __main__ - INFO - Instruct model detected: True → using chat template format
+
+2026-05-02 19:35:35 - __main__ - INFO - Loading model and tokenizer...
+2026-05-02 19:35:38 - __main__ - INFO - ✓ Model and tokenizer loaded (bfloat16)
+2026-05-02 19:35:38 - __main__ - INFO - ✓ Model loaded on device: cuda:0
+2026-05-02 19:35:38 - __main__ - INFO - 
+Loading safety neurons...
+2026-05-02 19:35:38 - __main__ - INFO - Loaded safety neurons from /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/safety_neuron_accelerated_20260502_172603.txt
+2026-05-02 19:35:38 - __main__ - INFO - 
+======================================================================
+2026-05-02 19:35:38 - __main__ - INFO - Safety Neurons Loaded - Detailed Breakdown
+2026-05-02 19:35:38 - __main__ - INFO - ======================================================================
+2026-05-02 19:35:38 - __main__ - INFO -   ffn_up       : 3303 neurons
+2026-05-02 19:35:38 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-02 19:35:38 - __main__ - INFO -   ffn_down     : 3303 neurons
+2026-05-02 19:35:38 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-02 19:35:38 - __main__ - INFO -   q            : 1311 neurons
+2026-05-02 19:35:38 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-02 19:35:38 - __main__ - INFO -   k            : 1311 neurons
+2026-05-02 19:35:38 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-02 19:35:38 - __main__ - INFO -   v            :  851 neurons
+2026-05-02 19:35:38 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-02 19:35:38 - __main__ - INFO - 
+Total safety neurons: 10079
+2026-05-02 19:35:38 - __main__ - INFO - ======================================================================
+
+2026-05-02 19:35:38 - __main__ - INFO - 
+Setting up gradient masking for safety neurons...
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.0.self_attn.k_proj.weight layer=0 module=k: remapped 26 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.0.self_attn.v_proj.weight layer=0 module=v: remapped 23 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.1.self_attn.k_proj.weight layer=1 module=k: remapped 53 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.1.self_attn.v_proj.weight layer=1 module=v: remapped 44 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.2.self_attn.k_proj.weight layer=2 module=k: remapped 41 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.2.self_attn.v_proj.weight layer=2 module=v: remapped 16 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.3.self_attn.k_proj.weight layer=3 module=k: remapped 37 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.3.self_attn.v_proj.weight layer=3 module=v: remapped 25 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.4.self_attn.k_proj.weight layer=4 module=k: remapped 59 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.4.self_attn.v_proj.weight layer=4 module=v: remapped 20 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.5.self_attn.k_proj.weight layer=5 module=k: remapped 10 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.5.self_attn.v_proj.weight layer=5 module=v: remapped 17 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.6.self_attn.k_proj.weight layer=6 module=k: remapped 43 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.6.self_attn.v_proj.weight layer=6 module=v: remapped 24 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.7.self_attn.k_proj.weight layer=7 module=k: remapped 26 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.7.self_attn.v_proj.weight layer=7 module=v: remapped 22 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.8.self_attn.k_proj.weight layer=8 module=k: remapped 15 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.8.self_attn.v_proj.weight layer=8 module=v: remapped 23 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.9.self_attn.k_proj.weight layer=9 module=k: remapped 34 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.9.self_attn.v_proj.weight layer=9 module=v: remapped 20 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.10.self_attn.k_proj.weight layer=10 module=k: remapped 16 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.10.self_attn.v_proj.weight layer=10 module=v: remapped 35 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.11.self_attn.k_proj.weight layer=11 module=k: remapped 36 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.11.self_attn.v_proj.weight layer=11 module=v: remapped 21 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.12.self_attn.k_proj.weight layer=12 module=k: remapped 24 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.12.self_attn.v_proj.weight layer=12 module=v: remapped 20 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.13.self_attn.k_proj.weight layer=13 module=k: remapped 27 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.13.self_attn.v_proj.weight layer=13 module=v: remapped 20 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.14.self_attn.k_proj.weight layer=14 module=k: remapped 13 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.14.self_attn.v_proj.weight layer=14 module=v: remapped 20 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.15.self_attn.k_proj.weight layer=15 module=k: remapped 20 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.15.self_attn.v_proj.weight layer=15 module=v: remapped 20 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.16.self_attn.k_proj.weight layer=16 module=k: remapped 16 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.16.self_attn.v_proj.weight layer=16 module=v: remapped 25 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.17.self_attn.k_proj.weight layer=17 module=k: remapped 23 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.17.self_attn.v_proj.weight layer=17 module=v: remapped 16 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.18.self_attn.k_proj.weight layer=18 module=k: remapped 19 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.18.self_attn.v_proj.weight layer=18 module=v: remapped 18 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.19.self_attn.k_proj.weight layer=19 module=k: remapped 29 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.19.self_attn.v_proj.weight layer=19 module=v: remapped 10 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.20.self_attn.k_proj.weight layer=20 module=k: remapped 51 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.20.self_attn.v_proj.weight layer=20 module=v: remapped 14 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.21.self_attn.k_proj.weight layer=21 module=k: remapped 57 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.21.self_attn.v_proj.weight layer=21 module=v: remapped 18 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.22.self_attn.k_proj.weight layer=22 module=k: remapped 52 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.22.self_attn.v_proj.weight layer=22 module=v: remapped 16 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.23.self_attn.k_proj.weight layer=23 module=k: remapped 34 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.23.self_attn.v_proj.weight layer=23 module=v: remapped 8 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.24.self_attn.k_proj.weight layer=24 module=k: remapped 45 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.24.self_attn.v_proj.weight layer=24 module=v: remapped 7 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.25.self_attn.k_proj.weight layer=25 module=k: remapped 45 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.25.self_attn.v_proj.weight layer=25 module=v: remapped 29 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.26.self_attn.k_proj.weight layer=26 module=k: remapped 42 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.26.self_attn.v_proj.weight layer=26 module=v: remapped 6 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.27.self_attn.k_proj.weight layer=27 module=k: remapped 25 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - [IndexRemap] model.layers.27.self_attn.v_proj.weight layer=27 module=v: remapped 20 indices from expanded attention space to KV space
+2026-05-02 19:35:38 - __main__ - INFO - 
+======================================================================
+2026-05-02 19:35:38 - __main__ - INFO - Gradient Masking Setup Summary
+2026-05-02 19:35:38 - __main__ - INFO - ======================================================================
+2026-05-02 19:35:38 - __main__ - INFO - Total parameters: 3,212,749,824
+2026-05-02 19:35:38 - __main__ - INFO - Trainable neuron parameters (effective): 28,781,568
+2026-05-02 19:35:38 - __main__ - INFO - Frozen parameters: 3,183,968,256
+2026-05-02 19:35:38 - __main__ - INFO - Trainable ratio: 0.8959%
+2026-05-02 19:35:38 - __main__ - INFO - Gradient masking hooks registered: 140
+2026-05-02 19:35:38 - __main__ - INFO - 
+Layers with gradient masking:
+2026-05-02 19:35:38 - __main__ - INFO -   ffn_up       : 28 layers
+2026-05-02 19:35:38 - __main__ - INFO -   ffn_down     : 28 layers
+2026-05-02 19:35:38 - __main__ - INFO -   q            : 28 layers
+2026-05-02 19:35:38 - __main__ - INFO -   k            : 28 layers
+2026-05-02 19:35:38 - __main__ - INFO -   v            : 28 layers
+2026-05-02 19:35:38 - __main__ - INFO - ======================================================================
+
+2026-05-02 19:35:38 - __main__ - INFO - 
+Loading safety dataset...
+2026-05-02 19:35:38 - __main__ - INFO - Loaded 4994 samples from ./corpus_all/circuit_breakers_train.json
+2026-05-02 19:35:38 - __main__ - INFO -   Format: chat template (instruct)
+2026-05-02 19:35:38 - __main__ - INFO - ✓ DataLoader created: 1249 batches
+2026-05-02 19:35:38 - __main__ - INFO -   Total samples: 4994
+2026-05-02 19:35:38 - __main__ - INFO -   Batch size: 4
+2026-05-02 19:35:38 - __main__ - INFO -   Number of batches: 1249
+2026-05-02 19:35:38 - __main__ - INFO -   Max sequence length: 1024
+2026-05-02 19:35:38 - __main__ - INFO - 
+Starting SN-Tune training...
+2026-05-02 19:35:38 - __main__ - INFO - Starting SN-Tune training...
+2026-05-02 19:35:38 - __main__ - INFO -   Learning rate: 5e-05
+2026-05-02 19:35:38 - __main__ - INFO -   Epochs: 3
+2026-05-02 19:35:38 - __main__ - INFO -   Batch size: 4
+2026-05-02 19:35:38 - __main__ - INFO -   Grad accum steps: 4
+2026-05-02 19:35:38 - __main__ - INFO -   Effective batch size: 16
+2026-05-02 19:35:38 - __main__ - INFO -   Num batches: 1249
+2026-05-02 19:35:38 - __main__ - INFO -   Total optimization steps: 939
+2026-05-02 19:35:38 - __main__ - INFO -   Warmup steps: 93
+2026-05-02 19:35:38 - __main__ - INFO - 
+Epoch 1/3
+2026-05-02 19:35:38 - __main__ - INFO - 
+[Dataset Sample #first] (instruct / chat template)
+2026-05-02 19:35:38 - __main__ - INFO -   Keys: dict_keys(['category', 'prompt', 'output', 'llama3_output'])
+2026-05-02 19:35:38 - __main__ - INFO -   Prompt (first 100): How can I say something rude about someone's intelligence?...
+2026-05-02 19:35:38 - __main__ - INFO -   Response (first 100): I can't help you come up with something rude to say about someone's intelligence. Can I help you wit...
+2026-05-02 19:35:38 - __main__ - INFO -   prompt_length (tokens): 46
+2026-05-02 19:35:38 - __main__ - INFO -   full_ids length: 72
+2026-05-02 19:35:38 - __main__ - INFO -   Learned tokens (26): I can't help you come up with something rude to say about someone's intelligence. Can I help you with something else?<|eot_id|>...
+2026-05-02 19:35:38 - __main__ - INFO -   Masked (prompt) tokens: <|begin_of_text|><|start_header_id|>system<|end_header_id|>
+
+Cutting Knowledge Date: December 2023
+Today Date: 02 May 2026
+
+<|eot_id|><|start_header_id|>user<|end_header_id|>
+
+How can I say something ...
+2026-05-02 19:35:38 - __main__ - INFO - 
+[First Batch Info]
+2026-05-02 19:35:38 - __main__ - INFO -   Batch size: 4
+2026-05-02 19:35:38 - __main__ - INFO -   Sequence length: 1024
+2026-05-02 19:35:38 - __main__ - INFO -   Device: cuda:0
+2026-05-02 19:35:38 - __main__ - INFO -   Valid labels (response-only): 124/4096
+2026-05-02 19:35:38 - __main__ - INFO - 
+[Gradient Check - Batch 0]
+2026-05-02 19:35:38 - __main__ - INFO -   Parameters with non-zero gradients: 140
+2026-05-02 19:35:38 - __main__ - INFO -   Parameters with zero gradients: 0
+2026-05-02 19:35:38 - __main__ - INFO -   Max gradient magnitude: 0.589844
+2026-05-02 19:35:38 - __main__ - INFO -   Batch 1: loss = 0.7134
+2026-05-02 19:35:39 - __main__ - INFO -   Optimizer step 1: lr = 0.00000054, grad_norm = 37.000000
+2026-05-02 19:35:39 - __main__ - INFO -   Batch 5: loss = 1.0656
+2026-05-02 19:35:39 - __main__ - INFO -   Optimizer step 2: lr = 0.00000108, grad_norm = 37.750000
+2026-05-02 19:35:40 - __main__ - INFO -   Batch 10: loss = 0.7140
+2026-05-02 19:35:40 - __main__ - INFO -   Optimizer step 3: lr = 0.00000161, grad_norm = 32.000000
+2026-05-02 19:35:41 - __main__ - INFO -   Batch 15: loss = 0.9906
+2026-05-02 19:35:41 - __main__ - INFO -   Optimizer step 4: lr = 0.00000215, grad_norm = 39.500000
+2026-05-02 19:35:41 - __main__ - INFO -   Optimizer step 5: lr = 0.00000269, grad_norm = 27.125000
+2026-05-02 19:35:41 - __main__ - INFO -   Batch 20: loss = 1.0527
+2026-05-02 19:35:42 - __main__ - INFO -   Optimizer step 6: lr = 0.00000323, grad_norm = 39.000000
+2026-05-02 19:35:42 - __main__ - INFO -   Batch 25: loss = 0.7868
+2026-05-02 19:35:43 - __main__ - INFO -   Optimizer step 7: lr = 0.00000376, grad_norm = 28.375000
+2026-05-02 19:35:43 - __main__ - INFO -   Batch 30: loss = 0.6504
+2026-05-02 19:35:43 - __main__ - INFO -   Optimizer step 8: lr = 0.00000430, grad_norm = 37.750000
+2026-05-02 19:35:44 - __main__ - INFO -   Batch 35: loss = 1.1196
+2026-05-02 19:35:44 - __main__ - INFO -   Optimizer step 9: lr = 0.00000484, grad_norm = 39.750000
+2026-05-02 19:35:45 - __main__ - INFO -   Optimizer step 10: lr = 0.00000538, grad_norm = 29.500000
+2026-05-02 19:35:45 - __main__ - INFO -   Batch 40: loss = 0.6445
+2026-05-02 19:35:45 - __main__ - INFO -   Optimizer step 11: lr = 0.00000591, grad_norm = 30.375000
+2026-05-02 19:35:46 - __main__ - INFO -   Batch 45: loss = 0.7313
+2026-05-02 19:35:46 - __main__ - INFO -   Optimizer step 12: lr = 0.00000645, grad_norm = 29.125000
+2026-05-02 19:35:46 - __main__ - INFO -   Batch 50: loss = 0.6017
+2026-05-02 19:35:47 - __main__ - INFO -   Optimizer step 13: lr = 0.00000699, grad_norm = 18.250000
+2026-05-02 19:35:47 - __main__ - INFO -   Batch 55: loss = 1.0927
+2026-05-02 19:35:47 - __main__ - INFO -   Optimizer step 14: lr = 0.00000753, grad_norm = 38.500000
+2026-05-02 19:35:48 - __main__ - INFO -   Optimizer step 15: lr = 0.00000806, grad_norm = 25.250000
+2026-05-02 19:35:48 - __main__ - INFO -   Batch 60: loss = 0.3627
+2026-05-02 19:35:49 - __main__ - INFO -   Optimizer step 16: lr = 0.00000860, grad_norm = 34.250000
+2026-05-02 19:35:49 - __main__ - INFO -   Batch 65: loss = 0.4571
+2026-05-02 19:35:49 - __main__ - INFO -   Optimizer step 17: lr = 0.00000914, grad_norm = 24.750000
+2026-05-02 19:35:50 - __main__ - INFO -   Batch 70: loss = 0.5413
+2026-05-02 19:35:50 - __main__ - INFO -   Optimizer step 18: lr = 0.00000968, grad_norm = 26.125000
+2026-05-02 19:35:51 - __main__ - INFO -   Batch 75: loss = 1.0458
+2026-05-02 19:35:51 - __main__ - INFO -   Optimizer step 19: lr = 0.00001022, grad_norm = 25.000000
+2026-05-02 19:35:51 - __main__ - INFO -   Optimizer step 20: lr = 0.00001075, grad_norm = 18.875000
+2026-05-02 19:35:51 - __main__ - INFO -   Batch 80: loss = 0.7704
+2026-05-02 19:35:52 - __main__ - INFO -   Optimizer step 21: lr = 0.00001129, grad_norm = 14.062500
+2026-05-02 19:35:52 - __main__ - INFO -   Batch 85: loss = 0.2568
+2026-05-02 19:35:53 - __main__ - INFO -   Optimizer step 22: lr = 0.00001183, grad_norm = 17.000000
+2026-05-02 19:35:53 - __main__ - INFO -   Batch 90: loss = 0.4045
+2026-05-02 19:35:53 - __main__ - INFO -   Optimizer step 23: lr = 0.00001237, grad_norm = 7.125000
+2026-05-02 19:35:54 - __main__ - INFO -   Batch 95: loss = 0.2733
+2026-05-02 19:35:54 - __main__ - INFO -   Optimizer step 24: lr = 0.00001290, grad_norm = 10.812500
+2026-05-02 19:35:55 - __main__ - INFO -   Optimizer step 25: lr = 0.00001344, grad_norm = 14.000000
+2026-05-02 19:35:55 - __main__ - INFO -   Batch 100: loss = 0.7887
+2026-05-02 19:35:55 - __main__ - INFO -   Optimizer step 26: lr = 0.00001398, grad_norm = 10.625000
+2026-05-02 19:35:56 - __main__ - INFO -   Batch 105: loss = 0.6027
+2026-05-02 19:35:56 - __main__ - INFO -   Optimizer step 27: lr = 0.00001452, grad_norm = 8.687500
+2026-05-02 19:35:56 - __main__ - INFO -   Batch 110: loss = 0.9438
+2026-05-02 19:35:57 - __main__ - INFO -   Optimizer step 28: lr = 0.00001505, grad_norm = 10.187500
+2026-05-02 19:35:57 - __main__ - INFO -   Batch 115: loss = 0.3071
+2026-05-02 19:35:57 - __main__ - INFO -   Optimizer step 29: lr = 0.00001559, grad_norm = 10.812500
+2026-05-02 19:35:58 - __main__ - INFO -   Optimizer step 30: lr = 0.00001613, grad_norm = 10.125000
+2026-05-02 19:35:58 - __main__ - INFO -   Batch 120: loss = 0.4789
+2026-05-02 19:35:59 - __main__ - INFO -   Optimizer step 31: lr = 0.00001667, grad_norm = 7.843750
+2026-05-02 19:35:59 - __main__ - INFO -   Batch 125: loss = 0.6652
+2026-05-02 19:35:59 - __main__ - INFO -   Optimizer step 32: lr = 0.00001720, grad_norm = 6.781250
+2026-05-02 19:36:00 - __main__ - INFO -   Batch 130: loss = 0.3778
+2026-05-02 19:36:00 - __main__ - INFO -   Optimizer step 33: lr = 0.00001774, grad_norm = 9.250000
+2026-05-02 19:36:01 - __main__ - INFO -   Batch 135: loss = 0.4005
+2026-05-02 19:36:01 - __main__ - INFO -   Optimizer step 34: lr = 0.00001828, grad_norm = 6.218750
+2026-05-02 19:36:01 - __main__ - INFO -   Optimizer step 35: lr = 0.00001882, grad_norm = 6.406250
+2026-05-02 19:36:01 - __main__ - INFO -   Batch 140: loss = 0.2766
+2026-05-02 19:36:02 - __main__ - INFO -   Optimizer step 36: lr = 0.00001935, grad_norm = 10.187500
+2026-05-02 19:36:02 - __main__ - INFO -   Batch 145: loss = 0.2775
+2026-05-02 19:36:03 - __main__ - INFO -   Optimizer step 37: lr = 0.00001989, grad_norm = 6.093750
+2026-05-02 19:36:03 - __main__ - INFO -   Batch 150: loss = 0.3191
+2026-05-02 19:36:03 - __main__ - INFO -   Optimizer step 38: lr = 0.00002043, grad_norm = 6.750000
+2026-05-02 19:36:04 - __main__ - INFO -   Batch 155: loss = 0.3570
+2026-05-02 19:36:04 - __main__ - INFO -   Optimizer step 39: lr = 0.00002097, grad_norm = 7.093750
+2026-05-02 19:36:05 - __main__ - INFO -   Optimizer step 40: lr = 0.00002151, grad_norm = 6.406250
+2026-05-02 19:36:05 - __main__ - INFO -   Batch 160: loss = 0.3411
+2026-05-02 19:36:05 - __main__ - INFO -   Optimizer step 41: lr = 0.00002204, grad_norm = 5.343750
+2026-05-02 19:36:06 - __main__ - INFO -   Batch 165: loss = 0.3152
+2026-05-02 19:36:06 - __main__ - INFO -   Optimizer step 42: lr = 0.00002258, grad_norm = 5.593750
+2026-05-02 19:36:06 - __main__ - INFO -   Batch 170: loss = 0.4494
+2026-05-02 19:36:07 - __main__ - INFO -   Optimizer step 43: lr = 0.00002312, grad_norm = 6.718750
+2026-05-02 19:36:07 - __main__ - INFO -   Batch 175: loss = 0.4745
+2026-05-02 19:36:07 - __main__ - INFO -   Optimizer step 44: lr = 0.00002366, grad_norm = 6.218750
+2026-05-02 19:36:08 - __main__ - INFO -   Optimizer step 45: lr = 0.00002419, grad_norm = 5.781250
+2026-05-02 19:36:08 - __main__ - INFO -   Batch 180: loss = 0.3366
+2026-05-02 19:36:09 - __main__ - INFO -   Optimizer step 46: lr = 0.00002473, grad_norm = 4.937500
+2026-05-02 19:36:09 - __main__ - INFO -   Batch 185: loss = 0.5749
+2026-05-02 19:36:09 - __main__ - INFO -   Optimizer step 47: lr = 0.00002527, grad_norm = 5.406250
+2026-05-02 19:36:10 - __main__ - INFO -   Batch 190: loss = 0.2121
+2026-05-02 19:36:10 - __main__ - INFO -   Optimizer step 48: lr = 0.00002581, grad_norm = 5.250000
+2026-05-02 19:36:11 - __main__ - INFO -   Batch 195: loss = 0.5934
+2026-05-02 19:36:11 - __main__ - INFO -   Optimizer step 49: lr = 0.00002634, grad_norm = 4.218750
+2026-05-02 19:36:11 - __main__ - INFO -   Optimizer step 50: lr = 0.00002688, grad_norm = 4.812500
+2026-05-02 19:36:11 - __main__ - INFO -   Batch 200: loss = 0.3633
+2026-05-02 19:36:12 - __main__ - INFO -   Optimizer step 51: lr = 0.00002742, grad_norm = 4.625000
+2026-05-02 19:36:12 - __main__ - INFO -   Batch 205: loss = 0.4054
+2026-05-02 19:36:13 - __main__ - INFO -   Optimizer step 52: lr = 0.00002796, grad_norm = 5.406250
+2026-05-02 19:36:13 - __main__ - INFO -   Batch 210: loss = 0.1894
+2026-05-02 19:36:13 - __main__ - INFO -   Optimizer step 53: lr = 0.00002849, grad_norm = 4.031250
+2026-05-02 19:36:14 - __main__ - INFO -   Batch 215: loss = 0.4896
+2026-05-02 19:36:14 - __main__ - INFO -   Optimizer step 54: lr = 0.00002903, grad_norm = 4.593750
+2026-05-02 19:36:15 - __main__ - INFO -   Optimizer step 55: lr = 0.00002957, grad_norm = 4.562500
+2026-05-02 19:36:15 - __main__ - INFO -   Batch 220: loss = 0.2346
+2026-05-02 19:36:15 - __main__ - INFO -   Optimizer step 56: lr = 0.00003011, grad_norm = 3.562500
+2026-05-02 19:36:15 - __main__ - INFO -   Batch 225: loss = 0.1389
+2026-05-02 19:36:16 - __main__ - INFO -   Optimizer step 57: lr = 0.00003065, grad_norm = 4.281250
+2026-05-02 19:36:16 - __main__ - INFO -   Batch 230: loss = 0.7223
+2026-05-02 19:36:17 - __main__ - INFO -   Optimizer step 58: lr = 0.00003118, grad_norm = 5.312500
+2026-05-02 19:36:17 - __main__ - INFO -   Batch 235: loss = 0.4160
+2026-05-02 19:36:17 - __main__ - INFO -   Optimizer step 59: lr = 0.00003172, grad_norm = 4.125000
+2026-05-02 19:36:18 - __main__ - INFO -   Optimizer step 60: lr = 0.00003226, grad_norm = 4.312500
+2026-05-02 19:36:18 - __main__ - INFO -   Batch 240: loss = 0.3928
+2026-05-02 19:36:19 - __main__ - INFO -   Optimizer step 61: lr = 0.00003280, grad_norm = 5.312500
+2026-05-02 19:36:19 - __main__ - INFO -   Batch 245: loss = 0.7677
+2026-05-02 19:36:19 - __main__ - INFO -   Optimizer step 62: lr = 0.00003333, grad_norm = 4.875000
+2026-05-02 19:36:20 - __main__ - INFO -   Batch 250: loss = 0.4909
+2026-05-02 19:36:20 - __main__ - INFO -   Optimizer step 63: lr = 0.00003387, grad_norm = 4.343750
+2026-05-02 19:36:21 - __main__ - INFO -   Batch 255: loss = 0.7251
+2026-05-02 19:36:21 - __main__ - INFO -   Optimizer step 64: lr = 0.00003441, grad_norm = 4.531250
+2026-05-02 19:36:21 - __main__ - INFO -   Optimizer step 65: lr = 0.00003495, grad_norm = 3.687500
+2026-05-02 19:36:21 - __main__ - INFO -   Batch 260: loss = 0.3485
+2026-05-02 19:36:22 - __main__ - INFO -   Optimizer step 66: lr = 0.00003548, grad_norm = 4.375000
+2026-05-02 19:36:22 - __main__ - INFO -   Batch 265: loss = 0.2834
+2026-05-02 19:36:23 - __main__ - INFO -   Optimizer step 67: lr = 0.00003602, grad_norm = 3.843750
+2026-05-02 19:36:23 - __main__ - INFO -   Batch 270: loss = 0.2719
+2026-05-02 19:36:23 - __main__ - INFO -   Optimizer step 68: lr = 0.00003656, grad_norm = 3.546875
+2026-05-02 19:36:24 - __main__ - INFO -   Batch 275: loss = 0.2349
+2026-05-02 19:36:24 - __main__ - INFO -   Optimizer step 69: lr = 0.00003710, grad_norm = 3.500000
+2026-05-02 19:36:25 - __main__ - INFO -   Optimizer step 70: lr = 0.00003763, grad_norm = 4.968750
+2026-05-02 19:36:25 - __main__ - INFO -   Batch 280: loss = 0.5529
+2026-05-02 19:36:25 - __main__ - INFO -   Optimizer step 71: lr = 0.00003817, grad_norm = 4.375000
+2026-05-02 19:36:26 - __main__ - INFO -   Batch 285: loss = 0.2590

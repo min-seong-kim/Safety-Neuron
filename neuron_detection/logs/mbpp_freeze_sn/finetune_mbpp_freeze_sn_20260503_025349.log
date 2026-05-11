@@ -1,0 +1,121 @@
+2026-05-03 02:53:49 - __main__ - INFO - 
+======================================================================
+2026-05-03 02:53:49 - __main__ - INFO -   MBPP Fine-tuning with Safety Neuron Freezing
+2026-05-03 02:53:49 - __main__ - INFO - ======================================================================
+
+2026-05-03 02:53:49 - __main__ - INFO - Log file: ./logs/mbpp_freeze_sn/finetune_mbpp_freeze_sn_20260503_025349.log
+2026-05-03 02:53:49 - __main__ - INFO - Configuration:
+2026-05-03 02:53:49 - __main__ - INFO -    ├─ Model:               kmseong/llama2_7b_chat_only_rsn_tuned_lr5e-5_revised
+2026-05-03 02:53:49 - __main__ - INFO -    ├─ Safety neurons file: ./output_neurons/critical_safety_neuron_20260502_022558.txt
+2026-05-03 02:53:49 - __main__ - INFO -    ├─ Input formatting:    chat template
+2026-05-03 02:53:49 - __main__ - INFO -    ├─ Dataset:             google-research-datasets/mbpp / full
+2026-05-03 02:53:49 - __main__ - INFO -    ├─ Train split:         train
+2026-05-03 02:53:49 - __main__ - INFO -    ├─ Safety mix ratio:    0.0
+2026-05-03 02:53:49 - __main__ - INFO -    ├─ Batch size:          4
+2026-05-03 02:53:49 - __main__ - INFO -    ├─ Grad accum:          4
+2026-05-03 02:53:49 - __main__ - INFO -    ├─ Epochs:              3
+2026-05-03 02:53:49 - __main__ - INFO -    ├─ LR:                  5e-05
+2026-05-03 02:53:49 - __main__ - INFO -    ├─ Strategy:            Freeze safety neurons, train others
+2026-05-03 02:53:49 - __main__ - INFO -    └─ Output dir:          ./mbpp_eval/llama2_7b_chat_mbpp_freeze_sn_lr5e-5
+2026-05-03 02:53:49 - __main__ - INFO - 
+======================================================================
+2026-05-03 02:53:49 - __main__ - INFO -   [1/5] Loading Tokenizer
+2026-05-03 02:53:49 - __main__ - INFO - ======================================================================
+
+2026-05-03 02:53:49 - __main__ - WARNING - local_files_only failed (We couldn't connect to 'https://huggingface.co' to load the files, and couldn't find them in the cached files.
+Check your internet connection or see how to run the library in offline mode at 'https://huggingface.co/docs/transformers/installation#offline-mode'.); trying HuggingFace Hub...
+2026-05-03 02:53:54 - __main__ - INFO - Tokenizer loaded from HuggingFace Hub
+2026-05-03 02:53:54 - __main__ - INFO - 
+======================================================================
+2026-05-03 02:53:54 - __main__ - INFO -   [2/5] Loading Model (bf16)
+2026-05-03 02:53:54 - __main__ - INFO - ======================================================================
+
+2026-05-03 02:53:54 - __main__ - WARNING - local_files_only failed (We couldn't connect to 'https://huggingface.co' to load the files, and couldn't find them in the cached files.
+Check your internet connection or see how to run the library in offline mode at 'https://huggingface.co/docs/transformers/installation#offline-mode'.); trying HuggingFace Hub...
+2026-05-03 02:54:16 - __main__ - INFO - Model loaded from HuggingFace Hub
+2026-05-03 02:54:16 - __main__ - INFO - Model loaded: 6.74B parameters, dtype=torch.bfloat16
+2026-05-03 02:54:16 - __main__ - INFO - 
+======================================================================
+2026-05-03 02:54:16 - __main__ - INFO -   [3/5] Loading Safety Neurons and Setting up Freezing
+2026-05-03 02:54:16 - __main__ - INFO - ======================================================================
+
+2026-05-03 02:54:16 - __main__ - INFO - Loaded safety neurons from ./output_neurons/critical_safety_neuron_20260502_022558.txt
+2026-05-03 02:54:16 - __main__ - INFO - 
+======================================================================
+2026-05-03 02:54:16 - __main__ - INFO - Safety Neurons Loaded - Detailed Breakdown
+2026-05-03 02:54:16 - __main__ - INFO - ======================================================================
+2026-05-03 02:54:16 - __main__ - INFO -   ffn_up       : 2716 neurons
+2026-05-03 02:54:16 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-03 02:54:16 - __main__ - INFO -   ffn_down     : 2716 neurons
+2026-05-03 02:54:16 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-03 02:54:16 - __main__ - INFO -   q            : 2743 neurons
+2026-05-03 02:54:16 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-03 02:54:16 - __main__ - INFO -   k            : 2743 neurons
+2026-05-03 02:54:16 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-03 02:54:16 - __main__ - INFO -   v            :  411 neurons
+2026-05-03 02:54:16 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-05-03 02:54:16 - __main__ - INFO - 
+Total safety neurons: 11329
+2026-05-03 02:54:16 - __main__ - INFO - ======================================================================
+
+2026-05-03 02:54:16 - __main__ - INFO - 
+======================================================================
+2026-05-03 02:54:16 - __main__ - INFO - Safety Neuron Freezing Setup Summary
+2026-05-03 02:54:16 - __main__ - INFO - ======================================================================
+2026-05-03 02:54:16 - __main__ - INFO - Total parameters:                        6,738,415,616
+2026-05-03 02:54:16 - __main__ - INFO - Frozen safety neuron params (effective): 46,403,584
+2026-05-03 02:54:16 - __main__ - INFO - Trainable parameters:                    6,738,415,616
+2026-05-03 02:54:16 - __main__ - INFO - Trainable ratio:            100.0000%
+2026-05-03 02:54:16 - __main__ - INFO - Frozen safety neuron ratio: 0.6886%
+2026-05-03 02:54:16 - __main__ - INFO - 
+Layers with frozen safety neurons:
+2026-05-03 02:54:16 - __main__ - INFO -   ffn_up       : 32 layers
+2026-05-03 02:54:16 - __main__ - INFO -   ffn_down     : 32 layers
+2026-05-03 02:54:16 - __main__ - INFO -   q            : 32 layers
+2026-05-03 02:54:16 - __main__ - INFO -   k            : 32 layers
+2026-05-03 02:54:16 - __main__ - INFO -   v            : 32 layers
+2026-05-03 02:54:16 - __main__ - INFO - ======================================================================
+
+2026-05-03 02:54:16 - __main__ - INFO - Freezing complete — trainable: 6.74B (100.00%)
+2026-05-03 02:54:16 - __main__ - INFO - 
+======================================================================
+2026-05-03 02:54:16 - __main__ - INFO -   [4/5] Loading MBPP Dataset
+2026-05-03 02:54:16 - __main__ - INFO - ======================================================================
+
+2026-05-03 02:54:16 - __main__ - INFO - Loading MBPP train split='train' from google-research-datasets/mbpp ...
+2026-05-03 02:54:19 - __main__ - INFO - Loaded MBPP train rows: 374
+2026-05-03 02:54:19 - __main__ - INFO - Loading MBPP eval split='validation' from google-research-datasets/mbpp ...
+2026-05-03 02:54:20 - __main__ - INFO - Loaded MBPP eval rows: 90
+2026-05-03 02:54:21 - __main__ - INFO - Train samples: 374
+2026-05-03 02:54:21 - __main__ - INFO - 
+======================================================================
+2026-05-03 02:54:21 - __main__ - INFO -   [5/5] Training
+2026-05-03 02:54:21 - __main__ - INFO - ======================================================================
+
+2026-05-03 02:54:21 - __main__ - INFO - Starting training...
+2026-05-03 02:55:00 - __main__ - INFO - 
+======================================================================
+2026-05-03 02:55:00 - __main__ - INFO -   Saving Fine-tuned Model
+2026-05-03 02:55:00 - __main__ - INFO - ======================================================================
+
+2026-05-03 02:55:00 - __main__ - INFO - Step 1: Preparing model for saving...
+2026-05-03 02:55:00 - __main__ - INFO - Step 2: Moving model to CPU for safe serialization...
+2026-05-03 02:55:04 - __main__ - INFO - Step 3: Saving model weights...
+2026-05-03 02:55:15 - __main__ - INFO -    Model weights saved (safetensors)
+2026-05-03 02:55:15 - __main__ - INFO - Step 4: Saving tokenizer...
+2026-05-03 02:55:15 - __main__ - INFO - Step 5: Saving model config...
+2026-05-03 02:55:15 - __main__ - INFO - Step 6: Verifying saved model integrity...
+2026-05-03 02:55:15 - __main__ - INFO -    Found 4 model shard file(s)
+2026-05-03 02:55:15 - __main__ - INFO -    Total size: 13.48 GB
+2026-05-03 02:55:15 - __main__ - INFO - Step 7: Final verification - attempting to load saved model...
+2026-05-03 02:55:15 - __main__ - INFO -    Model verified successfully
+2026-05-03 02:55:15 - __main__ - INFO - 
+Fine-tuned model saved and verified: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/mbpp_eval/llama2_7b_chat_mbpp_freeze_sn_lr5e-5_20260503_025500
+2026-05-03 02:55:15 - __main__ - INFO - Config saved to ./mbpp_eval/llama2_7b_chat_mbpp_freeze_sn_lr5e-5_20260503_025500/finetune_config.json
+2026-05-03 02:55:15 - __main__ - INFO - Uploading to HuggingFace: kmseong/llama2_7b-chat-rsn-tuned-mbpp-freeze_sn-lr5e-5
+2026-05-03 02:55:15 - __main__ - ERROR - HF 토큰이 없습니다. --hf_token 또는 HF_TOKEN 환경변수를 설정하세요.
+2026-05-03 02:55:15 - __main__ - INFO - 
+======================================================================
+2026-05-03 02:55:15 - __main__ - INFO -   Fine-tuning Complete!
+2026-05-03 02:55:15 - __main__ - INFO - ======================================================================
+

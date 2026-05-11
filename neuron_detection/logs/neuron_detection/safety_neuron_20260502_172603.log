@@ -1,0 +1,25 @@
+2026-05-02 17:26:03 - __main__ - INFO - Log directory: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection
+2026-05-02 17:26:03 - __main__ - INFO - Log file: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection/safety_neuron_20260502_172603.log
+2026-05-02 17:26:03 - __main__ - INFO - Using model: meta-llama/Llama-3.2-3B-Instruct
+2026-05-02 17:26:03 - __main__ - INFO - TOP_NUMBER_FFN: 600, TOP_NUMBER_ATTN: 100
+2026-05-02 17:26:03 - __main__ - INFO - [Mode] Safety Neuron Detection
+2026-05-02 17:26:03 - __main__ - INFO - Number of prompts to process: 4994
+2026-05-02 17:26:04 - __main__ - INFO - Processing 4994 prompts from /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/corpus_all/circuit_breakers_train.json
+2026-05-02 17:29:33 - __main__ - INFO - Detection complete: success=4994, failed=0
+2026-05-02 17:29:37 - __main__ - INFO - [compute_intersection][ffn_up] prompts=4994, before(union)=156642, after(intersection)=3303, reduced=153339
+2026-05-02 17:29:41 - __main__ - INFO - [compute_intersection][ffn_down] prompts=4994, before(union)=156642, after(intersection)=3303, reduced=153339
+2026-05-02 17:29:42 - __main__ - INFO - [compute_intersection][q] prompts=4994, before(union)=5966, after(intersection)=1311, reduced=4655
+2026-05-02 17:29:43 - __main__ - INFO - [compute_intersection][k] prompts=4994, before(union)=5966, after(intersection)=1311, reduced=4655
+2026-05-02 17:29:44 - __main__ - INFO - [compute_intersection][v] prompts=4994, before(union)=23705, after(intersection)=851, reduced=22854
+2026-05-02 17:29:44 - __main__ - INFO - 
+======================================================================
+2026-05-02 17:29:44 - __main__ - INFO - Safety Neuron Detection Results
+2026-05-02 17:29:44 - __main__ - INFO - ======================================================================
+2026-05-02 17:29:44 - __main__ - INFO - Model: meta-llama/Llama-3.2-3B-Instruct
+2026-05-02 17:29:44 - __main__ - INFO - Total safety neurons: 10,079
+2026-05-02 17:29:44 - __main__ - INFO - Total model neurons (q/k/v/o + gate/up/down): 774,144
+2026-05-02 17:29:44 - __main__ - INFO - Detected safety neuron percentage: 1.3020%
+2026-05-02 17:29:44 - __main__ - INFO - Output: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/safety_neuron_accelerated_20260502_172603.txt
+2026-05-02 17:29:44 - __main__ - INFO - Log: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection/safety_neuron_20260502_172603.log
+2026-05-02 17:29:44 - __main__ - INFO - ======================================================================
+

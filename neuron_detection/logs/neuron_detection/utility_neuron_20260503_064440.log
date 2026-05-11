@@ -1,0 +1,9 @@
+2026-05-03 06:44:40 - __main__ - INFO - Log directory: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection
+2026-05-03 06:44:40 - __main__ - INFO - Log file: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection/utility_neuron_20260503_064440.log
+2026-05-03 06:44:40 - __main__ - INFO - Using model: meta-llama/Llama-3.1-8B-Instruct
+2026-05-03 06:44:40 - __main__ - INFO - TOP_NUMBER_FFN: 300, TOP_NUMBER_ATTN: 50
+2026-05-03 06:44:40 - __main__ - INFO - [Mode] Utility Neuron Detection (Wikipedia)
+2026-05-03 06:44:40 - __main__ - INFO - Number of Wikipedia documents to process: 1000
+2026-05-03 06:44:40 - __main__ - INFO - Loading Wikipedia dataset (subset: 20231101.en)...
+2026-05-03 06:44:43 - __main__ - INFO - Successfully loaded 1000 Wikipedia samples
+2026-05-03 06:44:43 - __main__ - INFO - Processing 1000 Wikipedia documents

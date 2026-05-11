@@ -1,0 +1,23 @@
+2026-05-06 04:17:23 - __main__ - INFO - 
+======================================================================
+2026-05-06 04:17:23 - __main__ - INFO -   🚀 GSM8K Fine-tuning with Safety Neuron Freezing
+2026-05-06 04:17:23 - __main__ - INFO - ======================================================================
+
+2026-05-06 04:17:23 - __main__ - INFO - Log file: ./logs/safety_neuron_gsm8k/finetune_gsm8k_freeze_sn_20260506_041723.log
+2026-05-06 04:17:23 - __main__ - INFO - ⚙️  Configuration:
+2026-05-06 04:17:23 - __main__ - INFO -    ├─ SN-Tuned model: kmseong/llama2_7b_chat_only_sn_tuned_lr5e-5_revised
+2026-05-06 04:17:23 - __main__ - INFO -    ├─ Safety neurons file: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/safety_neuron_accelerated_20260506_031404.txt
+2026-05-06 04:17:23 - __main__ - INFO -    ├─ Training samples: 7473
+2026-05-06 04:17:23 - __main__ - INFO -    ├─ Input formatting: chat template
+2026-05-06 04:17:23 - __main__ - INFO -    ├─ Batch size: 4
+2026-05-06 04:17:23 - __main__ - INFO -    ├─ Gradient accumulation: 4
+2026-05-06 04:17:23 - __main__ - INFO -    ├─ Epochs: 3
+2026-05-06 04:17:23 - __main__ - INFO -    ├─ Learning rate: 5e-05
+2026-05-06 04:17:23 - __main__ - INFO -    ├─ Weight decay: 0.01
+2026-05-06 04:17:23 - __main__ - INFO -    ├─ Optimizer: adamw_torch
+2026-05-06 04:17:23 - __main__ - INFO -    ├─ Warmup ratio: 0.1
+2026-05-06 04:17:23 - __main__ - INFO -    ├─ Max length: 1024
+2026-05-06 04:17:23 - __main__ - INFO -    ├─ Dtype: bf16
+2026-05-06 04:17:23 - __main__ - INFO -    ├─ Strategy: Freeze safety neurons, train others
+2026-05-06 04:17:23 - __main__ - INFO -    └─ Output dir: ./llama2_13b_base_gsm8k_ft_freeze_sn_lr5e-5
+

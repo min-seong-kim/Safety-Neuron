@@ -8,17 +8,11 @@ Instruct 모델 기준:
 
 Example Usage:
 python finetune_hendrycks_math_full_params.py \
-    --model_path kmseong/llama3_2_3b-instruct-Safety-FT-lr5e-5  \
+    --model_path kmseong/Llama-3.1-8B-Instruct-ssft_lr5e-5  \
     --learning_rate 3e-5 --epochs 3 \
     --output_dir ./full_finetune_MATH_8b_instruct-lr3e-5 \
-    --upload_name kmseong/llama3_2_3b_instruct_MATH_lr3e-5
+    --upload_name kmseong/llama3_1_8b_instruct_MATH_lr3e-5
 
-    
-python finetune_hendrycks_math_full_params.py \
-    --model_path kmseong/llama3.1_8b_instruct-Safety-FT-lr3e-5 \
-    --output_dir ./lora_math_llama3.1_8b \
-    --lora --lora_r 16 --lora_alpha 32 \
-    --upload_name kmseong/llama3.1_8b_instruct_MATH_lora_ft-lr3e-5
 
 Safety 10% mixing + full parameter:
 python finetune_hendrycks_math_full_params.py \
@@ -39,7 +33,6 @@ from typing import Dict, List
 from datetime import datetime
 import logging
 
-import wandb
 import torch
 from datasets import load_dataset, Dataset as HFDataset, concatenate_datasets
 from transformers import (
@@ -55,7 +48,7 @@ try:
 except ImportError:
     _peft_available = False
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "5"  
 
 def parse_args():
     p = argparse.ArgumentParser(description="Full Parameter Finetune SN-Tuned Model on Hendrycks MATH")
@@ -526,39 +519,11 @@ def main():
         eval_steps=(args.eval_steps if do_eval else None),
         bf16=args.bf16,
         fp16=args.fp16,
-        report_to="wandb",
+        report_to=args.report_to,
         remove_unused_columns=False,
         optim="adamw_torch",
         dataloader_pin_memory=False,
         seed=args.seed,
-    )
-
-    run_name = os.path.basename(os.path.normpath(args.output_dir))
-    wandb.init(
-        entity="gokms0509-yonsei-university",
-        project="Hendrycks MATH Full Finetuning",
-        name=run_name,
-        config={
-            "model_path": model_path,
-            "learning_rate": args.learning_rate,
-            "num_epochs": args.epochs,
-            "batch_size": args.batch_size,
-            "grad_accum": args.grad_accum,
-            "effective_batch_size": args.batch_size * args.grad_accum,
-            "max_length": args.max_length,
-            "weight_decay": args.weight_decay,
-            "warmup_ratio": args.warmup_ratio,
-            "lr_scheduler": args.lr_scheduler_type,
-            "dataset": "hendrycks_math",
-            "math_subjects": args.math_subjects,
-            "is_instruct": is_instruct_model(model_path),
-            "lora": args.lora,
-            "lora_r": args.lora_r if args.lora else None,
-            "lora_alpha": args.lora_alpha if args.lora else None,
-            "lora_dropout": args.lora_dropout if args.lora else None,
-            "safety_mix_ratio": args.safety_mix_ratio,
-            "safety_data_path": args.safety_data_path if args.safety_mix_ratio > 0 else None,
-        },
     )
 
     trainer = Trainer(
@@ -625,8 +590,6 @@ def main():
         except Exception as e:
             logger.error(f"Upload failed: {e}")
             logger.error("Model was saved locally; you can upload manually with upload_sn_tuned_model.py")
-
-    wandb.finish()
 
 
 if __name__ == "__main__":

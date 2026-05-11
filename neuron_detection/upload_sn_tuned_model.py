@@ -1,12 +1,17 @@
 """
 llama 3.1 8B
 python upload_sn_tuned_model.py \
-    --upload_pair ./llama2_7b_chat_medqa_ft_freeze_rsn_lr1e-5_20260501_133851 kmseong/llama2_7b_base_medqa_ft_freeze_rsn_lr1e-5 \
-    --upload_pair ./math_ft_8b_instruct_freeze_rsn_lr1e-5_20260420_004336 kmseong/llama3.1_8b_instruct_math_ft_freeze_rsn_lr1e-5_new 
+    --upload_pair /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/mbpp_eval/llama2_7b_chat_mbpp_freeze_sn_lr5e-5_20260503_025416 kmseong/llama2_7b_chat_mbpp_ft_freeze_sn_lr5e-5 \
+    --upload_pair /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/mbpp_eval/llama2_7b_chat_mbpp_freeze_sn_lr5e-5_20260503_025500 kmseong/llama2_7b_chat_mbpp_ft_freeze_rsn_lr5e-5 \
+    --hf_token 
+
+
 
 llama 2 7B
 python upload_sn_tuned_model.py \
-    --upload_pair /home/yonsei_jong/resta/saved_models/resta_recovered_gamma0.3 kmseong/llama2_7b_chat_medaq_resta_gamma0.3 \
+    --upload_pair /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/minseong_results/warp_sn_llama-2-7b-chat-hf/warp_sn_tuned_lr5e-5_20260504_030311 kmseong/llama2_7b_chat_WaRP-SN-Tune_lr5e-5_6p \
+    --hf_token 
+
 """
 
 import argparse

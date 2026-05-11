@@ -1,0 +1,39 @@
+2026-05-06 03:06:18 - __main__ - INFO - Log directory: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection
+2026-05-06 03:06:18 - __main__ - INFO - Log file: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection/safety_neuron_20260506_030618.log
+2026-05-06 03:06:18 - __main__ - INFO - Using model: meta-llama/Llama-2-13b-chat-hf
+2026-05-06 03:06:18 - __main__ - INFO - ATTN_IMPLEMENTATION: flash_attention_2
+2026-05-06 03:06:18 - __main__ - INFO - TOP_NUMBER_FFN: 1200, TOP_NUMBER_ATTN: 200
+2026-05-06 03:06:18 - __main__ - INFO - USE_BASIS_ROTATION_SCORE: True
+2026-05-06 03:06:18 - __main__ - INFO - BASIS_DIR: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-WaRP-LLM/checkpoints/phase1_20260506_014300/basis
+2026-05-06 03:06:18 - __main__ - INFO - BASIS_LAYER_TYPES: ['attn_k', 'attn_q', 'attn_v', 'ffn_down', 'ffn_up']
+2026-05-06 03:07:07 - __main__ - INFO - ======================================================================
+2026-05-06 03:07:07 - __main__ - INFO - WSR-style basis-rotated scoring hooks registered
+2026-05-06 03:07:07 - __main__ - INFO -   - basis_dir: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-WaRP-LLM/checkpoints/phase1_20260506_014300/basis
+2026-05-06 03:07:07 - __main__ - INFO -   - layer_types: ['attn_k', 'attn_q', 'attn_v', 'ffn_down', 'ffn_up']
+2026-05-06 03:07:07 - __main__ - INFO -   - hooks loaded: 200
+2026-05-06 03:07:07 - __main__ - INFO -   - skipped: 0
+2026-05-06 03:07:07 - __main__ - INFO -   - mismatched: 0
+2026-05-06 03:07:07 - __main__ - INFO -   - model forward/output is unchanged; only _last_*_score is overwritten
+2026-05-06 03:07:07 - __main__ - INFO -   - [opt] M=U@W.T precomputed; U cached on GPU (no per-prompt transfers)
+2026-05-06 03:07:07 - __main__ - INFO - ======================================================================
+2026-05-06 03:07:07 - __main__ - INFO - [Mode] Safety Neuron Detection
+2026-05-06 03:07:07 - __main__ - INFO - Number of prompts to process: 4994
+2026-05-06 03:07:07 - __main__ - INFO - Processing 4994 prompts from /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/corpus_all/circuit_breakers_train.json
+2026-05-06 03:12:04 - __main__ - INFO - Detection complete: success=4994, failed=0
+2026-05-06 03:12:09 - __main__ - INFO - [compute_intersection][ffn_up] prompts=4994, before(union)=522977, after(intersection)=3515, reduced=519462
+2026-05-06 03:12:15 - __main__ - INFO - [compute_intersection][ffn_down] prompts=4994, before(union)=522977, after(intersection)=3515, reduced=519462
+2026-05-06 03:12:17 - __main__ - INFO - [compute_intersection][q] prompts=4994, before(union)=49667, after(intersection)=4079, reduced=45588
+2026-05-06 03:12:20 - __main__ - INFO - [compute_intersection][k] prompts=4994, before(union)=49667, after(intersection)=4079, reduced=45588
+2026-05-06 03:12:21 - __main__ - INFO - [compute_intersection][v] prompts=4994, before(union)=154735, after(intersection)=640, reduced=154095
+2026-05-06 03:12:21 - __main__ - INFO - 
+======================================================================
+2026-05-06 03:12:21 - __main__ - INFO - Safety Neuron Detection Results
+2026-05-06 03:12:21 - __main__ - INFO - ======================================================================
+2026-05-06 03:12:21 - __main__ - INFO - Model: meta-llama/Llama-2-13b-chat-hf
+2026-05-06 03:12:21 - __main__ - INFO - Total safety neurons: 15,828
+2026-05-06 03:12:21 - __main__ - INFO - Total model neurons (q/k/v/o + gate/up/down): 2,129,920
+2026-05-06 03:12:21 - __main__ - INFO - Detected safety neuron percentage: 0.7431%
+2026-05-06 03:12:21 - __main__ - INFO - Output: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/safety_neuron_accelerated_20260506_030618.txt
+2026-05-06 03:12:21 - __main__ - INFO - Log: /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection/safety_neuron_20260506_030618.log
+2026-05-06 03:12:21 - __main__ - INFO - ======================================================================
+
