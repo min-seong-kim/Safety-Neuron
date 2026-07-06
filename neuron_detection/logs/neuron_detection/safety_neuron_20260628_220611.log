@@ -1,0 +1,7 @@
+2026-06-28 22:06:11 - __main__ - INFO - Log directory: /NHNHOME/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection
+2026-06-28 22:06:11 - __main__ - INFO - Log file: /NHNHOME/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection/safety_neuron_20260628_220611.log
+2026-06-28 22:06:11 - __main__ - INFO - Using model: Qwen/Qwen2.5-32B-Instruct
+2026-06-28 22:06:11 - __main__ - INFO - TOP_NUMBER_FFN: 1200, TOP_NUMBER_ATTN: 200
+2026-06-28 22:06:11 - __main__ - INFO - [Mode] Safety Neuron Detection
+2026-06-28 22:06:11 - __main__ - INFO - Number of prompts to process: 4994
+2026-06-28 22:06:11 - __main__ - INFO - Processing 4994 prompts from /NHNHOME/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/corpus_all/circuit_breakers_train.json

@@ -44,11 +44,7 @@ from transformers import (
     set_seed,
 )
 
-<<<<<<< HEAD
 os.environ["CUDA_VISIBLE_DEVICES"] = "7"
-=======
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
->>>>>>> 1675b099c8a48e137e0f27c93553d80392f9bc19
 
 try:
     from peft import LoraConfig, TaskType, get_peft_model
@@ -628,23 +624,13 @@ def main():
     try:
         model = AutoModelForCausalLM.from_pretrained(
             model_path, torch_dtype=dtype, device_map="auto",
-<<<<<<< HEAD
             local_files_only=True, trust_remote_code=False
-=======
-            local_files_only=True, trust_remote_code=False,
-            attn_implementation="eager",
->>>>>>> 1675b099c8a48e137e0f27c93553d80392f9bc19
         )
         logger.info("✓ Model loaded from local files")
     except Exception as e:
         logger.warning(f"Local model load failed: {e}")
         model = AutoModelForCausalLM.from_pretrained(
-<<<<<<< HEAD
             model_path, torch_dtype=dtype, device_map="auto", trust_remote_code=False
-=======
-            model_path, torch_dtype=dtype, device_map="auto", trust_remote_code=False,
-            attn_implementation="eager",
->>>>>>> 1675b099c8a48e137e0f27c93553d80392f9bc19
         )
         logger.info("✓ Model loaded from HuggingFace Hub")
 

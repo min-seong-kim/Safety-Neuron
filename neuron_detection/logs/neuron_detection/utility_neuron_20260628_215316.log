@@ -1,0 +1,27 @@
+2026-06-28 21:53:16 - __main__ - INFO - Log directory: /NHNHOME/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection
+2026-06-28 21:53:16 - __main__ - INFO - Log file: /NHNHOME/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection/utility_neuron_20260628_215316.log
+2026-06-28 21:53:16 - __main__ - INFO - Using model: Qwen/Qwen2.5-32B-Instruct
+2026-06-28 21:53:16 - __main__ - INFO - TOP_NUMBER_FFN: 300, TOP_NUMBER_ATTN: 50
+2026-06-28 21:53:16 - __main__ - INFO - [Mode] Utility Neuron Detection (Wikipedia)
+2026-06-28 21:53:16 - __main__ - INFO - Number of Wikipedia documents to process: 1000
+2026-06-28 21:53:16 - __main__ - INFO - Loading Wikipedia dataset (subset: 20231101.en)...
+2026-06-28 21:53:19 - __main__ - INFO - Successfully loaded 1000 Wikipedia samples
+2026-06-28 21:53:19 - __main__ - INFO - Processing 1000 Wikipedia documents
+2026-06-28 22:05:57 - __main__ - INFO - Detection complete: success=1000, failed=0
+2026-06-28 22:05:58 - __main__ - INFO - [compute_intersection][ffn_up] prompts=1000, before(union)=506834, after(intersection)=2268, reduced=504566
+2026-06-28 22:05:59 - __main__ - INFO - [compute_intersection][ffn_down] prompts=1000, before(union)=506834, after(intersection)=2268, reduced=504566
+2026-06-28 22:05:59 - __main__ - INFO - [compute_intersection][q] prompts=1000, before(union)=7456, after(intersection)=759, reduced=6697
+2026-06-28 22:05:59 - __main__ - INFO - [compute_intersection][k] prompts=1000, before(union)=9136, after(intersection)=1319, reduced=7817
+2026-06-28 22:05:59 - __main__ - INFO - [compute_intersection][v] prompts=1000, before(union)=27750, after(intersection)=435, reduced=27315
+2026-06-28 22:05:59 - __main__ - INFO - 
+======================================================================
+2026-06-28 22:05:59 - __main__ - INFO - Utility Neuron Detection Results
+2026-06-28 22:05:59 - __main__ - INFO - ======================================================================
+2026-06-28 22:05:59 - __main__ - INFO - Model: Qwen/Qwen2.5-32B-Instruct
+2026-06-28 22:05:59 - __main__ - INFO - Total utility neurons: 7,049
+2026-06-28 22:05:59 - __main__ - INFO - Total model neurons (q/k/v/o + gate/up/down): 4,653,056
+2026-06-28 22:05:59 - __main__ - INFO - Detected utility neuron percentage: 0.1515%
+2026-06-28 22:05:59 - __main__ - INFO - Output: /NHNHOME/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/utility_neurons_1000_20260628_215316.txt
+2026-06-28 22:05:59 - __main__ - INFO - Log: /NHNHOME/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/neuron_detection/utility_neuron_20260628_215316.log
+2026-06-28 22:05:59 - __main__ - INFO - ======================================================================
+

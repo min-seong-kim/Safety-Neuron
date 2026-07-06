@@ -49,7 +49,7 @@ from datetime import datetime
 from datasets import load_dataset
 import numpy as np
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "7"
+os.environ.setdefault("CUDA_VISIBLE_DEVICES", "7")
 
 # 로거 초기 설정 (나중에 파일 핸들러 추가됨)
 logging.basicConfig(level=logging.INFO)

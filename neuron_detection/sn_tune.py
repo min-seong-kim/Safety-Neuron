@@ -10,19 +10,11 @@ Safety Neuron Tuning (SN-Tune)
 
 # SN-Tune with custom model
 python sn_tune.py \
-<<<<<<< HEAD
     --neuron_file /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/safety_neuron_accelerated_20260506_031404.txt \
     --dataset_file ./corpus_all/circuit_breakers_train.json \
     --local_model_name ./only_sn_tuned_model_llama2_13b_chat_lr5e-5 \
     --model_name meta-llama/Llama-2-13b-chat-hf \
     --upload_name kmseong/llama2_13b_chat_only_sn_tuned_rotation_space_lr5e-5
-=======
-    --neuron_file ./output_neurons/critical_safety_neuron_20260506_003132.txt \
-    --dataset_file ./corpus_all/circuit_breakers_train.json \
-    --local_model_name ./only_sn_tuned_model_llama2_7b_lr5e-5 \
-    --model_name meta-llama/Llama-2-7b-chat-hf \
-    --upload_name kmseong/Llama-2-7b-chat-hf_only_rsn_tuned_lr5e-5_basis_rotation
->>>>>>> 1675b099c8a48e137e0f27c93553d80392f9bc19
 
 
 # RSN-Tune
@@ -52,11 +44,7 @@ import ast
 from contextlib import nullcontext
 
 logger = logging.getLogger(__name__)
-<<<<<<< HEAD
-os.environ["CUDA_VISIBLE_DEVICES"] = "7"
-=======
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
->>>>>>> 1675b099c8a48e137e0f27c93553d80392f9bc19
+os.environ.setdefault("CUDA_VISIBLE_DEVICES", "7")
 
 # =====================================================================
 # Configuration
@@ -856,7 +844,7 @@ def main(argv):
     
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        device_map={"": 0},
+        device_map="auto",
         torch_dtype=torch.bfloat16,
         attn_implementation="eager",
     )

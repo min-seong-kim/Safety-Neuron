@@ -9,7 +9,7 @@ python upload_sn_tuned_model.py \
 
 llama 2 7B
 python upload_sn_tuned_model.py \
-    --upload_pair /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/minseong_results/warp_sn_llama-2-7b-chat-hf/warp_sn_tuned_lr5e-5_20260504_030311 kmseong/llama2_7b_chat_WaRP-SN-Tune_lr5e-5_6p \
+    --upload_pair /NHNHOME/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/full_finetune_qwen2_5_32b_instruct_gsm8k_full_finetune_lr5e-5 kmseong/qwen2_5_32b_instruct_gsm8k_full_finetune_after_ssft_lr5e-5 \
     --hf_token 
 
 """

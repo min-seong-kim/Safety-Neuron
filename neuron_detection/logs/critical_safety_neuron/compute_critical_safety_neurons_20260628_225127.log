@@ -1,0 +1,120 @@
+2026-06-28 22:51:27 - __main__ - INFO - Log directory: /NHNHOME/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/critical_safety_neuron
+2026-06-28 22:51:27 - __main__ - INFO - Log file: /NHNHOME/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/critical_safety_neuron/compute_critical_safety_neurons_20260628_225127.log
+2026-06-28 22:51:27 - __main__ - INFO - 
+================================================================================
+2026-06-28 22:51:27 - __main__ - INFO - Critical Safety Neuron Computation
+2026-06-28 22:51:27 - __main__ - INFO - ================================================================================
+2026-06-28 22:51:27 - __main__ - INFO - 
+Formula: N_critical = N_safe - (N_safe ∩ N_utility)
+2026-06-28 22:51:27 - __main__ - INFO - Description: Safety neurons that do NOT overlap with utility neurons
+2026-06-28 22:51:27 - __main__ - INFO - 
+Loading safety neurons...
+2026-06-28 22:51:27 - __main__ - INFO - Loading utility neurons...
+2026-06-28 22:51:27 - __main__ - INFO - 
+Computing Critical Safety Neurons...
+2026-06-28 22:51:27 - __main__ - INFO - Computing statistics...
+2026-06-28 22:51:27 - __main__ - INFO - 
+Saving Critical Safety Neurons to /NHNHOME/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/critical_safety_neuron_20260628_225127.txt...
+2026-06-28 22:51:27 - __main__ - INFO - 
+================================================================================
+2026-06-28 22:51:27 - __main__ - INFO - Neuron Statistics
+2026-06-28 22:51:27 - __main__ - INFO - ================================================================================
+2026-06-28 22:51:27 - __main__ - INFO - 
+📊 Overall Summary:
+2026-06-28 22:51:27 - __main__ - INFO - Category             FFN        Attention  Total     
+2026-06-28 22:51:27 - __main__ - INFO - --------------------------------------------------
+2026-06-28 22:51:27 - __main__ - INFO - safety               88834      68391      157225    
+2026-06-28 22:51:27 - __main__ - INFO - utility              15904      12410      28314     
+2026-06-28 22:51:27 - __main__ - INFO - critical             73112      55997      129109    
+2026-06-28 22:51:27 - __main__ - INFO - overlap              15722      12394      28116     
+2026-06-28 22:51:27 - __main__ - INFO - 
+🔍 Per-Layer Breakdown (showing layers with critical neurons > 0):
+2026-06-28 22:51:27 - __main__ - INFO - Layer      Safety     Utility    Overlap    Critical  
+2026-06-28 22:51:27 - __main__ - INFO - ----------------------------------------------------
+2026-06-28 22:51:27 - __main__ - INFO - 0          2935       437        437        2498      
+2026-06-28 22:51:27 - __main__ - INFO - 1          10438      2031       2031       8407      
+2026-06-28 22:51:27 - __main__ - INFO - 2          8570       1313       1313       7257      
+2026-06-28 22:51:27 - __main__ - INFO - 3          6598       1063       1063       5535      
+2026-06-28 22:51:27 - __main__ - INFO - 4          8040       1270       1270       6770      
+2026-06-28 22:51:27 - __main__ - INFO - 5          4826       2002       2002       2824      
+2026-06-28 22:51:27 - __main__ - INFO - 6          5368       2176       2176       3192      
+2026-06-28 22:51:27 - __main__ - INFO - 7          3731       1158       1157       2574      
+2026-06-28 22:51:27 - __main__ - INFO - 8          2411       524        522        1889      
+2026-06-28 22:51:27 - __main__ - INFO - 9          1791       267        263        1528      
+2026-06-28 22:51:27 - __main__ - INFO - 10         1871       250        250        1621      
+2026-06-28 22:51:27 - __main__ - INFO - 11         1929       326        326        1603      
+2026-06-28 22:51:27 - __main__ - INFO - 12         1652       243        241        1411      
+2026-06-28 22:51:27 - __main__ - INFO - 13         1486       269        269        1217      
+2026-06-28 22:51:27 - __main__ - INFO - 14         1274       247        245        1029      
+2026-06-28 22:51:27 - __main__ - INFO - 15         1135       241        241        894       
+2026-06-28 22:51:27 - __main__ - INFO - 16         1363       250        250        1113      
+2026-06-28 22:51:27 - __main__ - INFO - 17         1260       203        203        1057      
+2026-06-28 22:51:27 - __main__ - INFO - 18         1360       224        220        1140      
+2026-06-28 22:51:27 - __main__ - INFO - 19         1375       202        202        1173      
+2026-06-28 22:51:27 - __main__ - INFO - 20         1470       253        253        1217      
+2026-06-28 22:51:27 - __main__ - INFO - 21         1439       204        202        1237      
+2026-06-28 22:51:27 - __main__ - INFO - 22         1331       193        189        1142      
+2026-06-28 22:51:27 - __main__ - INFO - 23         1364       214        212        1152      
+2026-06-28 22:51:27 - __main__ - INFO - 24         1100       171        170        930       
+2026-06-28 22:51:27 - __main__ - INFO - 25         1153       171        168        985       
+2026-06-28 22:51:27 - __main__ - INFO - 26         1135       215        211        924       
+2026-06-28 22:51:27 - __main__ - INFO - 27         1280       231        226        1054      
+2026-06-28 22:51:27 - __main__ - INFO - 28         1448       189        187        1261      
+2026-06-28 22:51:27 - __main__ - INFO - 29         1329       172        167        1162      
+2026-06-28 22:51:27 - __main__ - INFO - 30         1167       180        179        988       
+2026-06-28 22:51:27 - __main__ - INFO - 31         1063       186        182        881       
+2026-06-28 22:51:27 - __main__ - INFO - 32         1220       298        282        938       
+2026-06-28 22:51:27 - __main__ - INFO - 33         1203       223        214        989       
+2026-06-28 22:51:27 - __main__ - INFO - 34         1473       232        230        1243      
+2026-06-28 22:51:27 - __main__ - INFO - 35         1496       238        234        1262      
+2026-06-28 22:51:27 - __main__ - INFO - 36         1465       271        263        1202      
+2026-06-28 22:51:27 - __main__ - INFO - 37         1504       243        237        1267      
+2026-06-28 22:51:27 - __main__ - INFO - 38         1372       260        244        1128      
+2026-06-28 22:51:27 - __main__ - INFO - 39         1478       239        237        1241      
+2026-06-28 22:51:27 - __main__ - INFO - 40         1366       224        224        1142      
+2026-06-28 22:51:27 - __main__ - INFO - 41         1367       218        209        1158      
+2026-06-28 22:51:27 - __main__ - INFO - 42         1428       272        264        1164      
+2026-06-28 22:51:27 - __main__ - INFO - 43         1471       301        287        1184      
+2026-06-28 22:51:27 - __main__ - INFO - 44         1760       310        301        1459      
+2026-06-28 22:51:27 - __main__ - INFO - 45         1608       275        265        1343      
+2026-06-28 22:51:27 - __main__ - INFO - 46         1566       290        282        1284      
+2026-06-28 22:51:27 - __main__ - INFO - 47         1404       337        331        1073      
+2026-06-28 22:51:27 - __main__ - INFO - 48         1520       275        271        1249      
+2026-06-28 22:51:27 - __main__ - INFO - 49         1582       441        441        1141      
+2026-06-28 22:51:27 - __main__ - INFO - 50         1752       448        440        1312      
+2026-06-28 22:51:27 - __main__ - INFO - 51         1879       542        542        1337      
+2026-06-28 22:51:27 - __main__ - INFO - 52         2156       438        430        1726      
+2026-06-28 22:51:27 - __main__ - INFO - 53         2109       425        425        1684      
+2026-06-28 22:51:27 - __main__ - INFO - 54         2053       389        389        1664      
+2026-06-28 22:51:27 - __main__ - INFO - 55         2187       399        399        1788      
+2026-06-28 22:51:27 - __main__ - INFO - 56         2272       362        360        1912      
+2026-06-28 22:51:27 - __main__ - INFO - 57         2217       322        322        1895      
+2026-06-28 22:51:27 - __main__ - INFO - 58         2456       389        388        2068      
+2026-06-28 22:51:27 - __main__ - INFO - 59         3067       471        471        2596      
+2026-06-28 22:51:27 - __main__ - INFO - 60         3988       472        472        3516      
+2026-06-28 22:51:27 - __main__ - INFO - 61         5910       551        551        5359      
+2026-06-28 22:51:27 - __main__ - INFO - 62         7282       505        505        6777      
+2026-06-28 22:51:27 - __main__ - INFO - 63         6922       579        579        6343      
+2026-06-28 22:51:27 - __main__ - INFO - 
+💡 Key Insights:
+2026-06-28 22:51:27 - __main__ - INFO -   • Overlap between Safety and Utility: 17.88% of Safety neurons
+2026-06-28 22:51:27 - __main__ - INFO -   • Critical neurons retained: 82.12% of Safety neurons
+2026-06-28 22:51:27 - __main__ - INFO -   • Safety vs Utility neurons ratio: 555.29%
+2026-06-28 22:51:27 - __main__ - INFO - 
+📈 Counts:
+2026-06-28 22:51:27 - __main__ - INFO -   • Safety neurons: 157225
+2026-06-28 22:51:27 - __main__ - INFO -   • Utility neurons: 28314
+2026-06-28 22:51:27 - __main__ - INFO -   • Overlapping neurons: 28116
+2026-06-28 22:51:27 - __main__ - INFO -   • Critical neurons (Safety - Overlap): 129109
+2026-06-28 22:51:27 - __main__ - INFO - Using model config for denominator: meta-llama/Llama-3.1-8B
+2026-06-28 22:51:27 - __main__ - INFO -   • Total model neurons (q/k/v/o + gate/up/down): 1,376,256
+2026-06-28 22:51:27 - __main__ - INFO -   • Critical neurons over total model neurons: 9.3812%
+2026-06-28 22:51:27 - __main__ - INFO - 
+✅ Critical Safety Neurons saved to: /NHNHOME/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/critical_safety_neuron_20260628_225127.txt
+2026-06-28 22:51:27 - __main__ - INFO - 📝 Log saved to: /NHNHOME/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/logs/critical_safety_neuron/compute_critical_safety_neurons_20260628_225127.log
+2026-06-28 22:51:27 - __main__ - INFO - ================================================================================
+2026-06-28 22:51:27 - __main__ - INFO - 
+📋 Next Steps:
+2026-06-28 22:51:27 - __main__ - INFO -   1. Review Critical Safety Neuron statistics above
+2026-06-28 22:51:27 - __main__ - INFO -   2. Run Critical Safety Neuron fine-tuning with:
+2026-06-28 22:51:27 - __main__ - INFO -      python critical_safety_neuron_tune.py /NHNHOME/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/critical_safety_neuron_20260628_225127.txt ./corpus_all/circuit_breakers_train.json

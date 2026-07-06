@@ -1,8 +1,8 @@
 """
 Example Usage:
 python finetune_gsm8k_full_params.py \
-    --model_path kmseong/llama2_7b-chat-Safety-FT-lr5e-5 \
-    --output_dir ./full_finetune_llama2_7b_chat_gsm8k_full_finetune_lr3e-5
+    --model_path kmseong/qwen2_5_32b_instruct_SSFT-lr5e-5 \
+    --output_dir ./full_finetune_qwen2_5_32b_instruct_gsm8k_full_finetune_lr5e-5
 
 python finetune_gsm8k_full_params.py \
     --model_path kmseong/llama3.1_8b_instruct-Safety-FT-lr3e-5 \
@@ -45,6 +45,12 @@ import logging
 
 import wandb
 import torch
+
+# cuDNN attention 백엔드는 일부 head_dim/gradient_checkpointing/torch nightly 조합에서
+# "No valid execution plans built" 오류를 냄. cuDNN SDP만 끄면 SDPA가 flash/mem-efficient/
+# math 커널로 폴백하므로 성능 손해 없이 동작한다.
+torch.backends.cuda.enable_cudnn_sdp(False)
+
 from datasets import load_dataset, Dataset as HFDataset, concatenate_datasets
 from transformers import (
     AutoModelForCausalLM,
@@ -59,7 +65,7 @@ try:
 except ImportError:
     _peft_available = False
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "6"
+os.environ["CUDA_VISIBLE_DEVICES"] = "2,3"
 
 def parse_args():
     p = argparse.ArgumentParser(description='Full Parameter Finetune SN-Tuned Model on GSM8K')

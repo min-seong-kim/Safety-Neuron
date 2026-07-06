@@ -11,20 +11,12 @@ This script follows the original GitHub detection style:
 
 python safety_neuron_detection_v2_basis_rotation.py 4994 \
     --model_name meta-llama/Llama-2-13b-chat-hf \
-<<<<<<< HEAD
     --top_number_ffn 1800 \
     --top_number_attn 300 \
     --safety_neuron \
     --use_basis_rotation_score \
     --basis_dir /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-WaRP-LLM/checkpoints/phase1_20260506_014300/basis \
     --attn_implementation flash_attention_2
-=======
-    --top_number_ffn 1200 \
-    --top_number_attn 200 \
-    --safety_neuron \
-    --use_basis_rotation_score \
-    --basis_dir /home/yonsei_jong/Safety-WaRP-LLM/checkpoints/phase1_20260505_164049/basis
->>>>>>> 1675b099c8a48e137e0f27c93553d80392f9bc19
 
 Notes
 -----
@@ -50,14 +42,8 @@ import torch.nn.functional as F
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datetime import datetime
 from datasets import load_dataset
-<<<<<<< HEAD
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "7"
-=======
-import numpy as np
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
->>>>>>> 1675b099c8a48e137e0f27c93553d80392f9bc19
 
 # 로거 초기 설정 (나중에 파일 핸들러 추가됨)
 logging.basicConfig(level=logging.INFO)
@@ -80,10 +66,7 @@ model_name = DEFAULT_MODEL_NAME
 tokenizer = None
 model = None
 NUM_LAYERS = 0
-<<<<<<< HEAD
 ATTN_IMPLEMENTATION = "sdpa"
-=======
->>>>>>> 1675b099c8a48e137e0f27c93553d80392f9bc19
 
 # ------------------------------------------------------------------
 # Accelerated detection hyperparameters
@@ -123,7 +106,6 @@ def initialize_model_and_tokenizer(selected_model_name: str):
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-<<<<<<< HEAD
     load_kwargs = {
         "device_map": {"": 0},
         "torch_dtype": torch.bfloat16,
@@ -142,14 +124,6 @@ def initialize_model_and_tokenizer(selected_model_name: str):
             model = AutoModelForCausalLM.from_pretrained(model_name, **load_kwargs)
         else:
             raise
-=======
-    model = AutoModelForCausalLM.from_pretrained(
-        model_name,
-        device_map={"": 0},
-        torch_dtype=torch.bfloat16,
-        attn_implementation="eager",
-    )
->>>>>>> 1675b099c8a48e137e0f27c93553d80392f9bc19
     model.eval()
 
     NUM_LAYERS = model.config.num_hidden_layers
@@ -183,7 +157,6 @@ def parse_args(argv):
         help="Per-layer top-k for attention neuron selection",
     )
     parser.add_argument(
-<<<<<<< HEAD
         "--attn_implementation",
         type=str,
         default="sdpa",
@@ -194,8 +167,6 @@ def parse_args(argv):
         ),
     )
     parser.add_argument(
-=======
->>>>>>> 1675b099c8a48e137e0f27c93553d80392f9bc19
         "--use_basis_rotation_score",
         action="store_true",
         help=(
@@ -274,11 +245,7 @@ def _score_from_rotated_input_precomputed(x: torch.Tensor, M: torch.Tensor) -> t
     """
     # x: [B, T, in_features], M: [in_features, out_features] (same device, bfloat16)
     out_rot = x.detach() @ M          # [B, T, out_features]
-<<<<<<< HEAD
     return out_rot.abs().sum(dim=(0, 1)).float()  # [out_features] on GPU
-=======
-    return out_rot.abs().sum(dim=(0, 1)).float().cpu()  # [out_features]
->>>>>>> 1675b099c8a48e137e0f27c93553d80392f9bc19
 
 
 def _register_basis_rotation_score_hooks() -> None:
@@ -479,7 +446,6 @@ def select_topk_indices(score: Optional[torch.Tensor], top_k: int) -> Set[int]:
     if score is None:
         return set()
 
-<<<<<<< HEAD
     if not isinstance(score, torch.Tensor):
         score = torch.tensor(score, dtype=torch.float32, device=next(model.parameters()).device)
 
@@ -497,22 +463,6 @@ def select_topk_indices(score: Optional[torch.Tensor], top_k: int) -> Set[int]:
 
     _, indices = torch.topk(vec, k=k, largest=True, sorted=False)
     return {int(idx) for idx in indices.detach().cpu().tolist()}
-=======
-    if isinstance(score, torch.Tensor):
-        arr = score.detach().float().view(-1).cpu().numpy()
-    else:
-        arr = np.asarray(score, dtype=np.float32).reshape(-1)
-
-    if arr.size == 0:
-        return set()
-
-    k = min(top_k, arr.size)
-    if k <= 0:
-        return set()
-
-    indices = np.argsort(arr)[-k:][::-1]
-    return {int(idx) for idx in indices.tolist()}
->>>>>>> 1675b099c8a48e137e0f27c93553d80392f9bc19
 
 
 def detect_safety_neurons_threshold(
@@ -709,20 +659,13 @@ def load_wikipedia_data(num_samples: int = 1000) -> List[str]:
 
 def main(argv):
     global TOP_NUMBER_FFN, TOP_NUMBER_ATTN
-<<<<<<< HEAD
     global USE_BASIS_ROTATION_SCORE, BASIS_DIR, BASIS_LAYER_TYPES, ATTN_IMPLEMENTATION
-=======
-    global USE_BASIS_ROTATION_SCORE, BASIS_DIR, BASIS_LAYER_TYPES
->>>>>>> 1675b099c8a48e137e0f27c93553d80392f9bc19
 
     args = parse_args(argv)
 
     TOP_NUMBER_FFN = args.top_number_ffn
     TOP_NUMBER_ATTN = args.top_number_attn
-<<<<<<< HEAD
     ATTN_IMPLEMENTATION = args.attn_implementation
-=======
->>>>>>> 1675b099c8a48e137e0f27c93553d80392f9bc19
     USE_BASIS_ROTATION_SCORE = args.use_basis_rotation_score
     BASIS_DIR = args.basis_dir
     BASIS_LAYER_TYPES = {x.strip() for x in args.basis_layer_types.split(",") if x.strip()}
@@ -766,10 +709,7 @@ def main(argv):
     logger.info(f"Log directory: {log_dir}")
     logger.info(f"Log file: {log_file}")
     logger.info(f"Using model: {model_name}")
-<<<<<<< HEAD
     logger.info(f"ATTN_IMPLEMENTATION: {ATTN_IMPLEMENTATION}")
-=======
->>>>>>> 1675b099c8a48e137e0f27c93553d80392f9bc19
     logger.info(f"TOP_NUMBER_FFN: {TOP_NUMBER_FFN}, TOP_NUMBER_ATTN: {TOP_NUMBER_ATTN}")
     logger.info(f"USE_BASIS_ROTATION_SCORE: {USE_BASIS_ROTATION_SCORE}")
     if USE_BASIS_ROTATION_SCORE:

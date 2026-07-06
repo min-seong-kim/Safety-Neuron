@@ -7,19 +7,11 @@ Trainer + AdamW 8-bit optimizer (bitsandbytes) 사용으로 메모리 효율성 
 
 Example Usage:
 python finetune_gsm8k_freeze_sn.py \
-<<<<<<< HEAD
     --model_path kmseong/llama-3.1-8B-only-sn-tuned-lr5e-5 \
     --safety_neurons_file /NHNHOME/WORKSPACE/26msit001_A/edge_ai_lab/minseong/Safety-Neuron/neuron_detection/output_neurons/safety_neuron_accelerated_20260505_194833.txt \
     --output_dir ./llama3.1-8B_base_gsm8k_ft_freeze_sn_lr1e-5 \
     --learning_rate 1e-5 --epochs 3 \
     --upload_name kmseong/llama3.1-8B_base_gsm8k_ft_freeze_sn_lr1e-5
-=======
-    --model_path kmseong/Llama-2-7b-chat-hf_only_rsn_tuned_lr5e-5_basis_rotation \
-    --safety_neurons_file /home/yonsei_jong/Safety-Neuron/neuron_detection/output_neurons/critical_safety_neuron_20260506_003132.txt \
-    --output_dir ./llama2_7b_base_gsm8k_rft_freeze_rsn_lr5e-5 \
-    --learning_rate 5e-5 --epochs 3 \
-    --upload_name kmseong/Llama-2-7b-chat-hf_gsm8k_ft_freeze_basis_rotation_rsn_lr5e-5
->>>>>>> 1675b099c8a48e137e0f27c93553d80392f9bc19
 
 
 python finetune_gsm8k_freeze_sn.py \
@@ -56,11 +48,7 @@ from transformers import (
     set_seed,
 )
 
-<<<<<<< HEAD
-os.environ["CUDA_VISIBLE_DEVICES"] = "5"
-=======
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
->>>>>>> 1675b099c8a48e137e0f27c93553d80392f9bc19
+os.environ.setdefault("CUDA_VISIBLE_DEVICES", "5")
 
 
 def parse_args():
