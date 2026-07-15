@@ -1,0 +1,25 @@
+2026-07-15 11:15:07 - __main__ - INFO - Log directory: /home/edgeai_lab/Safety-Neuron/neuron_detection/logs/neuron_detection
+2026-07-15 11:15:07 - __main__ - INFO - Log file: /home/edgeai_lab/Safety-Neuron/neuron_detection/logs/neuron_detection/safety_neuron_20260715_111507.log
+2026-07-15 11:15:07 - __main__ - INFO - Using model: Qwen/Qwen2.5-7B-Instruct
+2026-07-15 11:15:07 - __main__ - INFO - TOP_NUMBER_FFN: 600, TOP_NUMBER_ATTN: 100
+2026-07-15 11:15:07 - __main__ - INFO - [Mode] Safety Neuron Detection
+2026-07-15 11:15:07 - __main__ - INFO - Number of prompts to process: 5
+2026-07-15 11:15:07 - __main__ - INFO - Processing 5 prompts from /home/edgeai_lab/Safety-Neuron/neuron_detection/corpus_all/circuit_breakers_train.json
+2026-07-15 11:15:07 - __main__ - INFO - Detection complete: success=5, failed=0
+2026-07-15 11:15:07 - __main__ - INFO - [compute_intersection][ffn_up] prompts=5, before(union)=26056, after(intersection)=10485, reduced=15571
+2026-07-15 11:15:07 - __main__ - INFO - [compute_intersection][ffn_down] prompts=5, before(union)=26056, after(intersection)=10485, reduced=15571
+2026-07-15 11:15:07 - __main__ - INFO - [compute_intersection][q] prompts=5, before(union)=3234, after(intersection)=2439, reduced=795
+2026-07-15 11:15:07 - __main__ - INFO - [compute_intersection][k] prompts=5, before(union)=3275, after(intersection)=2373, reduced=902
+2026-07-15 11:15:07 - __main__ - INFO - [compute_intersection][v] prompts=5, before(union)=4422, after(intersection)=1602, reduced=2820
+2026-07-15 11:15:07 - __main__ - INFO - 
+======================================================================
+2026-07-15 11:15:07 - __main__ - INFO - Safety Neuron Detection Results
+2026-07-15 11:15:07 - __main__ - INFO - ======================================================================
+2026-07-15 11:15:07 - __main__ - INFO - Model: Qwen/Qwen2.5-7B-Instruct
+2026-07-15 11:15:07 - __main__ - INFO - Total safety neurons: 27,384
+2026-07-15 11:15:07 - __main__ - INFO - Total model neurons (q/k/v/o + gate/up/down): 1,390,592
+2026-07-15 11:15:07 - __main__ - INFO - Detected safety neuron percentage: 1.9692%
+2026-07-15 11:15:07 - __main__ - INFO - Output: /home/edgeai_lab/Safety-Neuron/neuron_detection/output_neurons/safety_neuron_accelerated_20260715_111507.txt
+2026-07-15 11:15:07 - __main__ - INFO - Log: /home/edgeai_lab/Safety-Neuron/neuron_detection/logs/neuron_detection/safety_neuron_20260715_111507.log
+2026-07-15 11:15:07 - __main__ - INFO - ======================================================================
+

@@ -1,0 +1,53 @@
+2026-07-15 11:10:33 - __main__ - INFO - Log directory: /home/edgeai_lab/Safety-Neuron/neuron_detection/logs/critical_safety_neuron
+2026-07-15 11:10:33 - __main__ - INFO - Log file: /home/edgeai_lab/Safety-Neuron/neuron_detection/logs/critical_safety_neuron/compute_critical_safety_neurons_20260715_111033.log
+2026-07-15 11:10:33 - __main__ - INFO - 
+================================================================================
+2026-07-15 11:10:33 - __main__ - INFO - Critical Safety Neuron Computation
+2026-07-15 11:10:33 - __main__ - INFO - ================================================================================
+2026-07-15 11:10:33 - __main__ - INFO - 
+Formula: N_critical = N_safe - (N_safe ∩ N_utility)
+2026-07-15 11:10:33 - __main__ - INFO - Description: Safety neurons that do NOT overlap with utility neurons
+2026-07-15 11:10:33 - __main__ - INFO - 
+Loading safety neurons...
+2026-07-15 11:10:33 - __main__ - INFO - Loading utility neurons...
+2026-07-15 11:10:33 - __main__ - INFO - 
+Computing Critical Safety Neurons...
+2026-07-15 11:10:33 - __main__ - INFO - Computing statistics...
+2026-07-15 11:10:33 - __main__ - INFO - 
+Saving Critical Safety Neurons to /home/edgeai_lab/Safety-Neuron/neuron_detection/output_neurons/critical_safety_neuron_20260715_111033.txt...
+2026-07-15 11:10:33 - __main__ - INFO - 
+================================================================================
+2026-07-15 11:10:33 - __main__ - INFO - Neuron Statistics
+2026-07-15 11:10:33 - __main__ - INFO - ================================================================================
+2026-07-15 11:10:33 - __main__ - INFO - 
+📊 Overall Summary:
+2026-07-15 11:10:33 - __main__ - INFO - Category             FFN        Attention  Total     
+2026-07-15 11:10:33 - __main__ - INFO - --------------------------------------------------
+2026-07-15 11:10:33 - __main__ - INFO - safety               0          0          0         
+2026-07-15 11:10:33 - __main__ - INFO - utility              0          0          0         
+2026-07-15 11:10:33 - __main__ - INFO - critical             0          0          0         
+2026-07-15 11:10:33 - __main__ - INFO - overlap              0          0          0         
+2026-07-15 11:10:33 - __main__ - INFO - 
+🔍 Per-Layer Breakdown (showing layers with critical neurons > 0):
+2026-07-15 11:10:33 - __main__ - INFO - Layer      Safety     Utility    Overlap    Critical  
+2026-07-15 11:10:33 - __main__ - INFO - ----------------------------------------------------
+2026-07-15 11:10:33 - __main__ - INFO - 
+💡 Key Insights:
+2026-07-15 11:10:33 - __main__ - INFO - 
+📈 Counts:
+2026-07-15 11:10:33 - __main__ - INFO -   • Safety neurons: 0
+2026-07-15 11:10:33 - __main__ - INFO -   • Utility neurons: 0
+2026-07-15 11:10:33 - __main__ - INFO -   • Overlapping neurons: 0
+2026-07-15 11:10:33 - __main__ - INFO -   • Critical neurons (Safety - Overlap): 0
+2026-07-15 11:10:34 - __main__ - INFO - Using model config for denominator: meta-llama/Llama-3.1-8B
+2026-07-15 11:10:34 - __main__ - INFO -   • Total model neurons (q/k/v/o + gate/up/down): 1,376,256
+2026-07-15 11:10:34 - __main__ - INFO -   • Critical neurons over total model neurons: 0.0000%
+2026-07-15 11:10:34 - __main__ - INFO - 
+✅ Critical Safety Neurons saved to: /home/edgeai_lab/Safety-Neuron/neuron_detection/output_neurons/critical_safety_neuron_20260715_111033.txt
+2026-07-15 11:10:34 - __main__ - INFO - 📝 Log saved to: /home/edgeai_lab/Safety-Neuron/neuron_detection/logs/critical_safety_neuron/compute_critical_safety_neurons_20260715_111033.log
+2026-07-15 11:10:34 - __main__ - INFO - ================================================================================
+2026-07-15 11:10:34 - __main__ - INFO - 
+📋 Next Steps:
+2026-07-15 11:10:34 - __main__ - INFO -   1. Review Critical Safety Neuron statistics above
+2026-07-15 11:10:34 - __main__ - INFO -   2. Run Critical Safety Neuron fine-tuning with:
+2026-07-15 11:10:34 - __main__ - INFO -      python critical_safety_neuron_tune.py /home/edgeai_lab/Safety-Neuron/neuron_detection/output_neurons/critical_safety_neuron_20260715_111033.txt ./corpus_all/circuit_breakers_train.json

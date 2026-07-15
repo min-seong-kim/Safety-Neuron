@@ -1,0 +1,27 @@
+2026-07-15 11:16:10 - __main__ - INFO - Log directory: /home/edgeai_lab/Safety-Neuron/neuron_detection/logs/neuron_detection
+2026-07-15 11:16:10 - __main__ - INFO - Log file: /home/edgeai_lab/Safety-Neuron/neuron_detection/logs/neuron_detection/utility_neuron_20260715_111610.log
+2026-07-15 11:16:10 - __main__ - INFO - Using model: Qwen/Qwen2.5-7B-Instruct
+2026-07-15 11:16:10 - __main__ - INFO - TOP_NUMBER_FFN: 1200, TOP_NUMBER_ATTN: 200
+2026-07-15 11:16:10 - __main__ - INFO - [Mode] Utility Neuron Detection (Wikipedia)
+2026-07-15 11:16:10 - __main__ - INFO - Number of Wikipedia documents to process: 1000
+2026-07-15 11:16:10 - __main__ - INFO - Loading Wikipedia dataset (subset: 20231101.en)...
+2026-07-15 11:16:14 - __main__ - INFO - Successfully loaded 1000 Wikipedia samples
+2026-07-15 11:16:14 - __main__ - INFO - Processing 1000 Wikipedia documents
+2026-07-15 11:20:27 - __main__ - INFO - Detection complete: success=1000, failed=0
+2026-07-15 11:20:29 - __main__ - INFO - [compute_intersection][ffn_up] prompts=1000, before(union)=342472, after(intersection)=3791, reduced=338681
+2026-07-15 11:20:31 - __main__ - INFO - [compute_intersection][ffn_down] prompts=1000, before(union)=342472, after(intersection)=3791, reduced=338681
+2026-07-15 11:20:31 - __main__ - INFO - [compute_intersection][q] prompts=1000, before(union)=16458, after(intersection)=2187, reduced=14271
+2026-07-15 11:20:31 - __main__ - INFO - [compute_intersection][k] prompts=1000, before(union)=10240, after(intersection)=2702, reduced=7538
+2026-07-15 11:20:32 - __main__ - INFO - [compute_intersection][v] prompts=1000, before(union)=13064, after(intersection)=798, reduced=12266
+2026-07-15 11:20:32 - __main__ - INFO - 
+======================================================================
+2026-07-15 11:20:32 - __main__ - INFO - Utility Neuron Detection Results
+2026-07-15 11:20:32 - __main__ - INFO - ======================================================================
+2026-07-15 11:20:32 - __main__ - INFO - Model: Qwen/Qwen2.5-7B-Instruct
+2026-07-15 11:20:32 - __main__ - INFO - Total utility neurons: 13,269
+2026-07-15 11:20:32 - __main__ - INFO - Total model neurons (q/k/v/o + gate/up/down): 1,390,592
+2026-07-15 11:20:32 - __main__ - INFO - Detected utility neuron percentage: 0.9542%
+2026-07-15 11:20:32 - __main__ - INFO - Output: /home/edgeai_lab/Safety-Neuron/neuron_detection/output_neurons/utility_neurons_1000_20260715_111610.txt
+2026-07-15 11:20:32 - __main__ - INFO - Log: /home/edgeai_lab/Safety-Neuron/neuron_detection/logs/neuron_detection/utility_neuron_20260715_111610.log
+2026-07-15 11:20:32 - __main__ - INFO - ======================================================================
+
