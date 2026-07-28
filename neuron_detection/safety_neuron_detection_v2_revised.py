@@ -130,11 +130,21 @@ def parse_args(argv):
         help="Per-layer top-k for attention neuron selection",
     )
 
+    parser.add_argument(
+        "--dataset_file",
+        type=str,
+        default=None,
+        help=(
+            "Safety corpus for --safety_neuron (JSON list with a 'prompt' field). "
+            "Defaults to corpus_all/circuit_breakers_train.json. Ignored for --utility_neuron."
+        ),
+    )
+
     mode_group = parser.add_mutually_exclusive_group(required=True)
     mode_group.add_argument(
         "--safety_neuron",
         action="store_true",
-        help="Detect safety neurons from circuit_breakers_train.json",
+        help="Detect safety neurons from the safety corpus (see --dataset_file)",
     )
     mode_group.add_argument(
         "--utility_neuron",
@@ -477,9 +487,37 @@ def compute_intersection(
 
 
 def load_wikipedia_data(num_samples: int = 1000) -> List[str]:
-    """Load Wikipedia data from Hugging Face."""
-    logger.info("Loading Wikipedia dataset (subset: 20231101.en)...")
+    """Load Wikipedia data from Hugging Face.
+
+    Streaming is the default: the full 20231101.en split materializes to well over
+    100GB of arrow cache, which does not fit on this machine. Streaming reads only
+    a few parquet shards and samples from a shuffle buffer with the same seed.
+    Set WIKI_STREAMING=0 to restore the original random-index path (needs the disk).
+    """
+    streaming = os.environ.get("WIKI_STREAMING", "1") != "0"
+    logger.info(f"Loading Wikipedia dataset (subset: 20231101.en, streaming={streaming})...")
     try:
+        if streaming:
+            dataset = load_dataset(
+                "wikimedia/wikipedia",
+                "20231101.en",
+                split="train",
+                streaming=True,
+            ).shuffle(seed=112, buffer_size=10000)
+
+            texts = []
+            with tqdm(total=num_samples, desc="Loading Wikipedia docs") as pbar:
+                for item in dataset:
+                    text = item.get("text", "").strip()
+                    if text:
+                        texts.append(text[:2000])
+                        pbar.update(1)
+                    if len(texts) >= num_samples:
+                        break
+
+            logger.info(f"Successfully loaded {len(texts)} Wikipedia samples")
+            return texts
+
         dataset = load_dataset(
             "wikimedia/wikipedia",
             "20231101.en",
@@ -564,7 +602,9 @@ def main(argv):
     if args.safety_neuron:
         logger.info("[Mode] Safety Neuron Detection")
         logger.info(f"Number of prompts to process: {num_samples}")
-        file_path = os.path.join(SCRIPT_DIR, "corpus_all", "circuit_breakers_train.json")
+        file_path = args.dataset_file or os.path.join(
+            SCRIPT_DIR, "corpus_all", "circuit_breakers_train.json"
+        )
         if not os.path.exists(file_path):
             logger.error(f"Dataset file not found: {file_path}")
             sys.exit(1)

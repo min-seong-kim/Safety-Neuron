@@ -1,0 +1,25 @@
+2026-07-27 07:06:56 - __main__ - INFO - Log directory: /root/Safety-Neuron/neuron_detection/logs/neuron_detection
+2026-07-27 07:06:56 - __main__ - INFO - Log file: /root/Safety-Neuron/neuron_detection/logs/neuron_detection/safety_neuron_20260727_070656.log
+2026-07-27 07:06:56 - __main__ - INFO - Using model: meta-llama/Llama-2-7b-chat-hf
+2026-07-27 07:06:56 - __main__ - INFO - TOP_NUMBER_FFN: 1200, TOP_NUMBER_ATTN: 200
+2026-07-27 07:06:56 - __main__ - INFO - [Mode] Safety Neuron Detection
+2026-07-27 07:06:56 - __main__ - INFO - Number of prompts to process: 3
+2026-07-27 07:06:56 - __main__ - INFO - Processing 3 prompts from /root/Safety-Neuron/neuron_detection/corpus_all/circuit_breakers_train.json
+2026-07-27 07:06:57 - __main__ - INFO - Detection complete: success=3, failed=0
+2026-07-27 07:06:57 - __main__ - INFO - [compute_intersection][ffn_up] prompts=3, before(union)=75775, after(intersection)=12543, reduced=63232
+2026-07-27 07:06:57 - __main__ - INFO - [compute_intersection][ffn_down] prompts=3, before(union)=75775, after(intersection)=12543, reduced=63232
+2026-07-27 07:06:57 - __main__ - INFO - [compute_intersection][q] prompts=3, before(union)=7836, after(intersection)=5186, reduced=2650
+2026-07-27 07:06:57 - __main__ - INFO - [compute_intersection][k] prompts=3, before(union)=7836, after(intersection)=5186, reduced=2650
+2026-07-27 07:06:57 - __main__ - INFO - [compute_intersection][v] prompts=3, before(union)=12447, after(intersection)=2204, reduced=10243
+2026-07-27 07:06:57 - __main__ - INFO - 
+======================================================================
+2026-07-27 07:06:57 - __main__ - INFO - Safety Neuron Detection Results
+2026-07-27 07:06:57 - __main__ - INFO - ======================================================================
+2026-07-27 07:06:57 - __main__ - INFO - Model: meta-llama/Llama-2-7b-chat-hf
+2026-07-27 07:06:57 - __main__ - INFO - Total safety neurons: 37,662
+2026-07-27 07:06:57 - __main__ - INFO - Total model neurons (q/k/v/o + gate/up/down): 1,359,872
+2026-07-27 07:06:57 - __main__ - INFO - Detected safety neuron percentage: 2.7695%
+2026-07-27 07:06:57 - __main__ - INFO - Output: /root/Safety-Neuron/neuron_detection/output_neurons/safety_neuron_accelerated_20260727_070656.txt
+2026-07-27 07:06:57 - __main__ - INFO - Log: /root/Safety-Neuron/neuron_detection/logs/neuron_detection/safety_neuron_20260727_070656.log
+2026-07-27 07:06:57 - __main__ - INFO - ======================================================================
+

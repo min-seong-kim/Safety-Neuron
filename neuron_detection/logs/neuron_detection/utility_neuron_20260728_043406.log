@@ -1,0 +1,27 @@
+2026-07-28 04:34:06 - __main__ - INFO - Log directory: /root/Safety-Neuron/neuron_detection/logs/neuron_detection
+2026-07-28 04:34:06 - __main__ - INFO - Log file: /root/Safety-Neuron/neuron_detection/logs/neuron_detection/utility_neuron_20260728_043406.log
+2026-07-28 04:34:06 - __main__ - INFO - Using model: meta-llama/Llama-2-7b-chat-hf
+2026-07-28 04:34:06 - __main__ - INFO - TOP_NUMBER_FFN: 300, TOP_NUMBER_ATTN: 50
+2026-07-28 04:34:06 - __main__ - INFO - [Mode] Utility Neuron Detection (Wikipedia)
+2026-07-28 04:34:06 - __main__ - INFO - Number of Wikipedia documents to process: 1000
+2026-07-28 04:34:06 - __main__ - INFO - Loading Wikipedia dataset (subset: 20231101.en, streaming=True)...
+2026-07-28 04:34:07 - __main__ - INFO - Successfully loaded 1000 Wikipedia samples
+2026-07-28 04:34:07 - __main__ - INFO - Processing 1000 Wikipedia documents
+2026-07-28 04:44:22 - __main__ - INFO - Detection complete: success=1000, failed=0
+2026-07-28 04:44:22 - __main__ - INFO - [compute_intersection][ffn_up] prompts=1000, before(union)=189402, after(intersection)=745, reduced=188657
+2026-07-28 04:44:22 - __main__ - INFO - [compute_intersection][ffn_down] prompts=1000, before(union)=189402, after(intersection)=745, reduced=188657
+2026-07-28 04:44:22 - __main__ - INFO - [compute_intersection][q] prompts=1000, before(union)=4663, after(intersection)=205, reduced=4458
+2026-07-28 04:44:22 - __main__ - INFO - [compute_intersection][k] prompts=1000, before(union)=4663, after(intersection)=205, reduced=4458
+2026-07-28 04:44:22 - __main__ - INFO - [compute_intersection][v] prompts=1000, before(union)=52812, after(intersection)=108, reduced=52704
+2026-07-28 04:44:22 - __main__ - INFO - 
+======================================================================
+2026-07-28 04:44:22 - __main__ - INFO - Utility Neuron Detection Results
+2026-07-28 04:44:22 - __main__ - INFO - ======================================================================
+2026-07-28 04:44:22 - __main__ - INFO - Model: meta-llama/Llama-2-7b-chat-hf
+2026-07-28 04:44:22 - __main__ - INFO - Total utility neurons: 2,008
+2026-07-28 04:44:22 - __main__ - INFO - Total model neurons (q/k/v/o + gate/up/down): 1,359,872
+2026-07-28 04:44:22 - __main__ - INFO - Detected utility neuron percentage: 0.1477%
+2026-07-28 04:44:22 - __main__ - INFO - Output: /root/Safety-Neuron/neuron_detection/output_neurons/utility_neurons_1000_20260728_043406.txt
+2026-07-28 04:44:22 - __main__ - INFO - Log: /root/Safety-Neuron/neuron_detection/logs/neuron_detection/utility_neuron_20260728_043406.log
+2026-07-28 04:44:22 - __main__ - INFO - ======================================================================
+
