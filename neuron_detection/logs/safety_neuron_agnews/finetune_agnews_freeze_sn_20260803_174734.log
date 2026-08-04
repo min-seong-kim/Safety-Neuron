@@ -1,0 +1,138 @@
+2026-08-03 17:47:34 - __main__ - INFO - 
+======================================================================
+2026-08-03 17:47:34 - __main__ - INFO -   AG News Fine-tuning with Safety Neuron Freezing
+2026-08-03 17:47:34 - __main__ - INFO - ======================================================================
+
+2026-08-03 17:47:34 - __main__ - INFO - Log file: ./logs/safety_neuron_agnews/finetune_agnews_freeze_sn_20260803_174734.log
+2026-08-03 17:47:34 - __main__ - INFO - Configuration:
+2026-08-03 17:47:34 - __main__ - INFO -    ├─ SN-Tuned model: /home/edgeai_lab/minseong_results/rsn_tuned_llama2_7b-chat-cb_lr5e-5_20260803_173041
+2026-08-03 17:47:34 - __main__ - INFO -    ├─ Safety neurons file: /home/edgeai_lab/minseong_results/critical_safety_llama2_7b-chat-cb/critical_safety_neurons.txt
+2026-08-03 17:47:34 - __main__ - INFO -    ├─ AG News train: /home/edgeai_lab/Safety-WaRP-LLM/data/agnews_train_8k_seed42.json
+2026-08-03 17:47:34 - __main__ - INFO -    ├─ AG News eval: (none)
+2026-08-03 17:47:34 - __main__ - INFO -    ├─ Training samples: all
+2026-08-03 17:47:34 - __main__ - INFO -    ├─ Input formatting: chat template
+2026-08-03 17:47:34 - __main__ - INFO -    ├─ Batch size: 4
+2026-08-03 17:47:34 - __main__ - INFO -    ├─ Gradient accumulation: 4
+2026-08-03 17:47:34 - __main__ - INFO -    ├─ Epochs: 3
+2026-08-03 17:47:34 - __main__ - INFO -    ├─ Learning rate: 3e-05
+2026-08-03 17:47:34 - __main__ - INFO -    ├─ Weight decay: 0.01
+2026-08-03 17:47:34 - __main__ - INFO -    ├─ Optimizer: adamw_torch
+2026-08-03 17:47:34 - __main__ - INFO -    ├─ Warmup ratio: 0.1
+2026-08-03 17:47:34 - __main__ - INFO -    ├─ Max length: 1024
+2026-08-03 17:47:34 - __main__ - INFO -    ├─ Safety mix ratio: 0.0
+2026-08-03 17:47:34 - __main__ - INFO -    ├─ Dtype: bf16
+2026-08-03 17:47:34 - __main__ - INFO -    ├─ CUDA_VISIBLE_DEVICES: 1
+2026-08-03 17:47:34 - __main__ - INFO -    ├─ Strategy: Freeze safety neurons, train others
+2026-08-03 17:47:34 - __main__ - INFO -    └─ Output dir: /home/edgeai_lab/minseong_results/agnews_rsn_finetune_llama2_7b-chat-cb
+
+2026-08-03 17:47:34 - __main__ - INFO - 
+======================================================================
+2026-08-03 17:47:34 - __main__ - INFO -   [1/5] Loading Tokenizer
+2026-08-03 17:47:34 - __main__ - INFO - ======================================================================
+
+2026-08-03 17:47:34 - __main__ - INFO - ✓ Tokenizer loaded from local files
+2026-08-03 17:47:34 - __main__ - INFO - Tokenizer loaded: LlamaTokenizerFast, vocab=32000, pad=</s>
+2026-08-03 17:47:34 - __main__ - INFO - 
+======================================================================
+2026-08-03 17:47:34 - __main__ - INFO -   [2/5] Loading Model (bf16)
+2026-08-03 17:47:34 - __main__ - INFO - ======================================================================
+
+2026-08-03 17:47:36 - __main__ - INFO - ✓ Model loaded from local files
+2026-08-03 17:47:36 - __main__ - INFO - Model loaded: 6.74B params, dtype=torch.bfloat16
+2026-08-03 17:47:36 - __main__ - INFO - 
+======================================================================
+2026-08-03 17:47:36 - __main__ - INFO -   [3/5] Loading Safety Neurons and Setting up Freezing
+2026-08-03 17:47:36 - __main__ - INFO - ======================================================================
+
+2026-08-03 17:47:36 - __main__ - INFO - Loaded safety neurons from /home/edgeai_lab/minseong_results/critical_safety_llama2_7b-chat-cb/critical_safety_neurons.txt
+2026-08-03 17:47:36 - __main__ - INFO - 
+======================================================================
+2026-08-03 17:47:36 - __main__ - INFO - Safety Neurons Loaded - Detailed Breakdown
+2026-08-03 17:47:36 - __main__ - INFO - ======================================================================
+2026-08-03 17:47:36 - __main__ - INFO -   ffn_up       : 2692 neurons
+2026-08-03 17:47:36 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-08-03 17:47:36 - __main__ - INFO -   ffn_down     : 2692 neurons
+2026-08-03 17:47:36 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-08-03 17:47:36 - __main__ - INFO -   q            : 3502 neurons
+2026-08-03 17:47:36 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-08-03 17:47:36 - __main__ - INFO -   k            : 3502 neurons
+2026-08-03 17:47:36 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-08-03 17:47:36 - __main__ - INFO -   v            :  417 neurons
+2026-08-03 17:47:36 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-08-03 17:47:36 - __main__ - INFO - 
+Total safety neurons: 12805
+2026-08-03 17:47:36 - __main__ - INFO - ======================================================================
+
+2026-08-03 17:47:36 - __main__ - INFO - 
+======================================================================
+2026-08-03 17:47:36 - __main__ - INFO - Safety Neuron Freezing Setup Summary
+2026-08-03 17:47:36 - __main__ - INFO - ======================================================================
+2026-08-03 17:47:36 - __main__ - INFO - Total parameters: 6,738,415,616
+2026-08-03 17:47:36 - __main__ - INFO - Frozen safety neuron parameters (effective): 52,449,280
+2026-08-03 17:47:36 - __main__ - INFO - Trainable parameters: 6,738,415,616
+2026-08-03 17:47:36 - __main__ - INFO - Trainable ratio: 100.0000%
+2026-08-03 17:47:36 - __main__ - INFO - Frozen safety neuron ratio: 0.7784%
+2026-08-03 17:47:36 - __main__ - INFO - 
+Layers with frozen safety neurons:
+2026-08-03 17:47:36 - __main__ - INFO -   ffn_up       : 32 layers
+2026-08-03 17:47:36 - __main__ - INFO -   ffn_down     : 32 layers
+2026-08-03 17:47:36 - __main__ - INFO -   q            : 32 layers
+2026-08-03 17:47:36 - __main__ - INFO -   k            : 32 layers
+2026-08-03 17:47:36 - __main__ - INFO -   v            : 32 layers
+2026-08-03 17:47:36 - __main__ - INFO - ======================================================================
+
+2026-08-03 17:47:36 - __main__ - INFO - Safety neuron freezing complete: trainable=6.74B (100.00%)
+2026-08-03 17:47:36 - __main__ - INFO - 
+======================================================================
+2026-08-03 17:47:36 - __main__ - INFO -   [4/5] Loading AG News Dataset
+2026-08-03 17:47:36 - __main__ - INFO - ======================================================================
+
+2026-08-03 17:47:37 - __main__ - INFO - Loaded AG News train rows: 8000
+2026-08-03 17:47:37 - __main__ - INFO - 
+======================================================================
+2026-08-03 17:47:37 - __main__ - INFO -   [4.5/5] Preprocessing Data
+2026-08-03 17:47:37 - __main__ - INFO - ======================================================================
+
+2026-08-03 17:47:39 - __main__ - INFO - Data preprocessed: train=8000
+2026-08-03 17:47:39 - __main__ - INFO - 
+======================================================================
+2026-08-03 17:47:39 - __main__ - INFO -   [5/5] Training
+2026-08-03 17:47:39 - __main__ - INFO - ======================================================================
+
+2026-08-03 17:47:39 - __main__ - INFO - Starting training...
+2026-08-03 17:56:55 - __main__ - INFO - Frozen safety-neuron max drift after training: 0.000e+00 (0 이어야 정상)
+2026-08-03 17:56:55 - __main__ - INFO - 
+======================================================================
+2026-08-03 17:56:55 - __main__ - INFO -   Saving Fine-tuned Model
+2026-08-03 17:56:55 - __main__ - INFO - ======================================================================
+
+2026-08-03 17:56:55 - __main__ - INFO - Step 1: Preparing model for saving...
+2026-08-03 17:56:55 - __main__ - INFO - Step 2: Moving model to CPU for safe serialization...
+2026-08-03 17:56:59 - __main__ - INFO - Step 3: Saving model weights...
+2026-08-03 17:56:59 - __main__ - INFO -    ├─ Output directory: /home/edgeai_lab/minseong_results/agnews_rsn_finetune_llama2_7b-chat-cb
+2026-08-03 17:57:04 - __main__ - INFO -    └─ ✅ Model weights saved successfully
+2026-08-03 17:57:04 - __main__ - INFO - Step 4: Saving tokenizer...
+2026-08-03 17:57:04 - __main__ - INFO -    └─ ✅ Tokenizer saved
+2026-08-03 17:57:04 - __main__ - INFO - Step 5: Saving model config and generation settings...
+2026-08-03 17:57:04 - __main__ - INFO -    └─ ✅ Configs saved
+2026-08-03 17:57:04 - __main__ - INFO - Step 6: Verifying saved model integrity...
+2026-08-03 17:57:04 - __main__ - INFO -    ├─ config.json: 0.68 KB ✅
+2026-08-03 17:57:04 - __main__ - INFO -    ├─ tokenizer_config.json: 0.96 KB ✅
+2026-08-03 17:57:04 - __main__ - INFO -    ├─ ✅ Found 4 model shard file(s)
+2026-08-03 17:57:04 - __main__ - INFO -    └─ Total size: 13.48 GB ✅
+2026-08-03 17:57:04 - __main__ - INFO - 
+Step 7: Final verification - attempting to load saved model...
+2026-08-03 17:57:04 - __main__ - INFO -    └─ ✅ Model verified successfully!
+2026-08-03 17:57:04 - __main__ - INFO - 
+✅ Fine-tuned model saved and verified: /home/edgeai_lab/minseong_results/agnews_rsn_finetune_llama2_7b-chat-cb
+2026-08-03 17:57:04 - __main__ - INFO - ✅ Config saved to: /home/edgeai_lab/minseong_results/agnews_rsn_finetune_llama2_7b-chat-cb/finetune_config.json
+2026-08-03 17:57:04 - __main__ - INFO - 
+Starting upload to Hugging Face: kmseong/llama2_7b-chat-agnews-rsn-tuned-lr3e-5-cb
+2026-08-03 17:59:18 - __main__ - INFO - Repo created/found: kmseong/llama2_7b-chat-agnews-rsn-tuned-lr3e-5-cb
+2026-08-03 17:59:18 - __main__ - INFO - Uploading /home/edgeai_lab/minseong_results/agnews_rsn_finetune_llama2_7b-chat-cb → kmseong/llama2_7b-chat-agnews-rsn-tuned-lr3e-5-cb ...
+2026-08-03 18:02:28 - __main__ - INFO - Upload completed: https://huggingface.co/kmseong/llama2_7b-chat-agnews-rsn-tuned-lr3e-5-cb
+2026-08-03 18:02:28 - __main__ - INFO - 
+======================================================================
+2026-08-03 18:02:28 - __main__ - INFO -   ✅ Fine-tuning Complete!
+2026-08-03 18:02:28 - __main__ - INFO - ======================================================================
+

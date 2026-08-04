@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-export CUDA_VISIBLE_DEVICES=0      # 사용할 GPU 지정 (0번만 사용, 둘 다 쓰려면 0,1)
+export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0}"   # 사용할 GPU 지정 (여러 장은 "0,1")
 
 ROOT_DIR="${ROOT_DIR:-/root}"
 cd "$ROOT_DIR"
@@ -74,8 +74,9 @@ TAG="llama2_7b-chat"
 
 # 업로드/출력 이름 접미사 — 실행 조건(탐지 코퍼스 등)을 구분하기 위한 태그.
 #   -bt      : beavertails 탐지 (2026-07-27 실행)
-#   -cb-harm : circuit_breakers 탐지 + downstream 에 harmful 혼합 (현재 설정)
-RUN_SUFFIX="${RUN_SUFFIX:--cb-harm}"
+#   -cb-harm : circuit_breakers 탐지 + downstream 에 harmful 혼합 (2026-07-28 실행)
+#   -cb      : circuit_breakers 탐지, downstream 은 순수 task 데이터 (현재 설정)
+RUN_SUFFIX="${RUN_SUFFIX:--cb}"
 
 # safety neuron 탐지와 SN/RSN-Tune 이 함께 쓰는 safety 코퍼스.
 SAFETY_DATASET_FILE="${SAFETY_DATASET_FILE:-/root/Safety-WaRP-LLM/data/circuit_breakers_train.json}"
@@ -97,6 +98,11 @@ SAFETY_DIR="$MIN_RESULTS/safety_${TAG}${RUN_SUFFIX}"
 mkdir -p "$FOUNDATION_DIR" "$SAFETY_DIR"
 NEURON_OUTPUT_DIR="$ROOT_DIR/Safety-Neuron/neuron_detection/output_neurons"
 mkdir -p "$NEURON_OUTPUT_DIR"
+
+# sn_tune.py / finetune_*.py 는 로그와 캐시를 cwd 기준 상대경로(./logs, ./cache)로 쓴다.
+# 여기서 neuron_detection 으로 옮겨두면 레포 안(gitignore 대상)에 모인다.
+# 아래 경로들은 전부 절대경로라 cwd 변경의 영향을 받지 않는다.
+cd "$ROOT_DIR/Safety-Neuron/neuron_detection"
 
 # output_neurons 에는 과거 실행 파일이 수백 개 쌓여 있어서 ls -1t 만으로는 stale 파일을
 # 집을 수 있다. 각 stage 직전에 touch 하는 마커보다 새 파일만 인정한다.
@@ -176,8 +182,8 @@ if [[ -n "$EXISTING_SAFETY_NEURON_PATH" && -n "$EXISTING_CRITICAL_SAFETY_NEURON_
     fi
 
     echo "[INFO] Detection 단계 스킵: 기존 safety/critical 파일 사용"
-    echo "[INFO] Safety neurons  : $EXISTING_SAFETY_NEURON_PATH -> $EXISTING_SAFETY_NEURON_PATH"
-    echo "[INFO] Critical neurons: $EXISTING_CRITICAL_SAFETY_NEURON_PATH -> $EXISTING_CRITICAL_SAFETY_NEURON_PATH"
+    echo "[INFO] Safety neurons  : $EXISTING_SAFETY_NEURON_PATH -> $SAFETY_NEURON_IDX"
+    echo "[INFO] Critical neurons: $EXISTING_CRITICAL_SAFETY_NEURON_PATH -> $CRITICAL_SAFETY_NEURON_IDX"
 else
 
 echo "===== Find Foundation Neurons ======"
@@ -294,48 +300,79 @@ fi
 
 
 DOWNSTREAM_LEARNING_RATE="${DOWNSTREAM_LEARNING_RATE:-5e-5}"  # downstream FT 전용 LR (SN_LEARNING_RATE와 독립)
+DOWNSTREAM_EPOCHS="${DOWNSTREAM_EPOCHS:-3}"
 
-# downstream 학습 스크립트와 harmful 혼합 설정.
+# downstream 학습 스크립트.
+#   finetune_agnews_freeze_sn.py         : AG News 단독 (현재 설정)
 #   finetune_gsm8k_freeze_sn.py          : GSM8K 단독 (harmful 인자 미지원)
 #   finetune_gsm8k_harmful_freeze_sn.py  : GSM8K + harmful 혼합
-DOWNSTREAM_SCRIPT="${DOWNSTREAM_SCRIPT:-finetune_gsm8k_harmful_freeze_sn.py}"
+DOWNSTREAM_SCRIPT="${DOWNSTREAM_SCRIPT:-finetune_agnews_freeze_sn.py}"
+# 출력 디렉토리 / HF repo 이름에 들어가는 task 태그.
+DOWNSTREAM_TASK="${DOWNSTREAM_TASK:-agnews}"
+
+# AG News (finetune_agnews_freeze_sn.py 전용)
+AGNEWS_TRAIN_FILE="${AGNEWS_TRAIN_FILE:-/root/Safety-WaRP-LLM/data/agnews_train_8k_seed42.json}"
+AGNEWS_EVAL_FILE="${AGNEWS_EVAL_FILE:-}"        # 비우면 eval 생략
+AGNEWS_NUM_EVAL="${AGNEWS_NUM_EVAL:-0}"         # 0 이면 eval 생략
+
+# harmful 혼합 (finetune_gsm8k_harmful_freeze_sn.py 전용)
 HARMFUL_DATA_FILE="${HARMFUL_DATA_FILE:-/root/Safety-WaRP-LLM/data/beavertails_harmful_747.json}"
 HARMFUL_NUM="${HARMFUL_NUM:-747}"          # GSM8K 7473 의 10%
 HARMFUL_ANSWER_FIELD="${HARMFUL_ANSWER_FIELD:-response}"
 
-HARMFUL_ARGS=()
-if [[ "$DOWNSTREAM_SCRIPT" == *harmful* ]]; then
+# 스크립트별 추가 인자를 여기서 조립한다.
+TASK_ARGS=()
+if [[ "$DOWNSTREAM_SCRIPT" == *agnews* ]]; then
+    if [[ ! -f "$AGNEWS_TRAIN_FILE" ]]; then
+        echo "[ERROR] AG News 학습 데이터가 없습니다: $AGNEWS_TRAIN_FILE" >&2
+        exit 1
+    fi
+    TASK_ARGS=(
+        --agnews_train_path "$AGNEWS_TRAIN_FILE"
+        --epochs "$DOWNSTREAM_EPOCHS"
+    )
+    if [[ -n "$AGNEWS_EVAL_FILE" && "$AGNEWS_NUM_EVAL" != "0" ]]; then
+        if [[ ! -f "$AGNEWS_EVAL_FILE" ]]; then
+            echo "[ERROR] AG News eval 데이터가 없습니다: $AGNEWS_EVAL_FILE" >&2
+            exit 1
+        fi
+        TASK_ARGS+=(--agnews_eval_path "$AGNEWS_EVAL_FILE" --num_eval_samples "$AGNEWS_NUM_EVAL")
+    fi
+elif [[ "$DOWNSTREAM_SCRIPT" == *harmful* ]]; then
     if [[ ! -f "$HARMFUL_DATA_FILE" ]]; then
         echo "[ERROR] harmful 데이터가 없습니다: $HARMFUL_DATA_FILE" >&2
         exit 1
     fi
-    HARMFUL_ARGS=(
+    TASK_ARGS=(
         --harmful_data_file "$HARMFUL_DATA_FILE"
         --harmful_num "$HARMFUL_NUM"
         --harmful_answer_field "$HARMFUL_ANSWER_FIELD"
+        --epochs "$DOWNSTREAM_EPOCHS"
     )
+else
+    TASK_ARGS=(--epochs "$DOWNSTREAM_EPOCHS")
 fi
 
 if [[ "$RUN_SN" == "1" ]]; then
-echo "===== Train GSM8K Finetune: SN ======"
+echo "===== Train ${DOWNSTREAM_TASK} Finetune: SN ======"
 "$PYTHON_BIN" "$ROOT_DIR/Safety-Neuron/neuron_detection/$DOWNSTREAM_SCRIPT" \
     --model_path "$SN_MODEL_DIR" \
     --learning_rate "$DOWNSTREAM_LEARNING_RATE" \
     --safety_neurons_file "$SAFETY_NEURON_IDX" \
-    "${HARMFUL_ARGS[@]}" \
-    --output_dir "$MIN_RESULTS/gsm8k_sn_finetune_${TAG}${RUN_SUFFIX}" \
-    --upload_name kmseong/${TAG}-gsm8k-sn-tuned-lr${DOWNSTREAM_LEARNING_RATE}${RUN_SUFFIX}
+    "${TASK_ARGS[@]}" \
+    --output_dir "$MIN_RESULTS/${DOWNSTREAM_TASK}_sn_finetune_${TAG}${RUN_SUFFIX}" \
+    --upload_name kmseong/${TAG}-${DOWNSTREAM_TASK}-sn-tuned-lr${DOWNSTREAM_LEARNING_RATE}${RUN_SUFFIX}
 fi
 
 if [[ "$RUN_RSN" == "1" ]]; then
-echo "===== Train GSM8K Finetune: RSN ======"
+echo "===== Train ${DOWNSTREAM_TASK} Finetune: RSN ======"
 "$PYTHON_BIN" "$ROOT_DIR/Safety-Neuron/neuron_detection/$DOWNSTREAM_SCRIPT" \
     --model_path "$RSN_MODEL_DIR" \
     --learning_rate "$DOWNSTREAM_LEARNING_RATE" \
     --safety_neurons_file "$CRITICAL_SAFETY_NEURON_IDX" \
-    "${HARMFUL_ARGS[@]}" \
-    --output_dir "$MIN_RESULTS/gsm8k_rsn_finetune_${TAG}${RUN_SUFFIX}" \
-    --upload_name kmseong/${TAG}-gsm8k-rsn-tuned-lr${DOWNSTREAM_LEARNING_RATE}${RUN_SUFFIX}
+    "${TASK_ARGS[@]}" \
+    --output_dir "$MIN_RESULTS/${DOWNSTREAM_TASK}_rsn_finetune_${TAG}${RUN_SUFFIX}" \
+    --upload_name kmseong/${TAG}-${DOWNSTREAM_TASK}-rsn-tuned-lr${DOWNSTREAM_LEARNING_RATE}${RUN_SUFFIX}
 fi
 
 # echo "===== Train MATH Finetune: SN ======"

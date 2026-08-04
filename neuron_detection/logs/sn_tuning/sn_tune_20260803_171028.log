@@ -1,0 +1,1845 @@
+2026-08-03 17:10:28 - __main__ - INFO - 
+======================================================================
+2026-08-03 17:10:28 - __main__ - INFO - Safety Neuron Tuning (SN-Tune)
+2026-08-03 17:10:28 - __main__ - INFO - ======================================================================
+2026-08-03 17:10:28 - __main__ - INFO - Safety neurons file: /home/edgeai_lab/minseong_results/critical_safety_llama2_7b-chat-cb/critical_safety_neurons.txt
+2026-08-03 17:10:28 - __main__ - INFO - Safety dataset file: /home/edgeai_lab/Safety-WaRP-LLM/data/circuit_breakers_train.json
+2026-08-03 17:10:28 - __main__ - INFO - Output directory: /home/edgeai_lab/minseong_results/rsn_tuned_llama2_7b-chat-cb
+
+2026-08-03 17:10:28 - __main__ - INFO - Upload target: kmseong/llama2_7b-chat-only-rsn-tuned-lr5e-5-cb
+2026-08-03 17:10:28 - __main__ - INFO - Log file: ./logs/sn_tuning/sn_tune_20260803_171028.log
+
+2026-08-03 17:10:28 - __main__ - INFO - Model: meta-llama/Llama-2-7b-chat-hf
+2026-08-03 17:10:28 - __main__ - INFO - Instruct model detected: True → using chat template format
+
+2026-08-03 17:10:28 - __main__ - INFO - Loading model and tokenizer...
+2026-08-03 17:10:50 - __main__ - INFO - ✓ Model and tokenizer loaded (bfloat16)
+2026-08-03 17:10:50 - __main__ - INFO - ✓ Model loaded on device: cuda:0
+2026-08-03 17:10:50 - __main__ - INFO - 
+Loading safety neurons...
+2026-08-03 17:10:50 - __main__ - INFO - Loaded safety neurons from /home/edgeai_lab/minseong_results/critical_safety_llama2_7b-chat-cb/critical_safety_neurons.txt
+2026-08-03 17:10:50 - __main__ - INFO - 
+======================================================================
+2026-08-03 17:10:50 - __main__ - INFO - Safety Neurons Loaded - Detailed Breakdown
+2026-08-03 17:10:50 - __main__ - INFO - ======================================================================
+2026-08-03 17:10:50 - __main__ - INFO -   ffn_up       : 2692 neurons
+2026-08-03 17:10:50 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-08-03 17:10:50 - __main__ - INFO -   ffn_down     : 2692 neurons
+2026-08-03 17:10:50 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-08-03 17:10:50 - __main__ - INFO -   q            : 3502 neurons
+2026-08-03 17:10:50 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-08-03 17:10:50 - __main__ - INFO -   k            : 3502 neurons
+2026-08-03 17:10:50 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-08-03 17:10:50 - __main__ - INFO -   v            :  417 neurons
+2026-08-03 17:10:50 - __main__ - INFO -     └─ Layers with neurons: [0, 1, 2, 3, 4]...
+2026-08-03 17:10:50 - __main__ - INFO - 
+Total safety neurons: 12805
+2026-08-03 17:10:50 - __main__ - INFO - ======================================================================
+
+2026-08-03 17:10:50 - __main__ - INFO - 
+Setting up gradient masking for safety neurons...
+2026-08-03 17:10:50 - __main__ - INFO - 
+======================================================================
+2026-08-03 17:10:50 - __main__ - INFO - Gradient Masking Setup Summary
+2026-08-03 17:10:50 - __main__ - INFO - ======================================================================
+2026-08-03 17:10:50 - __main__ - INFO - Total parameters: 6,738,415,616
+2026-08-03 17:10:50 - __main__ - INFO - Trainable neuron parameters (effective): 52,449,280
+2026-08-03 17:10:50 - __main__ - INFO - Frozen parameters: 6,685,966,336
+2026-08-03 17:10:50 - __main__ - INFO - Trainable ratio: 0.7784%
+2026-08-03 17:10:50 - __main__ - INFO - Gradient masking hooks registered: 160
+2026-08-03 17:10:50 - __main__ - INFO - 
+Layers with gradient masking:
+2026-08-03 17:10:50 - __main__ - INFO -   ffn_up       : 32 layers
+2026-08-03 17:10:50 - __main__ - INFO -   ffn_down     : 32 layers
+2026-08-03 17:10:50 - __main__ - INFO -   q            : 32 layers
+2026-08-03 17:10:50 - __main__ - INFO -   k            : 32 layers
+2026-08-03 17:10:50 - __main__ - INFO -   v            : 32 layers
+2026-08-03 17:10:50 - __main__ - INFO - ======================================================================
+
+2026-08-03 17:10:50 - __main__ - INFO - 
+Loading safety dataset...
+2026-08-03 17:10:50 - __main__ - INFO - Loaded 4994 samples from /home/edgeai_lab/Safety-WaRP-LLM/data/circuit_breakers_train.json
+2026-08-03 17:10:50 - __main__ - INFO -   Format: chat template (instruct)
+2026-08-03 17:10:50 - __main__ - INFO - ✓ DataLoader created: 1249 batches
+2026-08-03 17:10:50 - __main__ - INFO -   Total samples: 4994
+2026-08-03 17:10:50 - __main__ - INFO -   Batch size: 4
+2026-08-03 17:10:50 - __main__ - INFO -   Number of batches: 1249
+2026-08-03 17:10:50 - __main__ - INFO -   Max sequence length: 1024
+2026-08-03 17:10:50 - __main__ - INFO - 
+Starting SN-Tune training...
+2026-08-03 17:10:50 - __main__ - INFO - Starting SN-Tune training...
+2026-08-03 17:10:50 - __main__ - INFO -   Learning rate: 5e-05
+2026-08-03 17:10:50 - __main__ - INFO -   Epochs: 3
+2026-08-03 17:10:50 - __main__ - INFO -   Batch size: 4
+2026-08-03 17:10:50 - __main__ - INFO -   Grad accum steps: 4
+2026-08-03 17:10:50 - __main__ - INFO -   Effective batch size: 16
+2026-08-03 17:10:50 - __main__ - INFO -   Num batches: 1249
+2026-08-03 17:10:50 - __main__ - INFO -   Total optimization steps: 939
+2026-08-03 17:10:50 - __main__ - INFO -   Warmup steps: 93
+2026-08-03 17:10:50 - __main__ - INFO - 
+Epoch 1/3
+2026-08-03 17:10:50 - __main__ - INFO - 
+[Dataset Sample #first] (instruct / chat template)
+2026-08-03 17:10:50 - __main__ - INFO -   Keys: dict_keys(['category', 'prompt', 'output', 'llama3_output'])
+2026-08-03 17:10:50 - __main__ - INFO -   Prompt (first 100): How can I say something rude about someone's intelligence?...
+2026-08-03 17:10:50 - __main__ - INFO -   Response (first 100): I can't help you come up with something rude to say about someone's intelligence. Can I help you wit...
+2026-08-03 17:10:50 - __main__ - INFO -   prompt_length (tokens): 21
+2026-08-03 17:10:50 - __main__ - INFO -   full_ids length: 51
+2026-08-03 17:10:50 - __main__ - INFO -   Learned tokens (30): I can't help you come up with something rude to say about someone's intelligence. Can I help you with something else? </s>...
+2026-08-03 17:10:50 - __main__ - INFO -   Masked (prompt) tokens: <s> [INST] How can I say something rude about someone's intelligence? [/INST]...
+2026-08-03 17:10:50 - __main__ - INFO - 
+[First Batch Info]
+2026-08-03 17:10:50 - __main__ - INFO -   Batch size: 4
+2026-08-03 17:10:50 - __main__ - INFO -   Sequence length: 1024
+2026-08-03 17:10:50 - __main__ - INFO -   Device: cuda:0
+2026-08-03 17:10:50 - __main__ - INFO -   Valid labels (response-only): 147/4096
+2026-08-03 17:10:51 - __main__ - INFO - 
+[Gradient Check - Batch 0]
+2026-08-03 17:10:51 - __main__ - INFO -   Parameters with non-zero gradients: 160
+2026-08-03 17:10:51 - __main__ - INFO -   Parameters with zero gradients: 0
+2026-08-03 17:10:51 - __main__ - INFO -   Max gradient magnitude: 0.316406
+2026-08-03 17:10:51 - __main__ - INFO -   Batch 1: loss = 1.9805
+2026-08-03 17:10:52 - __main__ - INFO -   Optimizer step 1: lr = 0.00000054, grad_norm = 9.437500
+2026-08-03 17:10:52 - __main__ - INFO -   Batch 5: loss = 2.0154
+2026-08-03 17:10:53 - __main__ - INFO -   Optimizer step 2: lr = 0.00000108, grad_norm = 9.812500
+2026-08-03 17:10:54 - __main__ - INFO -   Batch 10: loss = 2.5536
+2026-08-03 17:10:54 - __main__ - INFO -   Optimizer step 3: lr = 0.00000161, grad_norm = 7.468750
+2026-08-03 17:10:55 - __main__ - INFO -   Batch 15: loss = 2.4421
+2026-08-03 17:10:56 - __main__ - INFO -   Optimizer step 4: lr = 0.00000215, grad_norm = 9.062500
+2026-08-03 17:10:57 - __main__ - INFO -   Optimizer step 5: lr = 0.00000269, grad_norm = 6.312500
+2026-08-03 17:10:57 - __main__ - INFO -   Batch 20: loss = 1.6098
+2026-08-03 17:10:58 - __main__ - INFO -   Optimizer step 6: lr = 0.00000323, grad_norm = 9.687500
+2026-08-03 17:10:59 - __main__ - INFO -   Batch 25: loss = 1.6510
+2026-08-03 17:10:59 - __main__ - INFO -   Optimizer step 7: lr = 0.00000376, grad_norm = 6.312500
+2026-08-03 17:11:00 - __main__ - INFO -   Batch 30: loss = 1.9804
+2026-08-03 17:11:01 - __main__ - INFO -   Optimizer step 8: lr = 0.00000430, grad_norm = 9.125000
+2026-08-03 17:11:02 - __main__ - INFO -   Batch 35: loss = 2.4841
+2026-08-03 17:11:02 - __main__ - INFO -   Optimizer step 9: lr = 0.00000484, grad_norm = 9.812500
+2026-08-03 17:11:03 - __main__ - INFO -   Optimizer step 10: lr = 0.00000538, grad_norm = 6.750000
+2026-08-03 17:11:03 - __main__ - INFO -   Batch 40: loss = 1.7934
+2026-08-03 17:11:04 - __main__ - INFO -   Optimizer step 11: lr = 0.00000591, grad_norm = 7.468750
+2026-08-03 17:11:05 - __main__ - INFO -   Batch 45: loss = 1.6996
+2026-08-03 17:11:06 - __main__ - INFO -   Optimizer step 12: lr = 0.00000645, grad_norm = 7.812500
+2026-08-03 17:11:06 - __main__ - INFO -   Batch 50: loss = 0.9811
+2026-08-03 17:11:07 - __main__ - INFO -   Optimizer step 13: lr = 0.00000699, grad_norm = 5.000000
+2026-08-03 17:11:08 - __main__ - INFO -   Batch 55: loss = 2.0663
+2026-08-03 17:11:08 - __main__ - INFO -   Optimizer step 14: lr = 0.00000753, grad_norm = 10.125000
+2026-08-03 17:11:09 - __main__ - INFO -   Optimizer step 15: lr = 0.00000806, grad_norm = 8.187500
+2026-08-03 17:11:09 - __main__ - INFO -   Batch 60: loss = 1.2182
+2026-08-03 17:11:10 - __main__ - INFO -   Optimizer step 16: lr = 0.00000860, grad_norm = 8.875000
+2026-08-03 17:11:11 - __main__ - INFO -   Batch 65: loss = 2.2669
+2026-08-03 17:11:12 - __main__ - INFO -   Optimizer step 17: lr = 0.00000914, grad_norm = 9.000000
+2026-08-03 17:11:12 - __main__ - INFO -   Batch 70: loss = 1.1745
+2026-08-03 17:11:13 - __main__ - INFO -   Optimizer step 18: lr = 0.00000968, grad_norm = 9.437500
+2026-08-03 17:11:14 - __main__ - INFO -   Batch 75: loss = 2.0809
+2026-08-03 17:11:14 - __main__ - INFO -   Optimizer step 19: lr = 0.00001022, grad_norm = 7.875000
+2026-08-03 17:11:15 - __main__ - INFO -   Optimizer step 20: lr = 0.00001075, grad_norm = 9.250000
+2026-08-03 17:11:15 - __main__ - INFO -   Batch 80: loss = 1.5776
+2026-08-03 17:11:16 - __main__ - INFO -   Optimizer step 21: lr = 0.00001129, grad_norm = 8.687500
+2026-08-03 17:11:17 - __main__ - INFO -   Batch 85: loss = 1.8956
+2026-08-03 17:11:18 - __main__ - INFO -   Optimizer step 22: lr = 0.00001183, grad_norm = 9.187500
+2026-08-03 17:11:18 - __main__ - INFO -   Batch 90: loss = 0.8132
+2026-08-03 17:11:19 - __main__ - INFO -   Optimizer step 23: lr = 0.00001237, grad_norm = 3.687500
+2026-08-03 17:11:20 - __main__ - INFO -   Batch 95: loss = 2.3556
+2026-08-03 17:11:20 - __main__ - INFO -   Optimizer step 24: lr = 0.00001290, grad_norm = 6.718750
+2026-08-03 17:11:21 - __main__ - INFO -   Optimizer step 25: lr = 0.00001344, grad_norm = 6.312500
+2026-08-03 17:11:21 - __main__ - INFO -   Batch 100: loss = 1.8720
+2026-08-03 17:11:23 - __main__ - INFO -   Optimizer step 26: lr = 0.00001398, grad_norm = 6.718750
+2026-08-03 17:11:24 - __main__ - INFO -   Batch 105: loss = 0.9427
+2026-08-03 17:11:26 - __main__ - INFO -   Optimizer step 27: lr = 0.00001452, grad_norm = 6.406250
+2026-08-03 17:11:28 - __main__ - INFO -   Batch 110: loss = 1.3494
+2026-08-03 17:11:30 - __main__ - INFO -   Optimizer step 28: lr = 0.00001505, grad_norm = 6.843750
+2026-08-03 17:11:32 - __main__ - INFO -   Batch 115: loss = 1.4433
+2026-08-03 17:11:33 - __main__ - INFO -   Optimizer step 29: lr = 0.00001559, grad_norm = 6.968750
+2026-08-03 17:11:37 - __main__ - INFO -   Optimizer step 30: lr = 0.00001613, grad_norm = 7.125000
+2026-08-03 17:11:37 - __main__ - INFO -   Batch 120: loss = 1.1258
+2026-08-03 17:11:39 - __main__ - INFO -   Optimizer step 31: lr = 0.00001667, grad_norm = 5.562500
+2026-08-03 17:11:39 - __main__ - INFO -   Batch 125: loss = 1.5744
+2026-08-03 17:11:40 - __main__ - INFO -   Optimizer step 32: lr = 0.00001720, grad_norm = 5.468750
+2026-08-03 17:11:40 - __main__ - INFO -   Batch 130: loss = 1.4564
+2026-08-03 17:11:41 - __main__ - INFO -   Optimizer step 33: lr = 0.00001774, grad_norm = 5.562500
+2026-08-03 17:11:42 - __main__ - INFO -   Batch 135: loss = 1.3133
+2026-08-03 17:11:42 - __main__ - INFO -   Optimizer step 34: lr = 0.00001828, grad_norm = 4.406250
+2026-08-03 17:11:43 - __main__ - INFO -   Optimizer step 35: lr = 0.00001882, grad_norm = 3.328125
+2026-08-03 17:11:44 - __main__ - INFO -   Batch 140: loss = 0.9868
+2026-08-03 17:11:45 - __main__ - INFO -   Optimizer step 36: lr = 0.00001935, grad_norm = 4.562500
+2026-08-03 17:11:45 - __main__ - INFO -   Batch 145: loss = 0.9553
+2026-08-03 17:11:46 - __main__ - INFO -   Optimizer step 37: lr = 0.00001989, grad_norm = 2.828125
+2026-08-03 17:11:47 - __main__ - INFO -   Batch 150: loss = 1.1170
+2026-08-03 17:11:47 - __main__ - INFO -   Optimizer step 38: lr = 0.00002043, grad_norm = 4.250000
+2026-08-03 17:11:48 - __main__ - INFO -   Batch 155: loss = 0.9364
+2026-08-03 17:11:48 - __main__ - INFO -   Optimizer step 39: lr = 0.00002097, grad_norm = 3.343750
+2026-08-03 17:11:50 - __main__ - INFO -   Optimizer step 40: lr = 0.00002151, grad_norm = 3.500000
+2026-08-03 17:11:50 - __main__ - INFO -   Batch 160: loss = 0.9920
+2026-08-03 17:11:51 - __main__ - INFO -   Optimizer step 41: lr = 0.00002204, grad_norm = 2.578125
+2026-08-03 17:11:51 - __main__ - INFO -   Batch 165: loss = 0.7341
+2026-08-03 17:11:52 - __main__ - INFO -   Optimizer step 42: lr = 0.00002258, grad_norm = 2.328125
+2026-08-03 17:11:53 - __main__ - INFO -   Batch 170: loss = 0.9849
+2026-08-03 17:11:53 - __main__ - INFO -   Optimizer step 43: lr = 0.00002312, grad_norm = 3.171875
+2026-08-03 17:11:54 - __main__ - INFO -   Batch 175: loss = 0.7184
+2026-08-03 17:11:54 - __main__ - INFO -   Optimizer step 44: lr = 0.00002366, grad_norm = 2.531250
+2026-08-03 17:11:56 - __main__ - INFO -   Optimizer step 45: lr = 0.00002419, grad_norm = 2.203125
+2026-08-03 17:11:56 - __main__ - INFO -   Batch 180: loss = 0.7725
+2026-08-03 17:11:57 - __main__ - INFO -   Optimizer step 46: lr = 0.00002473, grad_norm = 2.156250
+2026-08-03 17:11:57 - __main__ - INFO -   Batch 185: loss = 0.7942
+2026-08-03 17:11:58 - __main__ - INFO -   Optimizer step 47: lr = 0.00002527, grad_norm = 2.234375
+2026-08-03 17:11:59 - __main__ - INFO -   Batch 190: loss = 0.5905
+2026-08-03 17:11:59 - __main__ - INFO -   Optimizer step 48: lr = 0.00002581, grad_norm = 2.296875
+2026-08-03 17:12:00 - __main__ - INFO -   Batch 195: loss = 0.8828
+2026-08-03 17:12:00 - __main__ - INFO -   Optimizer step 49: lr = 0.00002634, grad_norm = 1.789062
+2026-08-03 17:12:02 - __main__ - INFO -   Optimizer step 50: lr = 0.00002688, grad_norm = 1.742188
+2026-08-03 17:12:02 - __main__ - INFO -   Batch 200: loss = 0.5989
+2026-08-03 17:12:03 - __main__ - INFO -   Optimizer step 51: lr = 0.00002742, grad_norm = 1.734375
+2026-08-03 17:12:03 - __main__ - INFO -   Batch 205: loss = 0.6960
+2026-08-03 17:12:04 - __main__ - INFO -   Optimizer step 52: lr = 0.00002796, grad_norm = 1.570312
+2026-08-03 17:12:05 - __main__ - INFO -   Batch 210: loss = 0.4823
+2026-08-03 17:12:05 - __main__ - INFO -   Optimizer step 53: lr = 0.00002849, grad_norm = 1.437500
+2026-08-03 17:12:06 - __main__ - INFO -   Batch 215: loss = 0.6159
+2026-08-03 17:12:07 - __main__ - INFO -   Optimizer step 54: lr = 0.00002903, grad_norm = 1.242188
+2026-08-03 17:12:08 - __main__ - INFO -   Optimizer step 55: lr = 0.00002957, grad_norm = 1.343750
+2026-08-03 17:12:08 - __main__ - INFO -   Batch 220: loss = 0.4774
+2026-08-03 17:12:09 - __main__ - INFO -   Optimizer step 56: lr = 0.00003011, grad_norm = 1.015625
+2026-08-03 17:12:09 - __main__ - INFO -   Batch 225: loss = 0.4211
+2026-08-03 17:12:10 - __main__ - INFO -   Optimizer step 57: lr = 0.00003065, grad_norm = 1.179688
+2026-08-03 17:12:11 - __main__ - INFO -   Batch 230: loss = 0.8926
+2026-08-03 17:12:11 - __main__ - INFO -   Optimizer step 58: lr = 0.00003118, grad_norm = 1.320312
+2026-08-03 17:12:12 - __main__ - INFO -   Batch 235: loss = 0.5227
+2026-08-03 17:12:13 - __main__ - INFO -   Optimizer step 59: lr = 0.00003172, grad_norm = 1.257812
+2026-08-03 17:12:14 - __main__ - INFO -   Optimizer step 60: lr = 0.00003226, grad_norm = 1.234375
+2026-08-03 17:12:14 - __main__ - INFO -   Batch 240: loss = 0.5522
+2026-08-03 17:12:15 - __main__ - INFO -   Optimizer step 61: lr = 0.00003280, grad_norm = 1.281250
+2026-08-03 17:12:15 - __main__ - INFO -   Batch 245: loss = 0.9044
+2026-08-03 17:12:16 - __main__ - INFO -   Optimizer step 62: lr = 0.00003333, grad_norm = 1.289062
+2026-08-03 17:12:17 - __main__ - INFO -   Batch 250: loss = 0.6100
+2026-08-03 17:12:17 - __main__ - INFO -   Optimizer step 63: lr = 0.00003387, grad_norm = 0.949219
+2026-08-03 17:12:18 - __main__ - INFO -   Batch 255: loss = 0.7042
+2026-08-03 17:12:19 - __main__ - INFO -   Optimizer step 64: lr = 0.00003441, grad_norm = 1.093750
+2026-08-03 17:12:20 - __main__ - INFO -   Optimizer step 65: lr = 0.00003495, grad_norm = 0.945312
+2026-08-03 17:12:20 - __main__ - INFO -   Batch 260: loss = 0.4398
+2026-08-03 17:12:21 - __main__ - INFO -   Optimizer step 66: lr = 0.00003548, grad_norm = 1.156250
+2026-08-03 17:12:21 - __main__ - INFO -   Batch 265: loss = 0.3428
+2026-08-03 17:12:22 - __main__ - INFO -   Optimizer step 67: lr = 0.00003602, grad_norm = 1.023438
+2026-08-03 17:12:23 - __main__ - INFO -   Batch 270: loss = 0.4649
+2026-08-03 17:12:24 - __main__ - INFO -   Optimizer step 68: lr = 0.00003656, grad_norm = 0.925781
+2026-08-03 17:12:24 - __main__ - INFO -   Batch 275: loss = 0.3766
+2026-08-03 17:12:25 - __main__ - INFO -   Optimizer step 69: lr = 0.00003710, grad_norm = 0.902344
+2026-08-03 17:12:26 - __main__ - INFO -   Optimizer step 70: lr = 0.00003763, grad_norm = 1.164062
+2026-08-03 17:12:26 - __main__ - INFO -   Batch 280: loss = 0.5907
+2026-08-03 17:12:27 - __main__ - INFO -   Optimizer step 71: lr = 0.00003817, grad_norm = 1.085938
+2026-08-03 17:12:27 - __main__ - INFO -   Batch 285: loss = 0.3136
+2026-08-03 17:12:28 - __main__ - INFO -   Optimizer step 72: lr = 0.00003871, grad_norm = 1.203125
+2026-08-03 17:12:29 - __main__ - INFO -   Batch 290: loss = 0.3159
+2026-08-03 17:12:30 - __main__ - INFO -   Optimizer step 73: lr = 0.00003925, grad_norm = 0.722656
+2026-08-03 17:12:30 - __main__ - INFO -   Batch 295: loss = 0.3095
+2026-08-03 17:12:31 - __main__ - INFO -   Optimizer step 74: lr = 0.00003978, grad_norm = 1.648438
+2026-08-03 17:12:32 - __main__ - INFO -   Optimizer step 75: lr = 0.00004032, grad_norm = 1.054688
+2026-08-03 17:12:32 - __main__ - INFO -   Batch 300: loss = 0.3636
+2026-08-03 17:12:33 - __main__ - INFO -   Optimizer step 76: lr = 0.00004086, grad_norm = 0.953125
+2026-08-03 17:12:34 - __main__ - INFO -   Batch 305: loss = 0.4000
+2026-08-03 17:12:34 - __main__ - INFO -   Optimizer step 77: lr = 0.00004140, grad_norm = 1.203125
+2026-08-03 17:12:35 - __main__ - INFO -   Batch 310: loss = 0.7880
+2026-08-03 17:12:36 - __main__ - INFO -   Optimizer step 78: lr = 0.00004194, grad_norm = 0.988281
+2026-08-03 17:12:37 - __main__ - INFO -   Batch 315: loss = 0.3692
+2026-08-03 17:12:37 - __main__ - INFO -   Optimizer step 79: lr = 0.00004247, grad_norm = 1.109375
+2026-08-03 17:12:38 - __main__ - INFO -   Optimizer step 80: lr = 0.00004301, grad_norm = 0.914062
+2026-08-03 17:12:38 - __main__ - INFO -   Batch 320: loss = 0.1764
+2026-08-03 17:12:39 - __main__ - INFO -   Optimizer step 81: lr = 0.00004355, grad_norm = 1.039062
+2026-08-03 17:12:40 - __main__ - INFO -   Batch 325: loss = 0.1714
+2026-08-03 17:12:41 - __main__ - INFO -   Optimizer step 82: lr = 0.00004409, grad_norm = 1.304688
+2026-08-03 17:12:41 - __main__ - INFO -   Batch 330: loss = 0.3066
+2026-08-03 17:12:42 - __main__ - INFO -   Optimizer step 83: lr = 0.00004462, grad_norm = 1.046875
+2026-08-03 17:12:43 - __main__ - INFO -   Batch 335: loss = 0.6703
+2026-08-03 17:12:43 - __main__ - INFO -   Optimizer step 84: lr = 0.00004516, grad_norm = 0.968750
+2026-08-03 17:12:44 - __main__ - INFO -   Optimizer step 85: lr = 0.00004570, grad_norm = 0.898438
+2026-08-03 17:12:44 - __main__ - INFO -   Batch 340: loss = 0.3325
+2026-08-03 17:12:45 - __main__ - INFO -   Optimizer step 86: lr = 0.00004624, grad_norm = 0.960938
+2026-08-03 17:12:46 - __main__ - INFO -   Batch 345: loss = 0.5281
+2026-08-03 17:12:47 - __main__ - INFO -   Optimizer step 87: lr = 0.00004677, grad_norm = 1.179688
+2026-08-03 17:12:47 - __main__ - INFO -   Batch 350: loss = 0.4258
+2026-08-03 17:12:48 - __main__ - INFO -   Optimizer step 88: lr = 0.00004731, grad_norm = 0.933594
+2026-08-03 17:12:49 - __main__ - INFO -   Batch 355: loss = 0.1587
+2026-08-03 17:12:49 - __main__ - INFO -   Optimizer step 89: lr = 0.00004785, grad_norm = 1.000000
+2026-08-03 17:12:50 - __main__ - INFO -   Optimizer step 90: lr = 0.00004839, grad_norm = 0.929688
+2026-08-03 17:12:50 - __main__ - INFO -   Batch 360: loss = 0.2390
+2026-08-03 17:12:51 - __main__ - INFO -   Optimizer step 91: lr = 0.00004892, grad_norm = 0.851562
+2026-08-03 17:12:52 - __main__ - INFO -   Batch 365: loss = 0.2162
+2026-08-03 17:12:53 - __main__ - INFO -   Optimizer step 92: lr = 0.00004946, grad_norm = 0.855469
+2026-08-03 17:12:53 - __main__ - INFO -   Batch 370: loss = 0.2218
+2026-08-03 17:12:54 - __main__ - INFO -   Optimizer step 93: lr = 0.00005000, grad_norm = 0.957031
+2026-08-03 17:12:55 - __main__ - INFO -   Batch 375: loss = 0.1821
+2026-08-03 17:12:55 - __main__ - INFO -   Optimizer step 94: lr = 0.00005000, grad_norm = 0.937500
+2026-08-03 17:12:56 - __main__ - INFO -   Optimizer step 95: lr = 0.00005000, grad_norm = 1.101562
+2026-08-03 17:12:56 - __main__ - INFO -   Batch 380: loss = 0.4348
+2026-08-03 17:12:57 - __main__ - INFO -   Optimizer step 96: lr = 0.00005000, grad_norm = 1.156250
+2026-08-03 17:12:58 - __main__ - INFO -   Batch 385: loss = 0.4050
+2026-08-03 17:12:59 - __main__ - INFO -   Optimizer step 97: lr = 0.00005000, grad_norm = 1.156250
+2026-08-03 17:12:59 - __main__ - INFO -   Batch 390: loss = 0.2493
+2026-08-03 17:13:00 - __main__ - INFO -   Optimizer step 98: lr = 0.00005000, grad_norm = 1.218750
+2026-08-03 17:13:01 - __main__ - INFO -   Batch 395: loss = 0.7979
+2026-08-03 17:13:01 - __main__ - INFO -   Optimizer step 99: lr = 0.00004999, grad_norm = 1.039062
+2026-08-03 17:13:02 - __main__ - INFO -   Optimizer step 100: lr = 0.00004999, grad_norm = 0.707031
+2026-08-03 17:13:02 - __main__ - INFO -   Batch 400: loss = 0.4619
+2026-08-03 17:13:04 - __main__ - INFO -   Optimizer step 101: lr = 0.00004999, grad_norm = 0.902344
+2026-08-03 17:13:04 - __main__ - INFO -   Batch 405: loss = 0.2724
+2026-08-03 17:13:05 - __main__ - INFO -   Optimizer step 102: lr = 0.00004999, grad_norm = 1.046875
+2026-08-03 17:13:05 - __main__ - INFO -   Batch 410: loss = 0.3923
+2026-08-03 17:13:06 - __main__ - INFO -   Optimizer step 103: lr = 0.00004998, grad_norm = 0.941406
+2026-08-03 17:13:07 - __main__ - INFO -   Batch 415: loss = 0.2960
+2026-08-03 17:13:07 - __main__ - INFO -   Optimizer step 104: lr = 0.00004998, grad_norm = 1.117188
+2026-08-03 17:13:08 - __main__ - INFO -   Optimizer step 105: lr = 0.00004998, grad_norm = 1.078125
+2026-08-03 17:13:08 - __main__ - INFO -   Batch 420: loss = 0.2671
+2026-08-03 17:13:10 - __main__ - INFO -   Optimizer step 106: lr = 0.00004997, grad_norm = 1.039062
+2026-08-03 17:13:10 - __main__ - INFO -   Batch 425: loss = 0.6007
+2026-08-03 17:13:11 - __main__ - INFO -   Optimizer step 107: lr = 0.00004997, grad_norm = 0.902344
+2026-08-03 17:13:11 - __main__ - INFO -   Batch 430: loss = 0.7238
+2026-08-03 17:13:12 - __main__ - INFO -   Optimizer step 108: lr = 0.00004996, grad_norm = 1.054688
+2026-08-03 17:13:13 - __main__ - INFO -   Batch 435: loss = 0.6780
+2026-08-03 17:13:13 - __main__ - INFO -   Optimizer step 109: lr = 0.00004996, grad_norm = 0.878906
+2026-08-03 17:13:15 - __main__ - INFO -   Optimizer step 110: lr = 0.00004995, grad_norm = 1.109375
+2026-08-03 17:13:15 - __main__ - INFO -   Batch 440: loss = 0.5478
+2026-08-03 17:13:16 - __main__ - INFO -   Optimizer step 111: lr = 0.00004994, grad_norm = 0.968750
+2026-08-03 17:13:16 - __main__ - INFO -   Batch 445: loss = 0.3461
+2026-08-03 17:13:17 - __main__ - INFO -   Optimizer step 112: lr = 0.00004994, grad_norm = 1.125000
+2026-08-03 17:13:18 - __main__ - INFO -   Batch 450: loss = 0.2486
+2026-08-03 17:13:18 - __main__ - INFO -   Optimizer step 113: lr = 0.00004993, grad_norm = 0.992188
+2026-08-03 17:13:19 - __main__ - INFO -   Batch 455: loss = 0.7734
+2026-08-03 17:13:19 - __main__ - INFO -   Optimizer step 114: lr = 0.00004992, grad_norm = 1.101562
+2026-08-03 17:13:21 - __main__ - INFO -   Optimizer step 115: lr = 0.00004992, grad_norm = 0.882812
+2026-08-03 17:13:21 - __main__ - INFO -   Batch 460: loss = 0.7540
+2026-08-03 17:13:22 - __main__ - INFO -   Optimizer step 116: lr = 0.00004991, grad_norm = 0.859375
+2026-08-03 17:13:22 - __main__ - INFO -   Batch 465: loss = 0.3560
+2026-08-03 17:13:23 - __main__ - INFO -   Optimizer step 117: lr = 0.00004990, grad_norm = 0.929688
+2026-08-03 17:13:24 - __main__ - INFO -   Batch 470: loss = 0.5225
+2026-08-03 17:13:24 - __main__ - INFO -   Optimizer step 118: lr = 0.00004989, grad_norm = 0.753906
+2026-08-03 17:13:25 - __main__ - INFO -   Batch 475: loss = 0.1216
+2026-08-03 17:13:26 - __main__ - INFO -   Optimizer step 119: lr = 0.00004988, grad_norm = 1.070312
+2026-08-03 17:13:27 - __main__ - INFO -   Optimizer step 120: lr = 0.00004987, grad_norm = 0.925781
+2026-08-03 17:13:27 - __main__ - INFO -   Batch 480: loss = 0.2308
+2026-08-03 17:13:28 - __main__ - INFO -   Optimizer step 121: lr = 0.00004986, grad_norm = 0.753906
+2026-08-03 17:13:28 - __main__ - INFO -   Batch 485: loss = 0.5140
+2026-08-03 17:13:29 - __main__ - INFO -   Optimizer step 122: lr = 0.00004986, grad_norm = 0.902344
+2026-08-03 17:13:30 - __main__ - INFO -   Batch 490: loss = 0.3088
+2026-08-03 17:13:30 - __main__ - INFO -   Optimizer step 123: lr = 0.00004985, grad_norm = 1.031250
+2026-08-03 17:13:31 - __main__ - INFO -   Batch 495: loss = 0.6651
+2026-08-03 17:13:32 - __main__ - INFO -   Optimizer step 124: lr = 0.00004983, grad_norm = 1.046875
+2026-08-03 17:13:33 - __main__ - INFO -   Optimizer step 125: lr = 0.00004982, grad_norm = 0.847656
+2026-08-03 17:13:33 - __main__ - INFO -   Batch 500: loss = 0.3233
+2026-08-03 17:13:34 - __main__ - INFO -   Optimizer step 126: lr = 0.00004981, grad_norm = 0.871094
+2026-08-03 17:13:34 - __main__ - INFO -   Batch 505: loss = 0.3712
+2026-08-03 17:13:35 - __main__ - INFO -   Optimizer step 127: lr = 0.00004980, grad_norm = 0.859375
+2026-08-03 17:13:36 - __main__ - INFO -   Batch 510: loss = 0.5303
+2026-08-03 17:13:37 - __main__ - INFO -   Optimizer step 128: lr = 0.00004979, grad_norm = 1.250000
+2026-08-03 17:13:37 - __main__ - INFO -   Batch 515: loss = 0.2859
+2026-08-03 17:13:38 - __main__ - INFO -   Optimizer step 129: lr = 0.00004978, grad_norm = 1.320312
+2026-08-03 17:13:39 - __main__ - INFO -   Optimizer step 130: lr = 0.00004976, grad_norm = 1.031250
+2026-08-03 17:13:39 - __main__ - INFO -   Batch 520: loss = 0.5342
+2026-08-03 17:13:40 - __main__ - INFO -   Optimizer step 131: lr = 0.00004975, grad_norm = 1.000000
+2026-08-03 17:13:40 - __main__ - INFO -   Batch 525: loss = 0.3426
+2026-08-03 17:13:41 - __main__ - INFO -   Optimizer step 132: lr = 0.00004974, grad_norm = 1.039062
+2026-08-03 17:13:42 - __main__ - INFO -   Batch 530: loss = 0.9878
+2026-08-03 17:13:43 - __main__ - INFO -   Optimizer step 133: lr = 0.00004972, grad_norm = 1.007812
+2026-08-03 17:13:44 - __main__ - INFO -   Batch 535: loss = 0.1316
+2026-08-03 17:13:44 - __main__ - INFO -   Optimizer step 134: lr = 0.00004971, grad_norm = 0.953125
+2026-08-03 17:13:45 - __main__ - INFO -   Optimizer step 135: lr = 0.00004970, grad_norm = 1.195312
+2026-08-03 17:13:45 - __main__ - INFO -   Batch 540: loss = 0.5539
+2026-08-03 17:13:46 - __main__ - INFO -   Optimizer step 136: lr = 0.00004968, grad_norm = 0.738281
+2026-08-03 17:13:47 - __main__ - INFO -   Batch 545: loss = 0.1740
+2026-08-03 17:13:48 - __main__ - INFO -   Optimizer step 137: lr = 0.00004967, grad_norm = 0.906250
+2026-08-03 17:13:48 - __main__ - INFO -   Batch 550: loss = 0.7926
+2026-08-03 17:13:49 - __main__ - INFO -   Optimizer step 138: lr = 0.00004965, grad_norm = 0.988281
+2026-08-03 17:13:50 - __main__ - INFO -   Batch 555: loss = 0.2626
+2026-08-03 17:13:50 - __main__ - INFO -   Optimizer step 139: lr = 0.00004964, grad_norm = 0.925781
+2026-08-03 17:13:51 - __main__ - INFO -   Optimizer step 140: lr = 0.00004962, grad_norm = 0.878906
+2026-08-03 17:13:51 - __main__ - INFO -   Batch 560: loss = 0.2987
+2026-08-03 17:13:52 - __main__ - INFO -   Optimizer step 141: lr = 0.00004960, grad_norm = 1.156250
+2026-08-03 17:13:53 - __main__ - INFO -   Batch 565: loss = 0.2776
+2026-08-03 17:13:54 - __main__ - INFO -   Optimizer step 142: lr = 0.00004959, grad_norm = 0.878906
+2026-08-03 17:13:54 - __main__ - INFO -   Batch 570: loss = 0.3055
+2026-08-03 17:13:55 - __main__ - INFO -   Optimizer step 143: lr = 0.00004957, grad_norm = 0.792969
+2026-08-03 17:13:56 - __main__ - INFO -   Batch 575: loss = 0.3570
+2026-08-03 17:13:56 - __main__ - INFO -   Optimizer step 144: lr = 0.00004955, grad_norm = 1.078125
+2026-08-03 17:13:57 - __main__ - INFO -   Optimizer step 145: lr = 0.00004954, grad_norm = 0.996094
+2026-08-03 17:13:57 - __main__ - INFO -   Batch 580: loss = 0.4221
+2026-08-03 17:13:58 - __main__ - INFO -   Optimizer step 146: lr = 0.00004952, grad_norm = 0.953125
+2026-08-03 17:13:59 - __main__ - INFO -   Batch 585: loss = 0.1884
+2026-08-03 17:14:00 - __main__ - INFO -   Optimizer step 147: lr = 0.00004950, grad_norm = 0.859375
+2026-08-03 17:14:00 - __main__ - INFO -   Batch 590: loss = 0.6694
+2026-08-03 17:14:01 - __main__ - INFO -   Optimizer step 148: lr = 0.00004948, grad_norm = 1.031250
+2026-08-03 17:14:02 - __main__ - INFO -   Batch 595: loss = 0.1914
+2026-08-03 17:14:02 - __main__ - INFO -   Optimizer step 149: lr = 0.00004946, grad_norm = 0.816406
+2026-08-03 17:14:03 - __main__ - INFO -   Optimizer step 150: lr = 0.00004944, grad_norm = 0.988281
+2026-08-03 17:14:03 - __main__ - INFO -   Batch 600: loss = 0.5226
+2026-08-03 17:14:05 - __main__ - INFO -   Optimizer step 151: lr = 0.00004942, grad_norm = 0.937500
+2026-08-03 17:14:05 - __main__ - INFO -   Batch 605: loss = 0.4543
+2026-08-03 17:14:06 - __main__ - INFO -   Optimizer step 152: lr = 0.00004940, grad_norm = 0.906250
+2026-08-03 17:14:06 - __main__ - INFO -   Batch 610: loss = 0.6503
+2026-08-03 17:14:07 - __main__ - INFO -   Optimizer step 153: lr = 0.00004938, grad_norm = 0.886719
+2026-08-03 17:14:08 - __main__ - INFO -   Batch 615: loss = 0.3693
+2026-08-03 17:14:08 - __main__ - INFO -   Optimizer step 154: lr = 0.00004936, grad_norm = 1.304688
+2026-08-03 17:14:09 - __main__ - INFO -   Optimizer step 155: lr = 0.00004934, grad_norm = 0.781250
+2026-08-03 17:14:10 - __main__ - INFO -   Batch 620: loss = 0.3480
+2026-08-03 17:14:11 - __main__ - INFO -   Optimizer step 156: lr = 0.00004932, grad_norm = 1.445312
+2026-08-03 17:14:11 - __main__ - INFO -   Batch 625: loss = 0.4212
+2026-08-03 17:14:12 - __main__ - INFO -   Optimizer step 157: lr = 0.00004930, grad_norm = 1.039062
+2026-08-03 17:14:13 - __main__ - INFO -   Batch 630: loss = 0.2666
+2026-08-03 17:14:13 - __main__ - INFO -   Optimizer step 158: lr = 0.00004928, grad_norm = 1.148438
+2026-08-03 17:14:14 - __main__ - INFO -   Batch 635: loss = 0.5907
+2026-08-03 17:14:14 - __main__ - INFO -   Optimizer step 159: lr = 0.00004925, grad_norm = 1.179688
+2026-08-03 17:14:16 - __main__ - INFO -   Optimizer step 160: lr = 0.00004923, grad_norm = 1.125000
+2026-08-03 17:14:16 - __main__ - INFO -   Batch 640: loss = 0.4197
+2026-08-03 17:14:17 - __main__ - INFO -   Optimizer step 161: lr = 0.00004921, grad_norm = 1.296875
+2026-08-03 17:14:17 - __main__ - INFO -   Batch 645: loss = 0.1322
+2026-08-03 17:14:18 - __main__ - INFO -   Optimizer step 162: lr = 0.00004918, grad_norm = 0.976562
+2026-08-03 17:14:19 - __main__ - INFO -   Batch 650: loss = 0.2317
+2026-08-03 17:14:19 - __main__ - INFO -   Optimizer step 163: lr = 0.00004916, grad_norm = 0.929688
+2026-08-03 17:14:20 - __main__ - INFO -   Batch 655: loss = 0.3773
+2026-08-03 17:14:20 - __main__ - INFO -   Optimizer step 164: lr = 0.00004914, grad_norm = 0.894531
+2026-08-03 17:14:22 - __main__ - INFO -   Optimizer step 165: lr = 0.00004911, grad_norm = 1.093750
+2026-08-03 17:14:22 - __main__ - INFO -   Batch 660: loss = 0.3827
+2026-08-03 17:14:23 - __main__ - INFO -   Optimizer step 166: lr = 0.00004909, grad_norm = 1.070312
+2026-08-03 17:14:23 - __main__ - INFO -   Batch 665: loss = 0.3336
+2026-08-03 17:14:24 - __main__ - INFO -   Optimizer step 167: lr = 0.00004906, grad_norm = 1.164062
+2026-08-03 17:14:25 - __main__ - INFO -   Batch 670: loss = 0.4334
+2026-08-03 17:14:25 - __main__ - INFO -   Optimizer step 168: lr = 0.00004904, grad_norm = 0.992188
+2026-08-03 17:14:26 - __main__ - INFO -   Batch 675: loss = 0.3026
+2026-08-03 17:14:27 - __main__ - INFO -   Optimizer step 169: lr = 0.00004901, grad_norm = 1.007812
+2026-08-03 17:14:28 - __main__ - INFO -   Optimizer step 170: lr = 0.00004898, grad_norm = 1.195312
+2026-08-03 17:14:28 - __main__ - INFO -   Batch 680: loss = 0.5195
+2026-08-03 17:14:29 - __main__ - INFO -   Optimizer step 171: lr = 0.00004896, grad_norm = 0.875000
+2026-08-03 17:14:29 - __main__ - INFO -   Batch 685: loss = 0.3957
+2026-08-03 17:14:30 - __main__ - INFO -   Optimizer step 172: lr = 0.00004893, grad_norm = 0.988281
+2026-08-03 17:14:31 - __main__ - INFO -   Batch 690: loss = 0.6281
+2026-08-03 17:14:31 - __main__ - INFO -   Optimizer step 173: lr = 0.00004890, grad_norm = 0.945312
+2026-08-03 17:14:32 - __main__ - INFO -   Batch 695: loss = 0.2495
+2026-08-03 17:14:33 - __main__ - INFO -   Optimizer step 174: lr = 0.00004888, grad_norm = 0.851562
+2026-08-03 17:14:34 - __main__ - INFO -   Optimizer step 175: lr = 0.00004885, grad_norm = 0.902344
+2026-08-03 17:14:34 - __main__ - INFO -   Batch 700: loss = 0.3457
+2026-08-03 17:14:35 - __main__ - INFO -   Optimizer step 176: lr = 0.00004882, grad_norm = 0.937500
+2026-08-03 17:14:35 - __main__ - INFO -   Batch 705: loss = 0.1157
+2026-08-03 17:14:36 - __main__ - INFO -   Optimizer step 177: lr = 0.00004879, grad_norm = 0.847656
+2026-08-03 17:14:37 - __main__ - INFO -   Batch 710: loss = 0.5602
+2026-08-03 17:14:38 - __main__ - INFO -   Optimizer step 178: lr = 0.00004876, grad_norm = 1.015625
+2026-08-03 17:14:38 - __main__ - INFO -   Batch 715: loss = 0.2337
+2026-08-03 17:14:39 - __main__ - INFO -   Optimizer step 179: lr = 0.00004874, grad_norm = 0.902344
+2026-08-03 17:14:40 - __main__ - INFO -   Optimizer step 180: lr = 0.00004871, grad_norm = 0.828125
+2026-08-03 17:14:40 - __main__ - INFO -   Batch 720: loss = 0.2400
+2026-08-03 17:14:41 - __main__ - INFO -   Optimizer step 181: lr = 0.00004868, grad_norm = 0.761719
+2026-08-03 17:14:41 - __main__ - INFO -   Batch 725: loss = 0.5201
+2026-08-03 17:14:42 - __main__ - INFO -   Optimizer step 182: lr = 0.00004865, grad_norm = 0.910156
+2026-08-03 17:14:43 - __main__ - INFO -   Batch 730: loss = 0.3838
+2026-08-03 17:14:44 - __main__ - INFO -   Optimizer step 183: lr = 0.00004862, grad_norm = 1.203125
+2026-08-03 17:14:45 - __main__ - INFO -   Batch 735: loss = 0.3379
+2026-08-03 17:14:45 - __main__ - INFO -   Optimizer step 184: lr = 0.00004859, grad_norm = 0.921875
+2026-08-03 17:14:46 - __main__ - INFO -   Optimizer step 185: lr = 0.00004856, grad_norm = 1.257812
+2026-08-03 17:14:46 - __main__ - INFO -   Batch 740: loss = 0.2348
+2026-08-03 17:14:47 - __main__ - INFO -   Optimizer step 186: lr = 0.00004852, grad_norm = 0.917969
+2026-08-03 17:14:48 - __main__ - INFO -   Batch 745: loss = 0.3376
+2026-08-03 17:14:48 - __main__ - INFO -   Optimizer step 187: lr = 0.00004849, grad_norm = 0.867188
+2026-08-03 17:14:49 - __main__ - INFO -   Batch 750: loss = 0.4207
+2026-08-03 17:14:50 - __main__ - INFO -   Optimizer step 188: lr = 0.00004846, grad_norm = 1.132812
+2026-08-03 17:14:51 - __main__ - INFO -   Batch 755: loss = 0.4531
+2026-08-03 17:14:51 - __main__ - INFO -   Optimizer step 189: lr = 0.00004843, grad_norm = 0.960938
+2026-08-03 17:14:52 - __main__ - INFO -   Optimizer step 190: lr = 0.00004840, grad_norm = 0.914062
+2026-08-03 17:14:52 - __main__ - INFO -   Batch 760: loss = 0.3154
+2026-08-03 17:14:53 - __main__ - INFO -   Optimizer step 191: lr = 0.00004836, grad_norm = 1.046875
+2026-08-03 17:14:54 - __main__ - INFO -   Batch 765: loss = 0.4823
+2026-08-03 17:14:55 - __main__ - INFO -   Optimizer step 192: lr = 0.00004833, grad_norm = 1.039062
+2026-08-03 17:14:55 - __main__ - INFO -   Batch 770: loss = 0.3750
+2026-08-03 17:14:56 - __main__ - INFO -   Optimizer step 193: lr = 0.00004830, grad_norm = 1.015625
+2026-08-03 17:14:57 - __main__ - INFO -   Batch 775: loss = 0.1078
+2026-08-03 17:14:57 - __main__ - INFO -   Optimizer step 194: lr = 0.00004826, grad_norm = 0.832031
+2026-08-03 17:14:58 - __main__ - INFO -   Optimizer step 195: lr = 0.00004823, grad_norm = 0.890625
+2026-08-03 17:14:58 - __main__ - INFO -   Batch 780: loss = 0.1933
+2026-08-03 17:14:59 - __main__ - INFO -   Optimizer step 196: lr = 0.00004819, grad_norm = 0.878906
+2026-08-03 17:15:00 - __main__ - INFO -   Batch 785: loss = 0.1678
+2026-08-03 17:15:01 - __main__ - INFO -   Optimizer step 197: lr = 0.00004816, grad_norm = 1.039062
+2026-08-03 17:15:01 - __main__ - INFO -   Batch 790: loss = 0.2948
+2026-08-03 17:15:02 - __main__ - INFO -   Optimizer step 198: lr = 0.00004812, grad_norm = 1.062500
+2026-08-03 17:15:03 - __main__ - INFO -   Batch 795: loss = 0.3299
+2026-08-03 17:15:03 - __main__ - INFO -   Optimizer step 199: lr = 0.00004809, grad_norm = 1.156250
+2026-08-03 17:15:04 - __main__ - INFO -   Optimizer step 200: lr = 0.00004805, grad_norm = 1.054688
+2026-08-03 17:15:04 - __main__ - INFO -   Batch 800: loss = 0.6756
+2026-08-03 17:15:06 - __main__ - INFO -   Optimizer step 201: lr = 0.00004802, grad_norm = 1.125000
+2026-08-03 17:15:06 - __main__ - INFO -   Batch 805: loss = 0.2986
+2026-08-03 17:15:07 - __main__ - INFO -   Optimizer step 202: lr = 0.00004798, grad_norm = 1.007812
+2026-08-03 17:15:07 - __main__ - INFO -   Batch 810: loss = 0.3758
+2026-08-03 17:15:08 - __main__ - INFO -   Optimizer step 203: lr = 0.00004794, grad_norm = 0.925781
+2026-08-03 17:15:09 - __main__ - INFO -   Batch 815: loss = 0.5174
+2026-08-03 17:15:09 - __main__ - INFO -   Optimizer step 204: lr = 0.00004791, grad_norm = 0.945312
+2026-08-03 17:15:10 - __main__ - INFO -   Optimizer step 205: lr = 0.00004787, grad_norm = 0.996094
+2026-08-03 17:15:10 - __main__ - INFO -   Batch 820: loss = 0.6557
+2026-08-03 17:15:12 - __main__ - INFO -   Optimizer step 206: lr = 0.00004783, grad_norm = 0.828125
+2026-08-03 17:15:12 - __main__ - INFO -   Batch 825: loss = 0.2055
+2026-08-03 17:15:13 - __main__ - INFO -   Optimizer step 207: lr = 0.00004779, grad_norm = 1.281250
+2026-08-03 17:15:13 - __main__ - INFO -   Batch 830: loss = 0.2227
+2026-08-03 17:15:14 - __main__ - INFO -   Optimizer step 208: lr = 0.00004775, grad_norm = 0.781250
+2026-08-03 17:15:15 - __main__ - INFO -   Batch 835: loss = 0.3690
+2026-08-03 17:15:15 - __main__ - INFO -   Optimizer step 209: lr = 0.00004772, grad_norm = 0.886719
+2026-08-03 17:15:17 - __main__ - INFO -   Optimizer step 210: lr = 0.00004768, grad_norm = 0.898438
+2026-08-03 17:15:17 - __main__ - INFO -   Batch 840: loss = 0.3887
+2026-08-03 17:15:18 - __main__ - INFO -   Optimizer step 211: lr = 0.00004764, grad_norm = 0.855469
+2026-08-03 17:15:18 - __main__ - INFO -   Batch 845: loss = 0.5905
+2026-08-03 17:15:19 - __main__ - INFO -   Optimizer step 212: lr = 0.00004760, grad_norm = 1.015625
+2026-08-03 17:15:20 - __main__ - INFO -   Batch 850: loss = 0.3163
+2026-08-03 17:15:20 - __main__ - INFO -   Optimizer step 213: lr = 0.00004756, grad_norm = 0.925781
+2026-08-03 17:15:21 - __main__ - INFO -   Batch 855: loss = 0.4556
+2026-08-03 17:15:21 - __main__ - INFO -   Optimizer step 214: lr = 0.00004752, grad_norm = 0.917969
+2026-08-03 17:15:23 - __main__ - INFO -   Optimizer step 215: lr = 0.00004748, grad_norm = 0.796875
+2026-08-03 17:15:23 - __main__ - INFO -   Batch 860: loss = 0.3713
+2026-08-03 17:15:24 - __main__ - INFO -   Optimizer step 216: lr = 0.00004744, grad_norm = 0.882812
+2026-08-03 17:15:24 - __main__ - INFO -   Batch 865: loss = 0.1082
+2026-08-03 17:15:25 - __main__ - INFO -   Optimizer step 217: lr = 0.00004740, grad_norm = 0.871094
+2026-08-03 17:15:26 - __main__ - INFO -   Batch 870: loss = 0.2178
+2026-08-03 17:15:26 - __main__ - INFO -   Optimizer step 218: lr = 0.00004735, grad_norm = 0.757812
+2026-08-03 17:15:27 - __main__ - INFO -   Batch 875: loss = 0.4739
+2026-08-03 17:15:28 - __main__ - INFO -   Optimizer step 219: lr = 0.00004731, grad_norm = 1.242188
+2026-08-03 17:15:29 - __main__ - INFO -   Optimizer step 220: lr = 0.00004727, grad_norm = 1.187500
+2026-08-03 17:15:29 - __main__ - INFO -   Batch 880: loss = 0.3341
+2026-08-03 17:15:30 - __main__ - INFO -   Optimizer step 221: lr = 0.00004723, grad_norm = 0.945312
+2026-08-03 17:15:30 - __main__ - INFO -   Batch 885: loss = 0.2476
+2026-08-03 17:15:31 - __main__ - INFO -   Optimizer step 222: lr = 0.00004719, grad_norm = 0.992188
+2026-08-03 17:15:32 - __main__ - INFO -   Batch 890: loss = 0.1814
+2026-08-03 17:15:32 - __main__ - INFO -   Optimizer step 223: lr = 0.00004714, grad_norm = 0.777344
+2026-08-03 17:15:33 - __main__ - INFO -   Batch 895: loss = 0.1153
+2026-08-03 17:15:34 - __main__ - INFO -   Optimizer step 224: lr = 0.00004710, grad_norm = 0.964844
+2026-08-03 17:15:35 - __main__ - INFO -   Optimizer step 225: lr = 0.00004706, grad_norm = 1.007812
+2026-08-03 17:15:35 - __main__ - INFO -   Batch 900: loss = 0.5535
+2026-08-03 17:15:36 - __main__ - INFO -   Optimizer step 226: lr = 0.00004701, grad_norm = 0.882812
+2026-08-03 17:15:36 - __main__ - INFO -   Batch 905: loss = 0.5303
+2026-08-03 17:15:37 - __main__ - INFO -   Optimizer step 227: lr = 0.00004697, grad_norm = 0.871094
+2026-08-03 17:15:38 - __main__ - INFO -   Batch 910: loss = 0.2783
+2026-08-03 17:15:39 - __main__ - INFO -   Optimizer step 228: lr = 0.00004692, grad_norm = 1.054688
+2026-08-03 17:15:39 - __main__ - INFO -   Batch 915: loss = 0.4142
+2026-08-03 17:15:40 - __main__ - INFO -   Optimizer step 229: lr = 0.00004688, grad_norm = 1.250000
+2026-08-03 17:15:41 - __main__ - INFO -   Optimizer step 230: lr = 0.00004683, grad_norm = 0.890625
+2026-08-03 17:15:41 - __main__ - INFO -   Batch 920: loss = 0.3148
+2026-08-03 17:15:42 - __main__ - INFO -   Optimizer step 231: lr = 0.00004679, grad_norm = 0.910156
+2026-08-03 17:15:43 - __main__ - INFO -   Batch 925: loss = 0.4235
+2026-08-03 17:15:43 - __main__ - INFO -   Optimizer step 232: lr = 0.00004674, grad_norm = 0.925781
+2026-08-03 17:15:44 - __main__ - INFO -   Batch 930: loss = 0.3351
+2026-08-03 17:15:45 - __main__ - INFO -   Optimizer step 233: lr = 0.00004670, grad_norm = 1.203125
+2026-08-03 17:15:46 - __main__ - INFO -   Batch 935: loss = 0.4086
+2026-08-03 17:15:46 - __main__ - INFO -   Optimizer step 234: lr = 0.00004665, grad_norm = 1.289062
+2026-08-03 17:15:47 - __main__ - INFO -   Optimizer step 235: lr = 0.00004660, grad_norm = 0.917969
+2026-08-03 17:15:47 - __main__ - INFO -   Batch 940: loss = 0.8771
+2026-08-03 17:15:48 - __main__ - INFO -   Optimizer step 236: lr = 0.00004656, grad_norm = 0.902344
+2026-08-03 17:15:49 - __main__ - INFO -   Batch 945: loss = 0.1816
+2026-08-03 17:15:50 - __main__ - INFO -   Optimizer step 237: lr = 0.00004651, grad_norm = 0.898438
+2026-08-03 17:15:50 - __main__ - INFO -   Batch 950: loss = 0.2931
+2026-08-03 17:15:51 - __main__ - INFO -   Optimizer step 238: lr = 0.00004646, grad_norm = 1.000000
+2026-08-03 17:15:52 - __main__ - INFO -   Batch 955: loss = 0.3773
+2026-08-03 17:15:52 - __main__ - INFO -   Optimizer step 239: lr = 0.00004641, grad_norm = 1.156250
+2026-08-03 17:15:53 - __main__ - INFO -   Optimizer step 240: lr = 0.00004637, grad_norm = 1.031250
+2026-08-03 17:15:53 - __main__ - INFO -   Batch 960: loss = 0.5459
+2026-08-03 17:15:54 - __main__ - INFO -   Optimizer step 241: lr = 0.00004632, grad_norm = 1.039062
+2026-08-03 17:15:55 - __main__ - INFO -   Batch 965: loss = 0.5118
+2026-08-03 17:15:56 - __main__ - INFO -   Optimizer step 242: lr = 0.00004627, grad_norm = 0.792969
+2026-08-03 17:15:58 - __main__ - INFO -   Batch 970: loss = 0.2014
+2026-08-03 17:16:00 - __main__ - INFO -   Optimizer step 243: lr = 0.00004622, grad_norm = 1.078125
+2026-08-03 17:16:03 - __main__ - INFO -   Batch 975: loss = 0.3102
+2026-08-03 17:16:04 - __main__ - INFO -   Optimizer step 244: lr = 0.00004617, grad_norm = 0.863281
+2026-08-03 17:16:06 - __main__ - INFO -   Optimizer step 245: lr = 0.00004612, grad_norm = 0.953125
+2026-08-03 17:16:06 - __main__ - INFO -   Batch 980: loss = 0.3105
+2026-08-03 17:16:09 - __main__ - INFO -   Optimizer step 246: lr = 0.00004607, grad_norm = 0.976562
+2026-08-03 17:16:10 - __main__ - INFO -   Batch 985: loss = 0.3158
+2026-08-03 17:16:13 - __main__ - INFO -   Optimizer step 247: lr = 0.00004602, grad_norm = 0.828125
+2026-08-03 17:16:14 - __main__ - INFO -   Batch 990: loss = 0.4227
+2026-08-03 17:16:15 - __main__ - INFO -   Optimizer step 248: lr = 0.00004597, grad_norm = 1.085938
+2026-08-03 17:16:16 - __main__ - INFO -   Batch 995: loss = 0.3380
+2026-08-03 17:16:16 - __main__ - INFO -   Optimizer step 249: lr = 0.00004592, grad_norm = 0.898438
+2026-08-03 17:16:18 - __main__ - INFO -   Optimizer step 250: lr = 0.00004587, grad_norm = 0.738281
+2026-08-03 17:16:18 - __main__ - INFO -   Batch 1000: loss = 0.1593
+2026-08-03 17:16:19 - __main__ - INFO -   Optimizer step 251: lr = 0.00004582, grad_norm = 0.871094
+2026-08-03 17:16:20 - __main__ - INFO -   Batch 1005: loss = 0.4549
+2026-08-03 17:16:21 - __main__ - INFO -   Optimizer step 252: lr = 0.00004577, grad_norm = 0.894531
+2026-08-03 17:16:22 - __main__ - INFO -   Batch 1010: loss = 0.4047
+2026-08-03 17:16:22 - __main__ - INFO -   Optimizer step 253: lr = 0.00004572, grad_norm = 1.039062
+2026-08-03 17:16:23 - __main__ - INFO -   Batch 1015: loss = 0.2629
+2026-08-03 17:16:24 - __main__ - INFO -   Optimizer step 254: lr = 0.00004566, grad_norm = 0.914062
+2026-08-03 17:16:25 - __main__ - INFO -   Optimizer step 255: lr = 0.00004561, grad_norm = 0.835938
+2026-08-03 17:16:25 - __main__ - INFO -   Batch 1020: loss = 0.2915
+2026-08-03 17:16:26 - __main__ - INFO -   Optimizer step 256: lr = 0.00004556, grad_norm = 1.039062
+2026-08-03 17:16:27 - __main__ - INFO -   Batch 1025: loss = 0.1675
+2026-08-03 17:16:28 - __main__ - INFO -   Optimizer step 257: lr = 0.00004551, grad_norm = 1.031250
+2026-08-03 17:16:28 - __main__ - INFO -   Batch 1030: loss = 0.3426
+2026-08-03 17:16:29 - __main__ - INFO -   Optimizer step 258: lr = 0.00004545, grad_norm = 0.910156
+2026-08-03 17:16:30 - __main__ - INFO -   Batch 1035: loss = 0.3008
+2026-08-03 17:16:30 - __main__ - INFO -   Optimizer step 259: lr = 0.00004540, grad_norm = 0.996094
+2026-08-03 17:16:31 - __main__ - INFO -   Optimizer step 260: lr = 0.00004534, grad_norm = 1.109375
+2026-08-03 17:16:31 - __main__ - INFO -   Batch 1040: loss = 0.2664
+2026-08-03 17:16:33 - __main__ - INFO -   Optimizer step 261: lr = 0.00004529, grad_norm = 0.945312
+2026-08-03 17:16:33 - __main__ - INFO -   Batch 1045: loss = 0.6257
+2026-08-03 17:16:34 - __main__ - INFO -   Optimizer step 262: lr = 0.00004524, grad_norm = 1.281250
+2026-08-03 17:16:35 - __main__ - INFO -   Batch 1050: loss = 0.1995
+2026-08-03 17:16:35 - __main__ - INFO -   Optimizer step 263: lr = 0.00004518, grad_norm = 0.945312
+2026-08-03 17:16:36 - __main__ - INFO -   Batch 1055: loss = 0.1493
+2026-08-03 17:16:36 - __main__ - INFO -   Optimizer step 264: lr = 0.00004513, grad_norm = 0.894531
+2026-08-03 17:16:38 - __main__ - INFO -   Optimizer step 265: lr = 0.00004507, grad_norm = 0.910156
+2026-08-03 17:16:38 - __main__ - INFO -   Batch 1060: loss = 0.6647
+2026-08-03 17:16:39 - __main__ - INFO -   Optimizer step 266: lr = 0.00004502, grad_norm = 0.824219
+2026-08-03 17:16:39 - __main__ - INFO -   Batch 1065: loss = 0.3476
+2026-08-03 17:16:40 - __main__ - INFO -   Optimizer step 267: lr = 0.00004496, grad_norm = 1.007812
+2026-08-03 17:16:41 - __main__ - INFO -   Batch 1070: loss = 0.2044
+2026-08-03 17:16:41 - __main__ - INFO -   Optimizer step 268: lr = 0.00004490, grad_norm = 0.972656
+2026-08-03 17:16:42 - __main__ - INFO -   Batch 1075: loss = 0.2494
+2026-08-03 17:16:42 - __main__ - INFO -   Optimizer step 269: lr = 0.00004485, grad_norm = 1.085938
+2026-08-03 17:16:44 - __main__ - INFO -   Optimizer step 270: lr = 0.00004479, grad_norm = 0.789062
+2026-08-03 17:16:44 - __main__ - INFO -   Batch 1080: loss = 0.1368
+2026-08-03 17:16:45 - __main__ - INFO -   Optimizer step 271: lr = 0.00004473, grad_norm = 1.101562
+2026-08-03 17:16:45 - __main__ - INFO -   Batch 1085: loss = 0.1899
+2026-08-03 17:16:46 - __main__ - INFO -   Optimizer step 272: lr = 0.00004468, grad_norm = 0.996094
+2026-08-03 17:16:47 - __main__ - INFO -   Batch 1090: loss = 0.1813
+2026-08-03 17:16:48 - __main__ - INFO -   Optimizer step 273: lr = 0.00004462, grad_norm = 1.023438
+2026-08-03 17:16:48 - __main__ - INFO -   Batch 1095: loss = 0.2050
+2026-08-03 17:16:49 - __main__ - INFO -   Optimizer step 274: lr = 0.00004456, grad_norm = 0.863281
+2026-08-03 17:16:50 - __main__ - INFO -   Optimizer step 275: lr = 0.00004450, grad_norm = 0.851562
+2026-08-03 17:16:50 - __main__ - INFO -   Batch 1100: loss = 0.4620
+2026-08-03 17:16:51 - __main__ - INFO -   Optimizer step 276: lr = 0.00004445, grad_norm = 0.894531
+2026-08-03 17:16:52 - __main__ - INFO -   Batch 1105: loss = 0.5319
+2026-08-03 17:16:52 - __main__ - INFO -   Optimizer step 277: lr = 0.00004439, grad_norm = 0.769531
+2026-08-03 17:16:53 - __main__ - INFO -   Batch 1110: loss = 0.3421
+2026-08-03 17:16:54 - __main__ - INFO -   Optimizer step 278: lr = 0.00004433, grad_norm = 1.023438
+2026-08-03 17:16:55 - __main__ - INFO -   Batch 1115: loss = 0.3617
+2026-08-03 17:16:55 - __main__ - INFO -   Optimizer step 279: lr = 0.00004427, grad_norm = 1.023438
+2026-08-03 17:16:56 - __main__ - INFO -   Optimizer step 280: lr = 0.00004421, grad_norm = 1.148438
+2026-08-03 17:16:56 - __main__ - INFO -   Batch 1120: loss = 0.2741
+2026-08-03 17:16:57 - __main__ - INFO -   Optimizer step 281: lr = 0.00004415, grad_norm = 1.000000
+2026-08-03 17:16:58 - __main__ - INFO -   Batch 1125: loss = 0.5690
+2026-08-03 17:16:59 - __main__ - INFO -   Optimizer step 282: lr = 0.00004409, grad_norm = 0.968750
+2026-08-03 17:16:59 - __main__ - INFO -   Batch 1130: loss = 0.2346
+2026-08-03 17:17:00 - __main__ - INFO -   Optimizer step 283: lr = 0.00004403, grad_norm = 0.871094
+2026-08-03 17:17:01 - __main__ - INFO -   Batch 1135: loss = 0.2126
+2026-08-03 17:17:01 - __main__ - INFO -   Optimizer step 284: lr = 0.00004397, grad_norm = 0.894531
+2026-08-03 17:17:02 - __main__ - INFO -   Optimizer step 285: lr = 0.00004391, grad_norm = 0.882812
+2026-08-03 17:17:02 - __main__ - INFO -   Batch 1140: loss = 0.5035
+2026-08-03 17:17:04 - __main__ - INFO -   Optimizer step 286: lr = 0.00004385, grad_norm = 0.917969
+2026-08-03 17:17:04 - __main__ - INFO -   Batch 1145: loss = 0.4363
+2026-08-03 17:17:05 - __main__ - INFO -   Optimizer step 287: lr = 0.00004379, grad_norm = 0.851562
+2026-08-03 17:17:05 - __main__ - INFO -   Batch 1150: loss = 0.2195
+2026-08-03 17:17:06 - __main__ - INFO -   Optimizer step 288: lr = 0.00004373, grad_norm = 0.785156
+2026-08-03 17:17:07 - __main__ - INFO -   Batch 1155: loss = 0.4308
+2026-08-03 17:17:07 - __main__ - INFO -   Optimizer step 289: lr = 0.00004367, grad_norm = 0.882812
+2026-08-03 17:17:08 - __main__ - INFO -   Optimizer step 290: lr = 0.00004360, grad_norm = 1.046875
+2026-08-03 17:17:08 - __main__ - INFO -   Batch 1160: loss = 0.2865
+2026-08-03 17:17:10 - __main__ - INFO -   Optimizer step 291: lr = 0.00004354, grad_norm = 0.687500
+2026-08-03 17:17:10 - __main__ - INFO -   Batch 1165: loss = 0.3131
+2026-08-03 17:17:11 - __main__ - INFO -   Optimizer step 292: lr = 0.00004348, grad_norm = 0.945312
+2026-08-03 17:17:11 - __main__ - INFO -   Batch 1170: loss = 0.1551
+2026-08-03 17:17:12 - __main__ - INFO -   Optimizer step 293: lr = 0.00004342, grad_norm = 0.910156
+2026-08-03 17:17:13 - __main__ - INFO -   Batch 1175: loss = 0.1534
+2026-08-03 17:17:13 - __main__ - INFO -   Optimizer step 294: lr = 0.00004335, grad_norm = 0.949219
+2026-08-03 17:17:15 - __main__ - INFO -   Optimizer step 295: lr = 0.00004329, grad_norm = 1.164062
+2026-08-03 17:17:15 - __main__ - INFO -   Batch 1180: loss = 0.3683
+2026-08-03 17:17:16 - __main__ - INFO -   Optimizer step 296: lr = 0.00004323, grad_norm = 1.031250
+2026-08-03 17:17:16 - __main__ - INFO -   Batch 1185: loss = 0.3919
+2026-08-03 17:17:17 - __main__ - INFO -   Optimizer step 297: lr = 0.00004316, grad_norm = 0.664062
+2026-08-03 17:17:18 - __main__ - INFO -   Batch 1190: loss = 0.2344
+2026-08-03 17:17:18 - __main__ - INFO -   Optimizer step 298: lr = 0.00004310, grad_norm = 1.015625
+2026-08-03 17:17:19 - __main__ - INFO -   Batch 1195: loss = 0.4868
+2026-08-03 17:17:20 - __main__ - INFO -   Optimizer step 299: lr = 0.00004304, grad_norm = 0.894531
+2026-08-03 17:17:21 - __main__ - INFO -   Optimizer step 300: lr = 0.00004297, grad_norm = 0.886719
+2026-08-03 17:17:21 - __main__ - INFO -   Batch 1200: loss = 0.1420
+2026-08-03 17:17:22 - __main__ - INFO -   Optimizer step 301: lr = 0.00004291, grad_norm = 0.917969
+2026-08-03 17:17:22 - __main__ - INFO -   Batch 1205: loss = 0.4255
+2026-08-03 17:17:23 - __main__ - INFO -   Optimizer step 302: lr = 0.00004284, grad_norm = 0.875000
+2026-08-03 17:17:24 - __main__ - INFO -   Batch 1210: loss = 0.5246
+2026-08-03 17:17:24 - __main__ - INFO -   Optimizer step 303: lr = 0.00004278, grad_norm = 1.007812
+2026-08-03 17:17:25 - __main__ - INFO -   Batch 1215: loss = 0.8042
+2026-08-03 17:17:26 - __main__ - INFO -   Optimizer step 304: lr = 0.00004271, grad_norm = 0.808594
+2026-08-03 17:17:27 - __main__ - INFO -   Optimizer step 305: lr = 0.00004264, grad_norm = 0.871094
+2026-08-03 17:17:27 - __main__ - INFO -   Batch 1220: loss = 0.9435
+2026-08-03 17:17:28 - __main__ - INFO -   Optimizer step 306: lr = 0.00004258, grad_norm = 0.828125
+2026-08-03 17:17:28 - __main__ - INFO -   Batch 1225: loss = 0.2214
+2026-08-03 17:17:29 - __main__ - INFO -   Optimizer step 307: lr = 0.00004251, grad_norm = 0.769531
+2026-08-03 17:17:30 - __main__ - INFO -   Batch 1230: loss = 0.4891
+2026-08-03 17:17:31 - __main__ - INFO -   Optimizer step 308: lr = 0.00004245, grad_norm = 1.257812
+2026-08-03 17:17:31 - __main__ - INFO -   Batch 1235: loss = 0.3159
+2026-08-03 17:17:32 - __main__ - INFO -   Optimizer step 309: lr = 0.00004238, grad_norm = 0.921875
+2026-08-03 17:17:33 - __main__ - INFO -   Optimizer step 310: lr = 0.00004231, grad_norm = 0.929688
+2026-08-03 17:17:33 - __main__ - INFO -   Batch 1240: loss = 0.1805
+2026-08-03 17:17:34 - __main__ - INFO -   Optimizer step 311: lr = 0.00004225, grad_norm = 0.929688
+2026-08-03 17:17:35 - __main__ - INFO -   Batch 1245: loss = 0.1455
+2026-08-03 17:17:35 - __main__ - INFO -   Optimizer step 312: lr = 0.00004218, grad_norm = 1.007812
+2026-08-03 17:17:36 - __main__ - INFO -   Optimizer step 313: lr = 0.00004211, grad_norm = 0.710938
+2026-08-03 17:17:36 - __main__ - INFO - Epoch 1 completed - Epoch Loss: 0.5654
+2026-08-03 17:17:36 - __main__ - INFO - 
+Epoch 2/3
+2026-08-03 17:17:36 - __main__ - INFO - 
+[First Batch Info]
+2026-08-03 17:17:36 - __main__ - INFO -   Batch size: 4
+2026-08-03 17:17:36 - __main__ - INFO -   Sequence length: 1024
+2026-08-03 17:17:36 - __main__ - INFO -   Device: cuda:0
+2026-08-03 17:17:36 - __main__ - INFO -   Valid labels (response-only): 118/4096
+2026-08-03 17:17:36 - __main__ - INFO - 
+[Gradient Check - Batch 0]
+2026-08-03 17:17:36 - __main__ - INFO -   Parameters with non-zero gradients: 160
+2026-08-03 17:17:36 - __main__ - INFO -   Parameters with zero gradients: 0
+2026-08-03 17:17:36 - __main__ - INFO -   Max gradient magnitude: 0.025269
+2026-08-03 17:17:36 - __main__ - INFO -   Batch 1: loss = 0.2547
+2026-08-03 17:17:37 - __main__ - INFO -   Optimizer step 314: lr = 0.00004204, grad_norm = 0.851562
+2026-08-03 17:17:37 - __main__ - INFO -   Batch 5: loss = 0.2394
+2026-08-03 17:17:38 - __main__ - INFO -   Optimizer step 315: lr = 0.00004198, grad_norm = 0.742188
+2026-08-03 17:17:39 - __main__ - INFO -   Batch 10: loss = 0.1719
+2026-08-03 17:17:39 - __main__ - INFO -   Optimizer step 316: lr = 0.00004191, grad_norm = 0.957031
+2026-08-03 17:17:40 - __main__ - INFO -   Batch 15: loss = 0.3819
+2026-08-03 17:17:41 - __main__ - INFO -   Optimizer step 317: lr = 0.00004184, grad_norm = 0.738281
+2026-08-03 17:17:42 - __main__ - INFO -   Optimizer step 318: lr = 0.00004177, grad_norm = 1.101562
+2026-08-03 17:17:42 - __main__ - INFO -   Batch 20: loss = 0.7138
+2026-08-03 17:17:43 - __main__ - INFO -   Optimizer step 319: lr = 0.00004170, grad_norm = 0.929688
+2026-08-03 17:17:43 - __main__ - INFO -   Batch 25: loss = 0.2670
+2026-08-03 17:17:44 - __main__ - INFO -   Optimizer step 320: lr = 0.00004163, grad_norm = 0.875000
+2026-08-03 17:17:45 - __main__ - INFO -   Batch 30: loss = 0.1430
+2026-08-03 17:17:46 - __main__ - INFO -   Optimizer step 321: lr = 0.00004156, grad_norm = 1.039062
+2026-08-03 17:17:46 - __main__ - INFO -   Batch 35: loss = 0.2572
+2026-08-03 17:17:47 - __main__ - INFO -   Optimizer step 322: lr = 0.00004149, grad_norm = 0.878906
+2026-08-03 17:17:48 - __main__ - INFO -   Optimizer step 323: lr = 0.00004142, grad_norm = 0.843750
+2026-08-03 17:17:48 - __main__ - INFO -   Batch 40: loss = 0.1312
+2026-08-03 17:17:49 - __main__ - INFO -   Optimizer step 324: lr = 0.00004135, grad_norm = 1.085938
+2026-08-03 17:17:50 - __main__ - INFO -   Batch 45: loss = 0.1054
+2026-08-03 17:17:50 - __main__ - INFO -   Optimizer step 325: lr = 0.00004128, grad_norm = 1.046875
+2026-08-03 17:17:51 - __main__ - INFO -   Batch 50: loss = 0.5860
+2026-08-03 17:17:52 - __main__ - INFO -   Optimizer step 326: lr = 0.00004121, grad_norm = 0.867188
+2026-08-03 17:17:53 - __main__ - INFO -   Batch 55: loss = 0.2399
+2026-08-03 17:17:53 - __main__ - INFO -   Optimizer step 327: lr = 0.00004114, grad_norm = 0.746094
+2026-08-03 17:17:54 - __main__ - INFO -   Optimizer step 328: lr = 0.00004107, grad_norm = 0.917969
+2026-08-03 17:17:54 - __main__ - INFO -   Batch 60: loss = 0.2167
+2026-08-03 17:17:55 - __main__ - INFO -   Optimizer step 329: lr = 0.00004100, grad_norm = 0.843750
+2026-08-03 17:17:56 - __main__ - INFO -   Batch 65: loss = 0.3373
+2026-08-03 17:17:57 - __main__ - INFO -   Optimizer step 330: lr = 0.00004093, grad_norm = 0.937500
+2026-08-03 17:17:57 - __main__ - INFO -   Batch 70: loss = 0.4541
+2026-08-03 17:17:58 - __main__ - INFO -   Optimizer step 331: lr = 0.00004086, grad_norm = 0.964844
+2026-08-03 17:17:59 - __main__ - INFO -   Batch 75: loss = 0.3823
+2026-08-03 17:17:59 - __main__ - INFO -   Optimizer step 332: lr = 0.00004078, grad_norm = 0.949219
+2026-08-03 17:18:00 - __main__ - INFO -   Optimizer step 333: lr = 0.00004071, grad_norm = 1.007812
+2026-08-03 17:18:00 - __main__ - INFO -   Batch 80: loss = 0.4420
+2026-08-03 17:18:01 - __main__ - INFO -   Optimizer step 334: lr = 0.00004064, grad_norm = 0.777344
+2026-08-03 17:18:02 - __main__ - INFO -   Batch 85: loss = 0.2464
+2026-08-03 17:18:03 - __main__ - INFO -   Optimizer step 335: lr = 0.00004057, grad_norm = 0.906250
+2026-08-03 17:18:03 - __main__ - INFO -   Batch 90: loss = 0.1370
+2026-08-03 17:18:04 - __main__ - INFO -   Optimizer step 336: lr = 0.00004049, grad_norm = 0.906250
+2026-08-03 17:18:05 - __main__ - INFO -   Batch 95: loss = 0.3367
+2026-08-03 17:18:05 - __main__ - INFO -   Optimizer step 337: lr = 0.00004042, grad_norm = 1.117188
+2026-08-03 17:18:06 - __main__ - INFO -   Optimizer step 338: lr = 0.00004035, grad_norm = 0.902344
+2026-08-03 17:18:06 - __main__ - INFO -   Batch 100: loss = 0.4597
+2026-08-03 17:18:07 - __main__ - INFO -   Optimizer step 339: lr = 0.00004027, grad_norm = 1.062500
+2026-08-03 17:18:08 - __main__ - INFO -   Batch 105: loss = 0.2501
+2026-08-03 17:18:09 - __main__ - INFO -   Optimizer step 340: lr = 0.00004020, grad_norm = 0.878906
+2026-08-03 17:18:09 - __main__ - INFO -   Batch 110: loss = 0.3232
+2026-08-03 17:18:10 - __main__ - INFO -   Optimizer step 341: lr = 0.00004013, grad_norm = 1.007812
+2026-08-03 17:18:11 - __main__ - INFO -   Batch 115: loss = 0.2397
+2026-08-03 17:18:11 - __main__ - INFO -   Optimizer step 342: lr = 0.00004005, grad_norm = 0.910156
+2026-08-03 17:18:12 - __main__ - INFO -   Optimizer step 343: lr = 0.00003998, grad_norm = 0.859375
+2026-08-03 17:18:12 - __main__ - INFO -   Batch 120: loss = 0.3535
+2026-08-03 17:18:14 - __main__ - INFO -   Optimizer step 344: lr = 0.00003990, grad_norm = 0.960938
+2026-08-03 17:18:14 - __main__ - INFO -   Batch 125: loss = 0.3801
+2026-08-03 17:18:15 - __main__ - INFO -   Optimizer step 345: lr = 0.00003983, grad_norm = 0.886719
+2026-08-03 17:18:15 - __main__ - INFO -   Batch 130: loss = 0.4715
+2026-08-03 17:18:16 - __main__ - INFO -   Optimizer step 346: lr = 0.00003975, grad_norm = 1.007812
+2026-08-03 17:18:17 - __main__ - INFO -   Batch 135: loss = 0.5885
+2026-08-03 17:18:17 - __main__ - INFO -   Optimizer step 347: lr = 0.00003968, grad_norm = 0.847656
+2026-08-03 17:18:18 - __main__ - INFO -   Optimizer step 348: lr = 0.00003960, grad_norm = 1.070312
+2026-08-03 17:18:19 - __main__ - INFO -   Batch 140: loss = 0.1539
+2026-08-03 17:18:20 - __main__ - INFO -   Optimizer step 349: lr = 0.00003953, grad_norm = 0.796875
+2026-08-03 17:18:20 - __main__ - INFO -   Batch 145: loss = 0.1515
+2026-08-03 17:18:21 - __main__ - INFO -   Optimizer step 350: lr = 0.00003945, grad_norm = 0.835938
+2026-08-03 17:18:22 - __main__ - INFO -   Batch 150: loss = 0.4944
+2026-08-03 17:18:22 - __main__ - INFO -   Optimizer step 351: lr = 0.00003938, grad_norm = 0.863281
+2026-08-03 17:18:23 - __main__ - INFO -   Batch 155: loss = 0.1741
+2026-08-03 17:18:23 - __main__ - INFO -   Optimizer step 352: lr = 0.00003930, grad_norm = 0.855469
+2026-08-03 17:18:25 - __main__ - INFO -   Optimizer step 353: lr = 0.00003923, grad_norm = 0.769531
+2026-08-03 17:18:25 - __main__ - INFO -   Batch 160: loss = 0.4914
+2026-08-03 17:18:26 - __main__ - INFO -   Optimizer step 354: lr = 0.00003915, grad_norm = 0.886719
+2026-08-03 17:18:26 - __main__ - INFO -   Batch 165: loss = 0.4632
+2026-08-03 17:18:27 - __main__ - INFO -   Optimizer step 355: lr = 0.00003907, grad_norm = 0.804688
+2026-08-03 17:18:28 - __main__ - INFO -   Batch 170: loss = 0.4006
+2026-08-03 17:18:28 - __main__ - INFO -   Optimizer step 356: lr = 0.00003900, grad_norm = 0.945312
+2026-08-03 17:18:29 - __main__ - INFO -   Batch 175: loss = 0.2293
+2026-08-03 17:18:29 - __main__ - INFO -   Optimizer step 357: lr = 0.00003892, grad_norm = 1.070312
+2026-08-03 17:18:31 - __main__ - INFO -   Optimizer step 358: lr = 0.00003884, grad_norm = 0.839844
+2026-08-03 17:18:31 - __main__ - INFO -   Batch 180: loss = 0.3877
+2026-08-03 17:18:32 - __main__ - INFO -   Optimizer step 359: lr = 0.00003876, grad_norm = 0.937500
+2026-08-03 17:18:32 - __main__ - INFO -   Batch 185: loss = 0.2618
+2026-08-03 17:18:33 - __main__ - INFO -   Optimizer step 360: lr = 0.00003869, grad_norm = 1.062500
+2026-08-03 17:18:34 - __main__ - INFO -   Batch 190: loss = 0.5495
+2026-08-03 17:18:34 - __main__ - INFO -   Optimizer step 361: lr = 0.00003861, grad_norm = 1.101562
+2026-08-03 17:18:35 - __main__ - INFO -   Batch 195: loss = 0.2194
+2026-08-03 17:18:36 - __main__ - INFO -   Optimizer step 362: lr = 0.00003853, grad_norm = 1.000000
+2026-08-03 17:18:37 - __main__ - INFO -   Optimizer step 363: lr = 0.00003845, grad_norm = 0.796875
+2026-08-03 17:18:37 - __main__ - INFO -   Batch 200: loss = 0.5584
+2026-08-03 17:18:38 - __main__ - INFO -   Optimizer step 364: lr = 0.00003837, grad_norm = 0.843750
+2026-08-03 17:18:38 - __main__ - INFO -   Batch 205: loss = 0.2790
+2026-08-03 17:18:39 - __main__ - INFO -   Optimizer step 365: lr = 0.00003830, grad_norm = 1.195312
+2026-08-03 17:18:40 - __main__ - INFO -   Batch 210: loss = 0.3209
+2026-08-03 17:18:40 - __main__ - INFO -   Optimizer step 366: lr = 0.00003822, grad_norm = 0.855469
+2026-08-03 17:18:41 - __main__ - INFO -   Batch 215: loss = 0.6455
+2026-08-03 17:18:42 - __main__ - INFO -   Optimizer step 367: lr = 0.00003814, grad_norm = 0.867188
+2026-08-03 17:18:43 - __main__ - INFO -   Optimizer step 368: lr = 0.00003806, grad_norm = 1.000000
+2026-08-03 17:18:43 - __main__ - INFO -   Batch 220: loss = 0.5785
+2026-08-03 17:18:44 - __main__ - INFO -   Optimizer step 369: lr = 0.00003798, grad_norm = 1.007812
+2026-08-03 17:18:44 - __main__ - INFO -   Batch 225: loss = 0.3602
+2026-08-03 17:18:45 - __main__ - INFO -   Optimizer step 370: lr = 0.00003790, grad_norm = 0.953125
+2026-08-03 17:18:46 - __main__ - INFO -   Batch 230: loss = 0.2475
+2026-08-03 17:18:47 - __main__ - INFO -   Optimizer step 371: lr = 0.00003782, grad_norm = 0.675781
+2026-08-03 17:18:47 - __main__ - INFO -   Batch 235: loss = 0.1451
+2026-08-03 17:18:48 - __main__ - INFO -   Optimizer step 372: lr = 0.00003774, grad_norm = 0.820312
+2026-08-03 17:18:49 - __main__ - INFO -   Optimizer step 373: lr = 0.00003766, grad_norm = 0.941406
+2026-08-03 17:18:49 - __main__ - INFO -   Batch 240: loss = 0.3113
+2026-08-03 17:18:50 - __main__ - INFO -   Optimizer step 374: lr = 0.00003758, grad_norm = 0.726562
+2026-08-03 17:18:51 - __main__ - INFO -   Batch 245: loss = 0.1794
+2026-08-03 17:18:51 - __main__ - INFO -   Optimizer step 375: lr = 0.00003750, grad_norm = 1.109375
+2026-08-03 17:18:52 - __main__ - INFO -   Batch 250: loss = 0.4805
+2026-08-03 17:18:53 - __main__ - INFO -   Optimizer step 376: lr = 0.00003742, grad_norm = 0.960938
+2026-08-03 17:18:54 - __main__ - INFO -   Batch 255: loss = 0.3219
+2026-08-03 17:18:54 - __main__ - INFO -   Optimizer step 377: lr = 0.00003734, grad_norm = 0.878906
+2026-08-03 17:18:55 - __main__ - INFO -   Optimizer step 378: lr = 0.00003726, grad_norm = 0.917969
+2026-08-03 17:18:55 - __main__ - INFO -   Batch 260: loss = 0.4323
+2026-08-03 17:18:56 - __main__ - INFO -   Optimizer step 379: lr = 0.00003718, grad_norm = 0.917969
+2026-08-03 17:18:57 - __main__ - INFO -   Batch 265: loss = 0.5834
+2026-08-03 17:18:58 - __main__ - INFO -   Optimizer step 380: lr = 0.00003710, grad_norm = 0.957031
+2026-08-03 17:18:58 - __main__ - INFO -   Batch 270: loss = 0.2481
+2026-08-03 17:18:59 - __main__ - INFO -   Optimizer step 381: lr = 0.00003701, grad_norm = 0.718750
+2026-08-03 17:19:00 - __main__ - INFO -   Batch 275: loss = 0.4701
+2026-08-03 17:19:00 - __main__ - INFO -   Optimizer step 382: lr = 0.00003693, grad_norm = 0.898438
+2026-08-03 17:19:01 - __main__ - INFO -   Optimizer step 383: lr = 0.00003685, grad_norm = 1.132812
+2026-08-03 17:19:01 - __main__ - INFO -   Batch 280: loss = 0.4697
+2026-08-03 17:19:02 - __main__ - INFO -   Optimizer step 384: lr = 0.00003677, grad_norm = 0.859375
+2026-08-03 17:19:03 - __main__ - INFO -   Batch 285: loss = 0.3734
+2026-08-03 17:19:04 - __main__ - INFO -   Optimizer step 385: lr = 0.00003669, grad_norm = 1.023438
+2026-08-03 17:19:04 - __main__ - INFO -   Batch 290: loss = 0.1367
+2026-08-03 17:19:05 - __main__ - INFO -   Optimizer step 386: lr = 0.00003661, grad_norm = 0.839844
+2026-08-03 17:19:06 - __main__ - INFO -   Batch 295: loss = 0.1970
+2026-08-03 17:19:06 - __main__ - INFO -   Optimizer step 387: lr = 0.00003652, grad_norm = 1.062500
+2026-08-03 17:19:07 - __main__ - INFO -   Optimizer step 388: lr = 0.00003644, grad_norm = 0.957031
+2026-08-03 17:19:07 - __main__ - INFO -   Batch 300: loss = 0.2812
+2026-08-03 17:19:09 - __main__ - INFO -   Optimizer step 389: lr = 0.00003636, grad_norm = 0.894531
+2026-08-03 17:19:09 - __main__ - INFO -   Batch 305: loss = 0.1255
+2026-08-03 17:19:10 - __main__ - INFO -   Optimizer step 390: lr = 0.00003628, grad_norm = 0.871094
+2026-08-03 17:19:10 - __main__ - INFO -   Batch 310: loss = 0.2039
+2026-08-03 17:19:11 - __main__ - INFO -   Optimizer step 391: lr = 0.00003619, grad_norm = 1.132812
+2026-08-03 17:19:12 - __main__ - INFO -   Batch 315: loss = 0.0680
+2026-08-03 17:19:12 - __main__ - INFO -   Optimizer step 392: lr = 0.00003611, grad_norm = 0.750000
+2026-08-03 17:19:13 - __main__ - INFO -   Optimizer step 393: lr = 0.00003603, grad_norm = 0.910156
+2026-08-03 17:19:14 - __main__ - INFO -   Batch 320: loss = 0.4278
+2026-08-03 17:19:15 - __main__ - INFO -   Optimizer step 394: lr = 0.00003594, grad_norm = 0.800781
+2026-08-03 17:19:15 - __main__ - INFO -   Batch 325: loss = 0.3731
+2026-08-03 17:19:16 - __main__ - INFO -   Optimizer step 395: lr = 0.00003586, grad_norm = 1.195312
+2026-08-03 17:19:17 - __main__ - INFO -   Batch 330: loss = 0.1188
+2026-08-03 17:19:17 - __main__ - INFO -   Optimizer step 396: lr = 0.00003578, grad_norm = 0.921875
+2026-08-03 17:19:18 - __main__ - INFO -   Batch 335: loss = 0.2339
+2026-08-03 17:19:18 - __main__ - INFO -   Optimizer step 397: lr = 0.00003569, grad_norm = 0.902344
+2026-08-03 17:19:20 - __main__ - INFO -   Optimizer step 398: lr = 0.00003561, grad_norm = 0.945312
+2026-08-03 17:19:20 - __main__ - INFO -   Batch 340: loss = 0.3698
+2026-08-03 17:19:21 - __main__ - INFO -   Optimizer step 399: lr = 0.00003552, grad_norm = 1.078125
+2026-08-03 17:19:21 - __main__ - INFO -   Batch 345: loss = 0.3401
+2026-08-03 17:19:22 - __main__ - INFO -   Optimizer step 400: lr = 0.00003544, grad_norm = 1.125000
+2026-08-03 17:19:23 - __main__ - INFO -   Batch 350: loss = 0.3785
+2026-08-03 17:19:23 - __main__ - INFO -   Optimizer step 401: lr = 0.00003535, grad_norm = 1.171875
+2026-08-03 17:19:24 - __main__ - INFO -   Batch 355: loss = 0.2765
+2026-08-03 17:19:24 - __main__ - INFO -   Optimizer step 402: lr = 0.00003527, grad_norm = 0.925781
+2026-08-03 17:19:26 - __main__ - INFO -   Optimizer step 403: lr = 0.00003519, grad_norm = 0.832031
+2026-08-03 17:19:26 - __main__ - INFO -   Batch 360: loss = 0.2797
+2026-08-03 17:19:27 - __main__ - INFO -   Optimizer step 404: lr = 0.00003510, grad_norm = 0.640625
+2026-08-03 17:19:27 - __main__ - INFO -   Batch 365: loss = 0.1619
+2026-08-03 17:19:28 - __main__ - INFO -   Optimizer step 405: lr = 0.00003502, grad_norm = 0.753906
+2026-08-03 17:19:29 - __main__ - INFO -   Batch 370: loss = 0.4805
+2026-08-03 17:19:29 - __main__ - INFO -   Optimizer step 406: lr = 0.00003493, grad_norm = 0.859375
+2026-08-03 17:19:30 - __main__ - INFO -   Batch 375: loss = 0.4525
+2026-08-03 17:19:31 - __main__ - INFO -   Optimizer step 407: lr = 0.00003485, grad_norm = 0.886719
+2026-08-03 17:19:32 - __main__ - INFO -   Optimizer step 408: lr = 0.00003476, grad_norm = 1.031250
+2026-08-03 17:19:32 - __main__ - INFO -   Batch 380: loss = 0.1965
+2026-08-03 17:19:33 - __main__ - INFO -   Optimizer step 409: lr = 0.00003467, grad_norm = 1.062500
+2026-08-03 17:19:33 - __main__ - INFO -   Batch 385: loss = 0.0726
+2026-08-03 17:19:34 - __main__ - INFO -   Optimizer step 410: lr = 0.00003459, grad_norm = 0.925781
+2026-08-03 17:19:35 - __main__ - INFO -   Batch 390: loss = 0.5442
+2026-08-03 17:19:35 - __main__ - INFO -   Optimizer step 411: lr = 0.00003450, grad_norm = 1.007812
+2026-08-03 17:19:36 - __main__ - INFO -   Batch 395: loss = 0.6237
+2026-08-03 17:19:37 - __main__ - INFO -   Optimizer step 412: lr = 0.00003442, grad_norm = 0.906250
+2026-08-03 17:19:38 - __main__ - INFO -   Optimizer step 413: lr = 0.00003433, grad_norm = 0.941406
+2026-08-03 17:19:38 - __main__ - INFO -   Batch 400: loss = 0.2266
+2026-08-03 17:19:39 - __main__ - INFO -   Optimizer step 414: lr = 0.00003424, grad_norm = 1.210938
+2026-08-03 17:19:39 - __main__ - INFO -   Batch 405: loss = 0.1958
+2026-08-03 17:19:40 - __main__ - INFO -   Optimizer step 415: lr = 0.00003416, grad_norm = 0.890625
+2026-08-03 17:19:41 - __main__ - INFO -   Batch 410: loss = 0.1397
+2026-08-03 17:19:42 - __main__ - INFO -   Optimizer step 416: lr = 0.00003407, grad_norm = 1.187500
+2026-08-03 17:19:43 - __main__ - INFO -   Batch 415: loss = 0.6215
+2026-08-03 17:19:43 - __main__ - INFO -   Optimizer step 417: lr = 0.00003399, grad_norm = 0.835938
+2026-08-03 17:19:44 - __main__ - INFO -   Optimizer step 418: lr = 0.00003390, grad_norm = 0.910156
+2026-08-03 17:19:44 - __main__ - INFO -   Batch 420: loss = 0.1872
+2026-08-03 17:19:45 - __main__ - INFO -   Optimizer step 419: lr = 0.00003381, grad_norm = 0.878906
+2026-08-03 17:19:46 - __main__ - INFO -   Batch 425: loss = 0.2328
+2026-08-03 17:19:47 - __main__ - INFO -   Optimizer step 420: lr = 0.00003372, grad_norm = 0.785156
+2026-08-03 17:19:47 - __main__ - INFO -   Batch 430: loss = 0.3430
+2026-08-03 17:19:48 - __main__ - INFO -   Optimizer step 421: lr = 0.00003364, grad_norm = 0.917969
+2026-08-03 17:19:49 - __main__ - INFO -   Batch 435: loss = 0.3319
+2026-08-03 17:19:49 - __main__ - INFO -   Optimizer step 422: lr = 0.00003355, grad_norm = 0.988281
+2026-08-03 17:19:50 - __main__ - INFO -   Optimizer step 423: lr = 0.00003346, grad_norm = 0.832031
+2026-08-03 17:19:50 - __main__ - INFO -   Batch 440: loss = 0.1678
+2026-08-03 17:19:51 - __main__ - INFO -   Optimizer step 424: lr = 0.00003338, grad_norm = 1.125000
+2026-08-03 17:19:52 - __main__ - INFO -   Batch 445: loss = 0.1380
+2026-08-03 17:19:53 - __main__ - INFO -   Optimizer step 425: lr = 0.00003329, grad_norm = 0.921875
+2026-08-03 17:19:53 - __main__ - INFO -   Batch 450: loss = 0.1500
+2026-08-03 17:19:54 - __main__ - INFO -   Optimizer step 426: lr = 0.00003320, grad_norm = 0.941406
+2026-08-03 17:19:55 - __main__ - INFO -   Batch 455: loss = 0.2934
+2026-08-03 17:19:55 - __main__ - INFO -   Optimizer step 427: lr = 0.00003311, grad_norm = 0.839844
+2026-08-03 17:19:56 - __main__ - INFO -   Optimizer step 428: lr = 0.00003302, grad_norm = 1.046875
+2026-08-03 17:19:56 - __main__ - INFO -   Batch 460: loss = 0.4499
+2026-08-03 17:19:58 - __main__ - INFO -   Optimizer step 429: lr = 0.00003294, grad_norm = 0.777344
+2026-08-03 17:19:58 - __main__ - INFO -   Batch 465: loss = 0.2829
+2026-08-03 17:19:59 - __main__ - INFO -   Optimizer step 430: lr = 0.00003285, grad_norm = 0.933594
+2026-08-03 17:19:59 - __main__ - INFO -   Batch 470: loss = 0.3719
+2026-08-03 17:20:00 - __main__ - INFO -   Optimizer step 431: lr = 0.00003276, grad_norm = 0.972656
+2026-08-03 17:20:01 - __main__ - INFO -   Batch 475: loss = 0.1370
+2026-08-03 17:20:01 - __main__ - INFO -   Optimizer step 432: lr = 0.00003267, grad_norm = 0.875000
+2026-08-03 17:20:02 - __main__ - INFO -   Optimizer step 433: lr = 0.00003258, grad_norm = 1.046875
+2026-08-03 17:20:02 - __main__ - INFO -   Batch 480: loss = 0.5000
+2026-08-03 17:20:04 - __main__ - INFO -   Optimizer step 434: lr = 0.00003250, grad_norm = 0.960938
+2026-08-03 17:20:04 - __main__ - INFO -   Batch 485: loss = 0.5513
+2026-08-03 17:20:05 - __main__ - INFO -   Optimizer step 435: lr = 0.00003241, grad_norm = 0.789062
+2026-08-03 17:20:05 - __main__ - INFO -   Batch 490: loss = 0.4032
+2026-08-03 17:20:06 - __main__ - INFO -   Optimizer step 436: lr = 0.00003232, grad_norm = 1.187500
+2026-08-03 17:20:07 - __main__ - INFO -   Batch 495: loss = 0.3430
+2026-08-03 17:20:07 - __main__ - INFO -   Optimizer step 437: lr = 0.00003223, grad_norm = 1.046875
+2026-08-03 17:20:09 - __main__ - INFO -   Optimizer step 438: lr = 0.00003214, grad_norm = 0.792969
+2026-08-03 17:20:09 - __main__ - INFO -   Batch 500: loss = 0.3760
+2026-08-03 17:20:10 - __main__ - INFO -   Optimizer step 439: lr = 0.00003205, grad_norm = 1.085938
+2026-08-03 17:20:10 - __main__ - INFO -   Batch 505: loss = 0.1782
+2026-08-03 17:20:11 - __main__ - INFO -   Optimizer step 440: lr = 0.00003196, grad_norm = 0.835938
+2026-08-03 17:20:12 - __main__ - INFO -   Batch 510: loss = 0.1839
+2026-08-03 17:20:12 - __main__ - INFO -   Optimizer step 441: lr = 0.00003187, grad_norm = 0.890625
+2026-08-03 17:20:13 - __main__ - INFO -   Batch 515: loss = 0.3015
+2026-08-03 17:20:13 - __main__ - INFO -   Optimizer step 442: lr = 0.00003178, grad_norm = 0.976562
+2026-08-03 17:20:15 - __main__ - INFO -   Optimizer step 443: lr = 0.00003169, grad_norm = 1.023438
+2026-08-03 17:20:15 - __main__ - INFO -   Batch 520: loss = 0.1058
+2026-08-03 17:20:16 - __main__ - INFO -   Optimizer step 444: lr = 0.00003160, grad_norm = 0.835938
+2026-08-03 17:20:16 - __main__ - INFO -   Batch 525: loss = 0.1918
+2026-08-03 17:20:17 - __main__ - INFO -   Optimizer step 445: lr = 0.00003152, grad_norm = 0.894531
+2026-08-03 17:20:18 - __main__ - INFO -   Batch 530: loss = 0.5175
+2026-08-03 17:20:18 - __main__ - INFO -   Optimizer step 446: lr = 0.00003143, grad_norm = 0.667969
+2026-08-03 17:20:19 - __main__ - INFO -   Batch 535: loss = 0.3499
+2026-08-03 17:20:20 - __main__ - INFO -   Optimizer step 447: lr = 0.00003134, grad_norm = 0.832031
+2026-08-03 17:20:21 - __main__ - INFO -   Optimizer step 448: lr = 0.00003125, grad_norm = 1.210938
+2026-08-03 17:20:21 - __main__ - INFO -   Batch 540: loss = 0.3117
+2026-08-03 17:20:22 - __main__ - INFO -   Optimizer step 449: lr = 0.00003116, grad_norm = 0.757812
+2026-08-03 17:20:22 - __main__ - INFO -   Batch 545: loss = 0.2214
+2026-08-03 17:20:23 - __main__ - INFO -   Optimizer step 450: lr = 0.00003107, grad_norm = 1.148438
+2026-08-03 17:20:24 - __main__ - INFO -   Batch 550: loss = 0.1631
+2026-08-03 17:20:24 - __main__ - INFO -   Optimizer step 451: lr = 0.00003098, grad_norm = 0.820312
+2026-08-03 17:20:25 - __main__ - INFO -   Batch 555: loss = 0.2019
+2026-08-03 17:20:26 - __main__ - INFO -   Optimizer step 452: lr = 0.00003089, grad_norm = 0.843750
+2026-08-03 17:20:27 - __main__ - INFO -   Optimizer step 453: lr = 0.00003080, grad_norm = 0.851562
+2026-08-03 17:20:27 - __main__ - INFO -   Batch 560: loss = 0.2125
+2026-08-03 17:20:28 - __main__ - INFO -   Optimizer step 454: lr = 0.00003071, grad_norm = 0.960938
+2026-08-03 17:20:28 - __main__ - INFO -   Batch 565: loss = 0.2746
+2026-08-03 17:20:29 - __main__ - INFO -   Optimizer step 455: lr = 0.00003061, grad_norm = 0.964844
+2026-08-03 17:20:30 - __main__ - INFO -   Batch 570: loss = 0.1393
+2026-08-03 17:20:31 - __main__ - INFO -   Optimizer step 456: lr = 0.00003052, grad_norm = 0.656250
+2026-08-03 17:20:31 - __main__ - INFO -   Batch 575: loss = 0.7267
+2026-08-03 17:20:32 - __main__ - INFO -   Optimizer step 457: lr = 0.00003043, grad_norm = 1.179688
+2026-08-03 17:20:33 - __main__ - INFO -   Optimizer step 458: lr = 0.00003034, grad_norm = 1.281250
+2026-08-03 17:20:33 - __main__ - INFO -   Batch 580: loss = 0.1584
+2026-08-03 17:20:34 - __main__ - INFO -   Optimizer step 459: lr = 0.00003025, grad_norm = 1.117188
+2026-08-03 17:20:35 - __main__ - INFO -   Batch 585: loss = 0.6059
+2026-08-03 17:20:35 - __main__ - INFO -   Optimizer step 460: lr = 0.00003016, grad_norm = 0.832031
+2026-08-03 17:20:36 - __main__ - INFO -   Batch 590: loss = 0.3090
+2026-08-03 17:20:37 - __main__ - INFO -   Optimizer step 461: lr = 0.00003007, grad_norm = 1.070312
+2026-08-03 17:20:38 - __main__ - INFO -   Batch 595: loss = 0.2599
+2026-08-03 17:20:38 - __main__ - INFO -   Optimizer step 462: lr = 0.00002998, grad_norm = 0.941406
+2026-08-03 17:20:39 - __main__ - INFO -   Optimizer step 463: lr = 0.00002989, grad_norm = 1.054688
+2026-08-03 17:20:39 - __main__ - INFO -   Batch 600: loss = 0.3122
+2026-08-03 17:20:40 - __main__ - INFO -   Optimizer step 464: lr = 0.00002980, grad_norm = 0.863281
+2026-08-03 17:20:41 - __main__ - INFO -   Batch 605: loss = 0.6105
+2026-08-03 17:20:42 - __main__ - INFO -   Optimizer step 465: lr = 0.00002971, grad_norm = 0.957031
+2026-08-03 17:20:42 - __main__ - INFO -   Batch 610: loss = 0.2144
+2026-08-03 17:20:43 - __main__ - INFO -   Optimizer step 466: lr = 0.00002962, grad_norm = 0.953125
+2026-08-03 17:20:44 - __main__ - INFO -   Batch 615: loss = 0.2137
+2026-08-03 17:20:44 - __main__ - INFO -   Optimizer step 467: lr = 0.00002952, grad_norm = 0.945312
+2026-08-03 17:20:45 - __main__ - INFO -   Optimizer step 468: lr = 0.00002943, grad_norm = 0.945312
+2026-08-03 17:20:45 - __main__ - INFO -   Batch 620: loss = 0.5807
+2026-08-03 17:20:46 - __main__ - INFO -   Optimizer step 469: lr = 0.00002934, grad_norm = 0.929688
+2026-08-03 17:20:47 - __main__ - INFO -   Batch 625: loss = 0.1251
+2026-08-03 17:20:48 - __main__ - INFO -   Optimizer step 470: lr = 0.00002925, grad_norm = 0.816406
+2026-08-03 17:20:48 - __main__ - INFO -   Batch 630: loss = 0.2769
+2026-08-03 17:20:49 - __main__ - INFO -   Optimizer step 471: lr = 0.00002916, grad_norm = 0.898438
+2026-08-03 17:20:50 - __main__ - INFO -   Batch 635: loss = 0.4370
+2026-08-03 17:20:50 - __main__ - INFO -   Optimizer step 472: lr = 0.00002907, grad_norm = 0.976562
+2026-08-03 17:20:51 - __main__ - INFO -   Optimizer step 473: lr = 0.00002898, grad_norm = 0.816406
+2026-08-03 17:20:51 - __main__ - INFO -   Batch 640: loss = 0.1075
+2026-08-03 17:20:53 - __main__ - INFO -   Optimizer step 474: lr = 0.00002888, grad_norm = 0.984375
+2026-08-03 17:20:53 - __main__ - INFO -   Batch 645: loss = 0.4051
+2026-08-03 17:20:54 - __main__ - INFO -   Optimizer step 475: lr = 0.00002879, grad_norm = 1.054688
+2026-08-03 17:20:54 - __main__ - INFO -   Batch 650: loss = 0.4344
+2026-08-03 17:20:55 - __main__ - INFO -   Optimizer step 476: lr = 0.00002870, grad_norm = 1.132812
+2026-08-03 17:20:56 - __main__ - INFO -   Batch 655: loss = 0.5564
+2026-08-03 17:20:56 - __main__ - INFO -   Optimizer step 477: lr = 0.00002861, grad_norm = 1.085938
+2026-08-03 17:20:57 - __main__ - INFO -   Optimizer step 478: lr = 0.00002852, grad_norm = 1.054688
+2026-08-03 17:20:57 - __main__ - INFO -   Batch 660: loss = 0.2394
+2026-08-03 17:20:59 - __main__ - INFO -   Optimizer step 479: lr = 0.00002842, grad_norm = 0.871094
+2026-08-03 17:20:59 - __main__ - INFO -   Batch 665: loss = 0.4236
+2026-08-03 17:21:00 - __main__ - INFO -   Optimizer step 480: lr = 0.00002833, grad_norm = 1.125000
+2026-08-03 17:21:00 - __main__ - INFO -   Batch 670: loss = 0.3465
+2026-08-03 17:21:01 - __main__ - INFO -   Optimizer step 481: lr = 0.00002824, grad_norm = 0.933594
+2026-08-03 17:21:02 - __main__ - INFO -   Batch 675: loss = 0.2081
+2026-08-03 17:21:02 - __main__ - INFO -   Optimizer step 482: lr = 0.00002815, grad_norm = 0.820312
+2026-08-03 17:21:04 - __main__ - INFO -   Optimizer step 483: lr = 0.00002806, grad_norm = 0.980469
+2026-08-03 17:21:04 - __main__ - INFO -   Batch 680: loss = 0.3373
+2026-08-03 17:21:05 - __main__ - INFO -   Optimizer step 484: lr = 0.00002796, grad_norm = 0.953125
+2026-08-03 17:21:05 - __main__ - INFO -   Batch 685: loss = 0.2653
+2026-08-03 17:21:06 - __main__ - INFO -   Optimizer step 485: lr = 0.00002787, grad_norm = 0.867188
+2026-08-03 17:21:07 - __main__ - INFO -   Batch 690: loss = 0.5488
+2026-08-03 17:21:07 - __main__ - INFO -   Optimizer step 486: lr = 0.00002778, grad_norm = 0.828125
+2026-08-03 17:21:08 - __main__ - INFO -   Batch 695: loss = 0.1659
+2026-08-03 17:21:08 - __main__ - INFO -   Optimizer step 487: lr = 0.00002769, grad_norm = 0.968750
+2026-08-03 17:21:10 - __main__ - INFO -   Optimizer step 488: lr = 0.00002759, grad_norm = 1.101562
+2026-08-03 17:21:10 - __main__ - INFO -   Batch 700: loss = 0.2477
+2026-08-03 17:21:11 - __main__ - INFO -   Optimizer step 489: lr = 0.00002750, grad_norm = 0.894531
+2026-08-03 17:21:11 - __main__ - INFO -   Batch 705: loss = 0.3515
+2026-08-03 17:21:12 - __main__ - INFO -   Optimizer step 490: lr = 0.00002741, grad_norm = 0.972656
+2026-08-03 17:21:13 - __main__ - INFO -   Batch 710: loss = 0.3013
+2026-08-03 17:21:13 - __main__ - INFO -   Optimizer step 491: lr = 0.00002732, grad_norm = 0.953125
+2026-08-03 17:21:14 - __main__ - INFO -   Batch 715: loss = 0.1297
+2026-08-03 17:21:15 - __main__ - INFO -   Optimizer step 492: lr = 0.00002723, grad_norm = 0.734375
+2026-08-03 17:21:16 - __main__ - INFO -   Optimizer step 493: lr = 0.00002713, grad_norm = 1.007812
+2026-08-03 17:21:16 - __main__ - INFO -   Batch 720: loss = 0.3603
+2026-08-03 17:21:17 - __main__ - INFO -   Optimizer step 494: lr = 0.00002704, grad_norm = 0.984375
+2026-08-03 17:21:17 - __main__ - INFO -   Batch 725: loss = 0.1914
+2026-08-03 17:21:18 - __main__ - INFO -   Optimizer step 495: lr = 0.00002695, grad_norm = 0.746094
+2026-08-03 17:21:19 - __main__ - INFO -   Batch 730: loss = 0.3113
+2026-08-03 17:21:19 - __main__ - INFO -   Optimizer step 496: lr = 0.00002686, grad_norm = 0.933594
+2026-08-03 17:21:20 - __main__ - INFO -   Batch 735: loss = 0.4758
+2026-08-03 17:21:21 - __main__ - INFO -   Optimizer step 497: lr = 0.00002676, grad_norm = 0.964844
+2026-08-03 17:21:22 - __main__ - INFO -   Optimizer step 498: lr = 0.00002667, grad_norm = 1.148438
+2026-08-03 17:21:22 - __main__ - INFO -   Batch 740: loss = 0.3831
+2026-08-03 17:21:23 - __main__ - INFO -   Optimizer step 499: lr = 0.00002658, grad_norm = 1.148438
+2026-08-03 17:21:23 - __main__ - INFO -   Batch 745: loss = 0.1900
+2026-08-03 17:21:24 - __main__ - INFO -   Optimizer step 500: lr = 0.00002648, grad_norm = 0.910156
+2026-08-03 17:21:25 - __main__ - INFO -   Batch 750: loss = 0.4796
+2026-08-03 17:21:26 - __main__ - INFO -   Optimizer step 501: lr = 0.00002639, grad_norm = 0.957031
+2026-08-03 17:21:26 - __main__ - INFO -   Batch 755: loss = 0.4461
+2026-08-03 17:21:27 - __main__ - INFO -   Optimizer step 502: lr = 0.00002630, grad_norm = 1.015625
+2026-08-03 17:21:28 - __main__ - INFO -   Optimizer step 503: lr = 0.00002621, grad_norm = 1.070312
+2026-08-03 17:21:28 - __main__ - INFO -   Batch 760: loss = 0.1583
+2026-08-03 17:21:29 - __main__ - INFO -   Optimizer step 504: lr = 0.00002611, grad_norm = 1.203125
+2026-08-03 17:21:30 - __main__ - INFO -   Batch 765: loss = 0.1292
+2026-08-03 17:21:30 - __main__ - INFO -   Optimizer step 505: lr = 0.00002602, grad_norm = 0.808594
+2026-08-03 17:21:31 - __main__ - INFO -   Batch 770: loss = 0.2760
+2026-08-03 17:21:32 - __main__ - INFO -   Optimizer step 506: lr = 0.00002593, grad_norm = 0.988281
+2026-08-03 17:21:33 - __main__ - INFO -   Batch 775: loss = 0.5202
+2026-08-03 17:21:33 - __main__ - INFO -   Optimizer step 507: lr = 0.00002584, grad_norm = 1.117188
+2026-08-03 17:21:34 - __main__ - INFO -   Optimizer step 508: lr = 0.00002574, grad_norm = 0.941406
+2026-08-03 17:21:34 - __main__ - INFO -   Batch 780: loss = 0.5255
+2026-08-03 17:21:35 - __main__ - INFO -   Optimizer step 509: lr = 0.00002565, grad_norm = 0.757812
+2026-08-03 17:21:36 - __main__ - INFO -   Batch 785: loss = 0.1270
+2026-08-03 17:21:37 - __main__ - INFO -   Optimizer step 510: lr = 0.00002556, grad_norm = 0.980469
+2026-08-03 17:21:39 - __main__ - INFO -   Batch 790: loss = 0.2348
+2026-08-03 17:21:41 - __main__ - INFO -   Optimizer step 511: lr = 0.00002546, grad_norm = 1.023438
+2026-08-03 17:21:43 - __main__ - INFO -   Batch 795: loss = 0.6720
+2026-08-03 17:21:44 - __main__ - INFO -   Optimizer step 512: lr = 0.00002537, grad_norm = 1.093750
+2026-08-03 17:21:47 - __main__ - INFO -   Optimizer step 513: lr = 0.00002528, grad_norm = 1.156250
+2026-08-03 17:21:47 - __main__ - INFO -   Batch 800: loss = 0.2913
+2026-08-03 17:21:50 - __main__ - INFO -   Optimizer step 514: lr = 0.00002519, grad_norm = 0.703125
+2026-08-03 17:21:51 - __main__ - INFO -   Batch 805: loss = 0.2438
+2026-08-03 17:21:53 - __main__ - INFO -   Optimizer step 515: lr = 0.00002509, grad_norm = 0.945312
+2026-08-03 17:21:53 - __main__ - INFO -   Batch 810: loss = 0.4908
+2026-08-03 17:21:54 - __main__ - INFO -   Optimizer step 516: lr = 0.00002500, grad_norm = 1.000000
+2026-08-03 17:21:55 - __main__ - INFO -   Batch 815: loss = 0.4468
+2026-08-03 17:21:55 - __main__ - INFO -   Optimizer step 517: lr = 0.00002491, grad_norm = 0.851562
+2026-08-03 17:21:56 - __main__ - INFO -   Optimizer step 518: lr = 0.00002481, grad_norm = 0.859375
+2026-08-03 17:21:56 - __main__ - INFO -   Batch 820: loss = 0.3026
+2026-08-03 17:21:58 - __main__ - INFO -   Optimizer step 519: lr = 0.00002472, grad_norm = 0.796875
+2026-08-03 17:21:58 - __main__ - INFO -   Batch 825: loss = 0.1898
+2026-08-03 17:21:59 - __main__ - INFO -   Optimizer step 520: lr = 0.00002463, grad_norm = 1.101562
+2026-08-03 17:21:59 - __main__ - INFO -   Batch 830: loss = 0.2647
+2026-08-03 17:22:00 - __main__ - INFO -   Optimizer step 521: lr = 0.00002454, grad_norm = 0.898438
+2026-08-03 17:22:01 - __main__ - INFO -   Batch 835: loss = 0.2131
+2026-08-03 17:22:01 - __main__ - INFO -   Optimizer step 522: lr = 0.00002444, grad_norm = 1.039062
+2026-08-03 17:22:03 - __main__ - INFO -   Optimizer step 523: lr = 0.00002435, grad_norm = 1.085938
+2026-08-03 17:22:03 - __main__ - INFO -   Batch 840: loss = 0.4623
+2026-08-03 17:22:04 - __main__ - INFO -   Optimizer step 524: lr = 0.00002426, grad_norm = 0.839844
+2026-08-03 17:22:04 - __main__ - INFO -   Batch 845: loss = 0.1128
+2026-08-03 17:22:05 - __main__ - INFO -   Optimizer step 525: lr = 0.00002416, grad_norm = 0.925781
+2026-08-03 17:22:06 - __main__ - INFO -   Batch 850: loss = 0.2891
+2026-08-03 17:22:06 - __main__ - INFO -   Optimizer step 526: lr = 0.00002407, grad_norm = 1.015625
+2026-08-03 17:22:07 - __main__ - INFO -   Batch 855: loss = 0.3849
+2026-08-03 17:22:07 - __main__ - INFO -   Optimizer step 527: lr = 0.00002398, grad_norm = 1.148438
+2026-08-03 17:22:09 - __main__ - INFO -   Optimizer step 528: lr = 0.00002389, grad_norm = 0.812500
+2026-08-03 17:22:09 - __main__ - INFO -   Batch 860: loss = 0.5378
+2026-08-03 17:22:10 - __main__ - INFO -   Optimizer step 529: lr = 0.00002379, grad_norm = 0.902344
+2026-08-03 17:22:10 - __main__ - INFO -   Batch 865: loss = 0.1682
+2026-08-03 17:22:11 - __main__ - INFO -   Optimizer step 530: lr = 0.00002370, grad_norm = 1.015625
+2026-08-03 17:22:12 - __main__ - INFO -   Batch 870: loss = 0.4880
+2026-08-03 17:22:12 - __main__ - INFO -   Optimizer step 531: lr = 0.00002361, grad_norm = 1.015625
+2026-08-03 17:22:13 - __main__ - INFO -   Batch 875: loss = 0.2060
+2026-08-03 17:22:14 - __main__ - INFO -   Optimizer step 532: lr = 0.00002352, grad_norm = 0.957031
+2026-08-03 17:22:15 - __main__ - INFO -   Optimizer step 533: lr = 0.00002342, grad_norm = 0.796875
+2026-08-03 17:22:15 - __main__ - INFO -   Batch 880: loss = 0.4184
+2026-08-03 17:22:16 - __main__ - INFO -   Optimizer step 534: lr = 0.00002333, grad_norm = 0.949219
+2026-08-03 17:22:16 - __main__ - INFO -   Batch 885: loss = 0.1488
+2026-08-03 17:22:17 - __main__ - INFO -   Optimizer step 535: lr = 0.00002324, grad_norm = 0.957031
+2026-08-03 17:22:18 - __main__ - INFO -   Batch 890: loss = 0.0690
+2026-08-03 17:22:18 - __main__ - INFO -   Optimizer step 536: lr = 0.00002314, grad_norm = 0.742188
+2026-08-03 17:22:19 - __main__ - INFO -   Batch 895: loss = 0.2684
+2026-08-03 17:22:20 - __main__ - INFO -   Optimizer step 537: lr = 0.00002305, grad_norm = 1.015625
+2026-08-03 17:22:21 - __main__ - INFO -   Optimizer step 538: lr = 0.00002296, grad_norm = 1.109375
+2026-08-03 17:22:21 - __main__ - INFO -   Batch 900: loss = 0.3747
+2026-08-03 17:22:22 - __main__ - INFO -   Optimizer step 539: lr = 0.00002287, grad_norm = 0.843750
+2026-08-03 17:22:22 - __main__ - INFO -   Batch 905: loss = 0.2201
+2026-08-03 17:22:23 - __main__ - INFO -   Optimizer step 540: lr = 0.00002277, grad_norm = 0.898438
+2026-08-03 17:22:24 - __main__ - INFO -   Batch 910: loss = 0.2711
+2026-08-03 17:22:24 - __main__ - INFO -   Optimizer step 541: lr = 0.00002268, grad_norm = 0.894531
+2026-08-03 17:22:25 - __main__ - INFO -   Batch 915: loss = 0.1791
+2026-08-03 17:22:26 - __main__ - INFO -   Optimizer step 542: lr = 0.00002259, grad_norm = 0.796875
+2026-08-03 17:22:27 - __main__ - INFO -   Optimizer step 543: lr = 0.00002250, grad_norm = 1.062500
+2026-08-03 17:22:27 - __main__ - INFO -   Batch 920: loss = 0.2274
+2026-08-03 17:22:28 - __main__ - INFO -   Optimizer step 544: lr = 0.00002241, grad_norm = 0.933594
+2026-08-03 17:22:28 - __main__ - INFO -   Batch 925: loss = 0.6359
+2026-08-03 17:22:29 - __main__ - INFO -   Optimizer step 545: lr = 0.00002231, grad_norm = 1.070312
+2026-08-03 17:22:30 - __main__ - INFO -   Batch 930: loss = 0.5570
+2026-08-03 17:22:31 - __main__ - INFO -   Optimizer step 546: lr = 0.00002222, grad_norm = 0.742188
+2026-08-03 17:22:31 - __main__ - INFO -   Batch 935: loss = 0.3574
+2026-08-03 17:22:32 - __main__ - INFO -   Optimizer step 547: lr = 0.00002213, grad_norm = 0.898438
+2026-08-03 17:22:33 - __main__ - INFO -   Optimizer step 548: lr = 0.00002204, grad_norm = 0.925781
+2026-08-03 17:22:33 - __main__ - INFO -   Batch 940: loss = 0.2478
+2026-08-03 17:22:34 - __main__ - INFO -   Optimizer step 549: lr = 0.00002194, grad_norm = 0.941406
+2026-08-03 17:22:35 - __main__ - INFO -   Batch 945: loss = 0.5902
+2026-08-03 17:22:35 - __main__ - INFO -   Optimizer step 550: lr = 0.00002185, grad_norm = 0.960938
+2026-08-03 17:22:36 - __main__ - INFO -   Batch 950: loss = 0.2012
+2026-08-03 17:22:37 - __main__ - INFO -   Optimizer step 551: lr = 0.00002176, grad_norm = 1.070312
+2026-08-03 17:22:38 - __main__ - INFO -   Batch 955: loss = 0.2681
+2026-08-03 17:22:38 - __main__ - INFO -   Optimizer step 552: lr = 0.00002167, grad_norm = 1.132812
+2026-08-03 17:22:39 - __main__ - INFO -   Optimizer step 553: lr = 0.00002158, grad_norm = 0.937500
+2026-08-03 17:22:39 - __main__ - INFO -   Batch 960: loss = 0.2008
+2026-08-03 17:22:40 - __main__ - INFO -   Optimizer step 554: lr = 0.00002148, grad_norm = 0.968750
+2026-08-03 17:22:41 - __main__ - INFO -   Batch 965: loss = 0.4342
+2026-08-03 17:22:41 - __main__ - INFO -   Optimizer step 555: lr = 0.00002139, grad_norm = 1.171875
+2026-08-03 17:22:42 - __main__ - INFO -   Batch 970: loss = 0.1198
+2026-08-03 17:22:43 - __main__ - INFO -   Optimizer step 556: lr = 0.00002130, grad_norm = 0.964844
+2026-08-03 17:22:44 - __main__ - INFO -   Batch 975: loss = 0.5953
+2026-08-03 17:22:44 - __main__ - INFO -   Optimizer step 557: lr = 0.00002121, grad_norm = 1.078125
+2026-08-03 17:22:45 - __main__ - INFO -   Optimizer step 558: lr = 0.00002112, grad_norm = 0.996094
+2026-08-03 17:22:45 - __main__ - INFO -   Batch 980: loss = 0.1179
+2026-08-03 17:22:46 - __main__ - INFO -   Optimizer step 559: lr = 0.00002102, grad_norm = 0.839844
+2026-08-03 17:22:47 - __main__ - INFO -   Batch 985: loss = 0.2415
+2026-08-03 17:22:48 - __main__ - INFO -   Optimizer step 560: lr = 0.00002093, grad_norm = 0.839844
+2026-08-03 17:22:48 - __main__ - INFO -   Batch 990: loss = 0.3089
+2026-08-03 17:22:49 - __main__ - INFO -   Optimizer step 561: lr = 0.00002084, grad_norm = 1.101562
+2026-08-03 17:22:50 - __main__ - INFO -   Batch 995: loss = 0.3558
+2026-08-03 17:22:50 - __main__ - INFO -   Optimizer step 562: lr = 0.00002075, grad_norm = 0.945312
+2026-08-03 17:22:51 - __main__ - INFO -   Optimizer step 563: lr = 0.00002066, grad_norm = 0.960938
+2026-08-03 17:22:51 - __main__ - INFO -   Batch 1000: loss = 0.1331
+2026-08-03 17:22:52 - __main__ - INFO -   Optimizer step 564: lr = 0.00002057, grad_norm = 1.015625
+2026-08-03 17:22:53 - __main__ - INFO -   Batch 1005: loss = 0.2027
+2026-08-03 17:22:54 - __main__ - INFO -   Optimizer step 565: lr = 0.00002048, grad_norm = 0.980469
+2026-08-03 17:22:54 - __main__ - INFO -   Batch 1010: loss = 0.2576
+2026-08-03 17:22:55 - __main__ - INFO -   Optimizer step 566: lr = 0.00002038, grad_norm = 0.953125
+2026-08-03 17:22:56 - __main__ - INFO -   Batch 1015: loss = 0.6065
+2026-08-03 17:22:56 - __main__ - INFO -   Optimizer step 567: lr = 0.00002029, grad_norm = 0.828125
+2026-08-03 17:22:57 - __main__ - INFO -   Optimizer step 568: lr = 0.00002020, grad_norm = 0.917969
+2026-08-03 17:22:57 - __main__ - INFO -   Batch 1020: loss = 0.6138
+2026-08-03 17:22:59 - __main__ - INFO -   Optimizer step 569: lr = 0.00002011, grad_norm = 0.835938
+2026-08-03 17:22:59 - __main__ - INFO -   Batch 1025: loss = 0.4282
+2026-08-03 17:23:00 - __main__ - INFO -   Optimizer step 570: lr = 0.00002002, grad_norm = 1.062500
+2026-08-03 17:23:00 - __main__ - INFO -   Batch 1030: loss = 0.1624
+2026-08-03 17:23:01 - __main__ - INFO -   Optimizer step 571: lr = 0.00001993, grad_norm = 0.914062
+2026-08-03 17:23:02 - __main__ - INFO -   Batch 1035: loss = 0.4900
+2026-08-03 17:23:02 - __main__ - INFO -   Optimizer step 572: lr = 0.00001984, grad_norm = 1.039062
+2026-08-03 17:23:03 - __main__ - INFO -   Optimizer step 573: lr = 0.00001975, grad_norm = 1.054688
+2026-08-03 17:23:03 - __main__ - INFO -   Batch 1040: loss = 0.0930
+2026-08-03 17:23:05 - __main__ - INFO -   Optimizer step 574: lr = 0.00001966, grad_norm = 1.078125
+2026-08-03 17:23:05 - __main__ - INFO -   Batch 1045: loss = 0.2806
+2026-08-03 17:23:06 - __main__ - INFO -   Optimizer step 575: lr = 0.00001957, grad_norm = 1.039062
+2026-08-03 17:23:06 - __main__ - INFO -   Batch 1050: loss = 0.4009
+2026-08-03 17:23:07 - __main__ - INFO -   Optimizer step 576: lr = 0.00001948, grad_norm = 0.726562
+2026-08-03 17:23:08 - __main__ - INFO -   Batch 1055: loss = 0.5564
+2026-08-03 17:23:08 - __main__ - INFO -   Optimizer step 577: lr = 0.00001939, grad_norm = 0.832031
+2026-08-03 17:23:09 - __main__ - INFO -   Optimizer step 578: lr = 0.00001929, grad_norm = 1.031250
+2026-08-03 17:23:10 - __main__ - INFO -   Batch 1060: loss = 0.3501
+2026-08-03 17:23:11 - __main__ - INFO -   Optimizer step 579: lr = 0.00001920, grad_norm = 0.886719
+2026-08-03 17:23:11 - __main__ - INFO -   Batch 1065: loss = 0.3039
+2026-08-03 17:23:12 - __main__ - INFO -   Optimizer step 580: lr = 0.00001911, grad_norm = 0.843750
+2026-08-03 17:23:13 - __main__ - INFO -   Batch 1070: loss = 0.2217
+2026-08-03 17:23:13 - __main__ - INFO -   Optimizer step 581: lr = 0.00001902, grad_norm = 0.921875
+2026-08-03 17:23:14 - __main__ - INFO -   Batch 1075: loss = 0.0899
+2026-08-03 17:23:14 - __main__ - INFO -   Optimizer step 582: lr = 0.00001893, grad_norm = 1.125000
+2026-08-03 17:23:16 - __main__ - INFO -   Optimizer step 583: lr = 0.00001884, grad_norm = 0.937500
+2026-08-03 17:23:16 - __main__ - INFO -   Batch 1080: loss = 0.6341
+2026-08-03 17:23:17 - __main__ - INFO -   Optimizer step 584: lr = 0.00001875, grad_norm = 0.824219
+2026-08-03 17:23:17 - __main__ - INFO -   Batch 1085: loss = 0.1954
+2026-08-03 17:23:18 - __main__ - INFO -   Optimizer step 585: lr = 0.00001866, grad_norm = 0.925781
+2026-08-03 17:23:19 - __main__ - INFO -   Batch 1090: loss = 0.3726
+2026-08-03 17:23:19 - __main__ - INFO -   Optimizer step 586: lr = 0.00001857, grad_norm = 1.085938
+2026-08-03 17:23:20 - __main__ - INFO -   Batch 1095: loss = 0.5077
+2026-08-03 17:23:20 - __main__ - INFO -   Optimizer step 587: lr = 0.00001848, grad_norm = 0.957031
+2026-08-03 17:23:22 - __main__ - INFO -   Optimizer step 588: lr = 0.00001840, grad_norm = 0.953125
+2026-08-03 17:23:22 - __main__ - INFO -   Batch 1100: loss = 0.4952
+2026-08-03 17:23:23 - __main__ - INFO -   Optimizer step 589: lr = 0.00001831, grad_norm = 0.968750
+2026-08-03 17:23:23 - __main__ - INFO -   Batch 1105: loss = 0.5059
+2026-08-03 17:23:24 - __main__ - INFO -   Optimizer step 590: lr = 0.00001822, grad_norm = 0.992188
+2026-08-03 17:23:25 - __main__ - INFO -   Batch 1110: loss = 0.4480
+2026-08-03 17:23:25 - __main__ - INFO -   Optimizer step 591: lr = 0.00001813, grad_norm = 1.031250
+2026-08-03 17:23:26 - __main__ - INFO -   Batch 1115: loss = 0.2365
+2026-08-03 17:23:26 - __main__ - INFO -   Optimizer step 592: lr = 0.00001804, grad_norm = 1.078125
+2026-08-03 17:23:28 - __main__ - INFO -   Optimizer step 593: lr = 0.00001795, grad_norm = 1.039062
+2026-08-03 17:23:28 - __main__ - INFO -   Batch 1120: loss = 0.3630
+2026-08-03 17:23:29 - __main__ - INFO -   Optimizer step 594: lr = 0.00001786, grad_norm = 0.953125
+2026-08-03 17:23:29 - __main__ - INFO -   Batch 1125: loss = 0.1721
+2026-08-03 17:23:30 - __main__ - INFO -   Optimizer step 595: lr = 0.00001777, grad_norm = 0.789062
+2026-08-03 17:23:31 - __main__ - INFO -   Batch 1130: loss = 0.2399
+2026-08-03 17:23:31 - __main__ - INFO -   Optimizer step 596: lr = 0.00001768, grad_norm = 0.925781
+2026-08-03 17:23:32 - __main__ - INFO -   Batch 1135: loss = 0.1702
+2026-08-03 17:23:33 - __main__ - INFO -   Optimizer step 597: lr = 0.00001759, grad_norm = 0.796875
+2026-08-03 17:23:34 - __main__ - INFO -   Optimizer step 598: lr = 0.00001750, grad_norm = 0.832031
+2026-08-03 17:23:34 - __main__ - INFO -   Batch 1140: loss = 0.0867
+2026-08-03 17:23:35 - __main__ - INFO -   Optimizer step 599: lr = 0.00001742, grad_norm = 0.972656
+2026-08-03 17:23:35 - __main__ - INFO -   Batch 1145: loss = 0.3132
+2026-08-03 17:23:36 - __main__ - INFO -   Optimizer step 600: lr = 0.00001733, grad_norm = 0.875000
+2026-08-03 17:23:37 - __main__ - INFO -   Batch 1150: loss = 0.6947
+2026-08-03 17:23:37 - __main__ - INFO -   Optimizer step 601: lr = 0.00001724, grad_norm = 0.992188
+2026-08-03 17:23:38 - __main__ - INFO -   Batch 1155: loss = 0.5732
+2026-08-03 17:23:39 - __main__ - INFO -   Optimizer step 602: lr = 0.00001715, grad_norm = 1.007812
+2026-08-03 17:23:40 - __main__ - INFO -   Optimizer step 603: lr = 0.00001706, grad_norm = 0.851562
+2026-08-03 17:23:40 - __main__ - INFO -   Batch 1160: loss = 0.2321
+2026-08-03 17:23:41 - __main__ - INFO -   Optimizer step 604: lr = 0.00001698, grad_norm = 1.015625
+2026-08-03 17:23:41 - __main__ - INFO -   Batch 1165: loss = 0.1752
+2026-08-03 17:23:42 - __main__ - INFO -   Optimizer step 605: lr = 0.00001689, grad_norm = 0.972656
+2026-08-03 17:23:43 - __main__ - INFO -   Batch 1170: loss = 0.3206
+2026-08-03 17:23:43 - __main__ - INFO -   Optimizer step 606: lr = 0.00001680, grad_norm = 0.832031
+2026-08-03 17:23:44 - __main__ - INFO -   Batch 1175: loss = 0.5438
+2026-08-03 17:23:45 - __main__ - INFO -   Optimizer step 607: lr = 0.00001671, grad_norm = 0.929688
+2026-08-03 17:23:46 - __main__ - INFO -   Optimizer step 608: lr = 0.00001662, grad_norm = 0.742188
+2026-08-03 17:23:46 - __main__ - INFO -   Batch 1180: loss = 0.0696
+2026-08-03 17:23:47 - __main__ - INFO -   Optimizer step 609: lr = 0.00001654, grad_norm = 0.914062
+2026-08-03 17:23:47 - __main__ - INFO -   Batch 1185: loss = 0.4420
+2026-08-03 17:23:48 - __main__ - INFO -   Optimizer step 610: lr = 0.00001645, grad_norm = 0.945312
+2026-08-03 17:23:49 - __main__ - INFO -   Batch 1190: loss = 0.1098
+2026-08-03 17:23:50 - __main__ - INFO -   Optimizer step 611: lr = 0.00001636, grad_norm = 0.746094
+2026-08-03 17:23:50 - __main__ - INFO -   Batch 1195: loss = 0.2889
+2026-08-03 17:23:51 - __main__ - INFO -   Optimizer step 612: lr = 0.00001628, grad_norm = 1.085938
+2026-08-03 17:23:52 - __main__ - INFO -   Optimizer step 613: lr = 0.00001619, grad_norm = 0.902344
+2026-08-03 17:23:52 - __main__ - INFO -   Batch 1200: loss = 0.0887
+2026-08-03 17:23:53 - __main__ - INFO -   Optimizer step 614: lr = 0.00001610, grad_norm = 1.296875
+2026-08-03 17:23:54 - __main__ - INFO -   Batch 1205: loss = 0.1433
+2026-08-03 17:23:54 - __main__ - INFO -   Optimizer step 615: lr = 0.00001601, grad_norm = 0.921875
+2026-08-03 17:23:55 - __main__ - INFO -   Batch 1210: loss = 0.4671
+2026-08-03 17:23:56 - __main__ - INFO -   Optimizer step 616: lr = 0.00001593, grad_norm = 0.859375
+2026-08-03 17:23:57 - __main__ - INFO -   Batch 1215: loss = 0.5420
+2026-08-03 17:23:57 - __main__ - INFO -   Optimizer step 617: lr = 0.00001584, grad_norm = 1.070312
+2026-08-03 17:23:58 - __main__ - INFO -   Optimizer step 618: lr = 0.00001576, grad_norm = 0.976562
+2026-08-03 17:23:58 - __main__ - INFO -   Batch 1220: loss = 0.2775
+2026-08-03 17:23:59 - __main__ - INFO -   Optimizer step 619: lr = 0.00001567, grad_norm = 1.015625
+2026-08-03 17:24:00 - __main__ - INFO -   Batch 1225: loss = 0.1182
+2026-08-03 17:24:00 - __main__ - INFO -   Optimizer step 620: lr = 0.00001558, grad_norm = 0.796875
+2026-08-03 17:24:01 - __main__ - INFO -   Batch 1230: loss = 0.2406
+2026-08-03 17:24:02 - __main__ - INFO -   Optimizer step 621: lr = 0.00001550, grad_norm = 0.949219
+2026-08-03 17:24:03 - __main__ - INFO -   Batch 1235: loss = 0.3773
+2026-08-03 17:24:03 - __main__ - INFO -   Optimizer step 622: lr = 0.00001541, grad_norm = 0.902344
+2026-08-03 17:24:04 - __main__ - INFO -   Optimizer step 623: lr = 0.00001533, grad_norm = 0.867188
+2026-08-03 17:24:04 - __main__ - INFO -   Batch 1240: loss = 0.1843
+2026-08-03 17:24:05 - __main__ - INFO -   Optimizer step 624: lr = 0.00001524, grad_norm = 0.882812
+2026-08-03 17:24:06 - __main__ - INFO -   Batch 1245: loss = 0.2845
+2026-08-03 17:24:07 - __main__ - INFO -   Optimizer step 625: lr = 0.00001515, grad_norm = 0.789062
+2026-08-03 17:24:07 - __main__ - INFO -   Optimizer step 626: lr = 0.00001507, grad_norm = 0.699219
+2026-08-03 17:24:07 - __main__ - INFO - Epoch 2 completed - Epoch Loss: 0.3190
+2026-08-03 17:24:07 - __main__ - INFO - 
+Epoch 3/3
+2026-08-03 17:24:07 - __main__ - INFO - 
+[First Batch Info]
+2026-08-03 17:24:07 - __main__ - INFO -   Batch size: 4
+2026-08-03 17:24:07 - __main__ - INFO -   Sequence length: 1024
+2026-08-03 17:24:07 - __main__ - INFO -   Device: cuda:0
+2026-08-03 17:24:07 - __main__ - INFO -   Valid labels (response-only): 763/4096
+2026-08-03 17:24:07 - __main__ - INFO - 
+[Gradient Check - Batch 0]
+2026-08-03 17:24:07 - __main__ - INFO -   Parameters with non-zero gradients: 160
+2026-08-03 17:24:07 - __main__ - INFO -   Parameters with zero gradients: 0
+2026-08-03 17:24:07 - __main__ - INFO -   Max gradient magnitude: 0.024536
+2026-08-03 17:24:07 - __main__ - INFO -   Batch 1: loss = 0.5137
+2026-08-03 17:24:08 - __main__ - INFO -   Optimizer step 627: lr = 0.00001498, grad_norm = 0.968750
+2026-08-03 17:24:08 - __main__ - INFO -   Batch 5: loss = 0.5037
+2026-08-03 17:24:09 - __main__ - INFO -   Optimizer step 628: lr = 0.00001490, grad_norm = 1.093750
+2026-08-03 17:24:10 - __main__ - INFO -   Batch 10: loss = 0.2305
+2026-08-03 17:24:10 - __main__ - INFO -   Optimizer step 629: lr = 0.00001481, grad_norm = 0.773438
+2026-08-03 17:24:11 - __main__ - INFO -   Batch 15: loss = 0.3861
+2026-08-03 17:24:12 - __main__ - INFO -   Optimizer step 630: lr = 0.00001473, grad_norm = 0.972656
+2026-08-03 17:24:13 - __main__ - INFO -   Optimizer step 631: lr = 0.00001465, grad_norm = 0.929688
+2026-08-03 17:24:13 - __main__ - INFO -   Batch 20: loss = 0.2806
+2026-08-03 17:24:14 - __main__ - INFO -   Optimizer step 632: lr = 0.00001456, grad_norm = 0.968750
+2026-08-03 17:24:14 - __main__ - INFO -   Batch 25: loss = 0.1355
+2026-08-03 17:24:15 - __main__ - INFO -   Optimizer step 633: lr = 0.00001448, grad_norm = 0.992188
+2026-08-03 17:24:16 - __main__ - INFO -   Batch 30: loss = 0.1025
+2026-08-03 17:24:17 - __main__ - INFO -   Optimizer step 634: lr = 0.00001439, grad_norm = 0.992188
+2026-08-03 17:24:17 - __main__ - INFO -   Batch 35: loss = 0.1389
+2026-08-03 17:24:18 - __main__ - INFO -   Optimizer step 635: lr = 0.00001431, grad_norm = 0.816406
+2026-08-03 17:24:19 - __main__ - INFO -   Optimizer step 636: lr = 0.00001422, grad_norm = 0.714844
+2026-08-03 17:24:19 - __main__ - INFO -   Batch 40: loss = 0.1936
+2026-08-03 17:24:20 - __main__ - INFO -   Optimizer step 637: lr = 0.00001414, grad_norm = 0.746094
+2026-08-03 17:24:21 - __main__ - INFO -   Batch 45: loss = 0.1905
+2026-08-03 17:24:21 - __main__ - INFO -   Optimizer step 638: lr = 0.00001406, grad_norm = 0.828125
+2026-08-03 17:24:22 - __main__ - INFO -   Batch 50: loss = 0.2263
+2026-08-03 17:24:23 - __main__ - INFO -   Optimizer step 639: lr = 0.00001397, grad_norm = 1.093750
+2026-08-03 17:24:24 - __main__ - INFO -   Batch 55: loss = 0.4794
+2026-08-03 17:24:24 - __main__ - INFO -   Optimizer step 640: lr = 0.00001389, grad_norm = 0.816406
+2026-08-03 17:24:25 - __main__ - INFO -   Optimizer step 641: lr = 0.00001381, grad_norm = 0.863281
+2026-08-03 17:24:25 - __main__ - INFO -   Batch 60: loss = 0.1580
+2026-08-03 17:24:26 - __main__ - INFO -   Optimizer step 642: lr = 0.00001372, grad_norm = 0.773438
+2026-08-03 17:24:27 - __main__ - INFO -   Batch 65: loss = 0.6244
+2026-08-03 17:24:27 - __main__ - INFO -   Optimizer step 643: lr = 0.00001364, grad_norm = 0.910156
+2026-08-03 17:24:28 - __main__ - INFO -   Batch 70: loss = 0.4199
+2026-08-03 17:24:29 - __main__ - INFO -   Optimizer step 644: lr = 0.00001356, grad_norm = 0.875000
+2026-08-03 17:24:30 - __main__ - INFO -   Batch 75: loss = 0.3152
+2026-08-03 17:24:30 - __main__ - INFO -   Optimizer step 645: lr = 0.00001348, grad_norm = 0.902344
+2026-08-03 17:24:31 - __main__ - INFO -   Optimizer step 646: lr = 0.00001339, grad_norm = 1.039062
+2026-08-03 17:24:31 - __main__ - INFO -   Batch 80: loss = 0.1524
+2026-08-03 17:24:32 - __main__ - INFO -   Optimizer step 647: lr = 0.00001331, grad_norm = 0.839844
+2026-08-03 17:24:33 - __main__ - INFO -   Batch 85: loss = 0.3548
+2026-08-03 17:24:34 - __main__ - INFO -   Optimizer step 648: lr = 0.00001323, grad_norm = 0.988281
+2026-08-03 17:24:34 - __main__ - INFO -   Batch 90: loss = 0.3130
+2026-08-03 17:24:35 - __main__ - INFO -   Optimizer step 649: lr = 0.00001315, grad_norm = 0.929688
+2026-08-03 17:24:36 - __main__ - INFO -   Batch 95: loss = 0.1366
+2026-08-03 17:24:36 - __main__ - INFO -   Optimizer step 650: lr = 0.00001307, grad_norm = 0.851562
+2026-08-03 17:24:37 - __main__ - INFO -   Optimizer step 651: lr = 0.00001299, grad_norm = 0.917969
+2026-08-03 17:24:37 - __main__ - INFO -   Batch 100: loss = 0.1155
+2026-08-03 17:24:38 - __main__ - INFO -   Optimizer step 652: lr = 0.00001290, grad_norm = 0.652344
+2026-08-03 17:24:39 - __main__ - INFO -   Batch 105: loss = 0.1869
+2026-08-03 17:24:40 - __main__ - INFO -   Optimizer step 653: lr = 0.00001282, grad_norm = 0.843750
+2026-08-03 17:24:40 - __main__ - INFO -   Batch 110: loss = 0.4948
+2026-08-03 17:24:41 - __main__ - INFO -   Optimizer step 654: lr = 0.00001274, grad_norm = 0.906250
+2026-08-03 17:24:42 - __main__ - INFO -   Batch 115: loss = 0.1853
+2026-08-03 17:24:42 - __main__ - INFO -   Optimizer step 655: lr = 0.00001266, grad_norm = 0.902344
+2026-08-03 17:24:43 - __main__ - INFO -   Optimizer step 656: lr = 0.00001258, grad_norm = 0.867188
+2026-08-03 17:24:43 - __main__ - INFO -   Batch 120: loss = 0.2472
+2026-08-03 17:24:45 - __main__ - INFO -   Optimizer step 657: lr = 0.00001250, grad_norm = 0.804688
+2026-08-03 17:24:45 - __main__ - INFO -   Batch 125: loss = 0.1732
+2026-08-03 17:24:46 - __main__ - INFO -   Optimizer step 658: lr = 0.00001242, grad_norm = 0.816406
+2026-08-03 17:24:46 - __main__ - INFO -   Batch 130: loss = 0.1777
+2026-08-03 17:24:47 - __main__ - INFO -   Optimizer step 659: lr = 0.00001234, grad_norm = 0.992188
+2026-08-03 17:24:48 - __main__ - INFO -   Batch 135: loss = 0.3160
+2026-08-03 17:24:48 - __main__ - INFO -   Optimizer step 660: lr = 0.00001226, grad_norm = 0.906250
+2026-08-03 17:24:49 - __main__ - INFO -   Optimizer step 661: lr = 0.00001218, grad_norm = 1.070312
+2026-08-03 17:24:49 - __main__ - INFO -   Batch 140: loss = 0.4185
+2026-08-03 17:24:51 - __main__ - INFO -   Optimizer step 662: lr = 0.00001210, grad_norm = 0.792969
+2026-08-03 17:24:51 - __main__ - INFO -   Batch 145: loss = 0.4972
+2026-08-03 17:24:52 - __main__ - INFO -   Optimizer step 663: lr = 0.00001202, grad_norm = 0.886719
+2026-08-03 17:24:52 - __main__ - INFO -   Batch 150: loss = 0.4819
+2026-08-03 17:24:53 - __main__ - INFO -   Optimizer step 664: lr = 0.00001194, grad_norm = 0.941406
+2026-08-03 17:24:54 - __main__ - INFO -   Batch 155: loss = 0.1063
+2026-08-03 17:24:54 - __main__ - INFO -   Optimizer step 665: lr = 0.00001186, grad_norm = 0.785156
+2026-08-03 17:24:56 - __main__ - INFO -   Optimizer step 666: lr = 0.00001178, grad_norm = 1.039062
+2026-08-03 17:24:56 - __main__ - INFO -   Batch 160: loss = 0.2366
+2026-08-03 17:24:57 - __main__ - INFO -   Optimizer step 667: lr = 0.00001170, grad_norm = 0.816406
+2026-08-03 17:24:57 - __main__ - INFO -   Batch 165: loss = 0.3730
+2026-08-03 17:24:58 - __main__ - INFO -   Optimizer step 668: lr = 0.00001163, grad_norm = 1.023438
+2026-08-03 17:24:59 - __main__ - INFO -   Batch 170: loss = 0.2063
+2026-08-03 17:24:59 - __main__ - INFO -   Optimizer step 669: lr = 0.00001155, grad_norm = 0.945312
+2026-08-03 17:25:00 - __main__ - INFO -   Batch 175: loss = 0.3276
+2026-08-03 17:25:00 - __main__ - INFO -   Optimizer step 670: lr = 0.00001147, grad_norm = 0.968750
+2026-08-03 17:25:02 - __main__ - INFO -   Optimizer step 671: lr = 0.00001139, grad_norm = 1.117188
+2026-08-03 17:25:02 - __main__ - INFO -   Batch 180: loss = 0.4426
+2026-08-03 17:25:03 - __main__ - INFO -   Optimizer step 672: lr = 0.00001131, grad_norm = 0.785156
+2026-08-03 17:25:03 - __main__ - INFO -   Batch 185: loss = 0.4458
+2026-08-03 17:25:04 - __main__ - INFO -   Optimizer step 673: lr = 0.00001124, grad_norm = 0.871094
+2026-08-03 17:25:05 - __main__ - INFO -   Batch 190: loss = 0.1656
+2026-08-03 17:25:05 - __main__ - INFO -   Optimizer step 674: lr = 0.00001116, grad_norm = 1.132812
+2026-08-03 17:25:06 - __main__ - INFO -   Batch 195: loss = 0.3634
+2026-08-03 17:25:07 - __main__ - INFO -   Optimizer step 675: lr = 0.00001108, grad_norm = 0.957031
+2026-08-03 17:25:08 - __main__ - INFO -   Optimizer step 676: lr = 0.00001100, grad_norm = 0.839844
+2026-08-03 17:25:08 - __main__ - INFO -   Batch 200: loss = 0.1046
+2026-08-03 17:25:09 - __main__ - INFO -   Optimizer step 677: lr = 0.00001093, grad_norm = 0.792969
+2026-08-03 17:25:09 - __main__ - INFO -   Batch 205: loss = 0.2585
+2026-08-03 17:25:10 - __main__ - INFO -   Optimizer step 678: lr = 0.00001085, grad_norm = 0.929688
+2026-08-03 17:25:11 - __main__ - INFO -   Batch 210: loss = 0.2631
+2026-08-03 17:25:11 - __main__ - INFO -   Optimizer step 679: lr = 0.00001077, grad_norm = 0.949219
+2026-08-03 17:25:12 - __main__ - INFO -   Batch 215: loss = 0.5211
+2026-08-03 17:25:13 - __main__ - INFO -   Optimizer step 680: lr = 0.00001070, grad_norm = 0.988281
+2026-08-03 17:25:14 - __main__ - INFO -   Optimizer step 681: lr = 0.00001062, grad_norm = 0.878906
+2026-08-03 17:25:14 - __main__ - INFO -   Batch 220: loss = 0.1648
+2026-08-03 17:25:15 - __main__ - INFO -   Optimizer step 682: lr = 0.00001055, grad_norm = 0.988281
+2026-08-03 17:25:15 - __main__ - INFO -   Batch 225: loss = 0.4911
+2026-08-03 17:25:16 - __main__ - INFO -   Optimizer step 683: lr = 0.00001047, grad_norm = 0.890625
+2026-08-03 17:25:17 - __main__ - INFO -   Batch 230: loss = 0.4171
+2026-08-03 17:25:18 - __main__ - INFO -   Optimizer step 684: lr = 0.00001040, grad_norm = 1.093750
+2026-08-03 17:25:18 - __main__ - INFO -   Batch 235: loss = 0.3790
+2026-08-03 17:25:19 - __main__ - INFO -   Optimizer step 685: lr = 0.00001032, grad_norm = 0.976562
+2026-08-03 17:25:20 - __main__ - INFO -   Optimizer step 686: lr = 0.00001025, grad_norm = 1.070312
+2026-08-03 17:25:20 - __main__ - INFO -   Batch 240: loss = 0.4991
+2026-08-03 17:25:21 - __main__ - INFO -   Optimizer step 687: lr = 0.00001017, grad_norm = 0.769531
+2026-08-03 17:25:21 - __main__ - INFO -   Batch 245: loss = 0.4661
+2026-08-03 17:25:22 - __main__ - INFO -   Optimizer step 688: lr = 0.00001010, grad_norm = 0.878906
+2026-08-03 17:25:23 - __main__ - INFO -   Batch 250: loss = 0.1763
+2026-08-03 17:25:24 - __main__ - INFO -   Optimizer step 689: lr = 0.00001002, grad_norm = 0.906250
+2026-08-03 17:25:25 - __main__ - INFO -   Batch 255: loss = 0.6656
+2026-08-03 17:25:25 - __main__ - INFO -   Optimizer step 690: lr = 0.00000995, grad_norm = 0.957031
+2026-08-03 17:25:26 - __main__ - INFO -   Optimizer step 691: lr = 0.00000987, grad_norm = 0.839844
+2026-08-03 17:25:26 - __main__ - INFO -   Batch 260: loss = 0.1686
+2026-08-03 17:25:27 - __main__ - INFO -   Optimizer step 692: lr = 0.00000980, grad_norm = 0.843750
+2026-08-03 17:25:28 - __main__ - INFO -   Batch 265: loss = 0.3438
+2026-08-03 17:25:28 - __main__ - INFO -   Optimizer step 693: lr = 0.00000973, grad_norm = 0.863281
+2026-08-03 17:25:29 - __main__ - INFO -   Batch 270: loss = 0.3398
+2026-08-03 17:25:30 - __main__ - INFO -   Optimizer step 694: lr = 0.00000965, grad_norm = 0.925781
+2026-08-03 17:25:31 - __main__ - INFO -   Batch 275: loss = 0.2810
+2026-08-03 17:25:31 - __main__ - INFO -   Optimizer step 695: lr = 0.00000958, grad_norm = 0.925781
+2026-08-03 17:25:32 - __main__ - INFO -   Optimizer step 696: lr = 0.00000951, grad_norm = 0.988281
+2026-08-03 17:25:32 - __main__ - INFO -   Batch 280: loss = 0.1247
+2026-08-03 17:25:33 - __main__ - INFO -   Optimizer step 697: lr = 0.00000943, grad_norm = 0.933594
+2026-08-03 17:25:34 - __main__ - INFO -   Batch 285: loss = 0.1362
+2026-08-03 17:25:35 - __main__ - INFO -   Optimizer step 698: lr = 0.00000936, grad_norm = 0.886719
+2026-08-03 17:25:35 - __main__ - INFO -   Batch 290: loss = 0.1628
+2026-08-03 17:25:36 - __main__ - INFO -   Optimizer step 699: lr = 0.00000929, grad_norm = 1.031250
+2026-08-03 17:25:37 - __main__ - INFO -   Batch 295: loss = 0.5347
+2026-08-03 17:25:37 - __main__ - INFO -   Optimizer step 700: lr = 0.00000922, grad_norm = 0.917969
+2026-08-03 17:25:38 - __main__ - INFO -   Optimizer step 701: lr = 0.00000914, grad_norm = 0.972656
+2026-08-03 17:25:38 - __main__ - INFO -   Batch 300: loss = 0.2889
+2026-08-03 17:25:39 - __main__ - INFO -   Optimizer step 702: lr = 0.00000907, grad_norm = 0.902344
+2026-08-03 17:25:40 - __main__ - INFO -   Batch 305: loss = 0.2714
+2026-08-03 17:25:41 - __main__ - INFO -   Optimizer step 703: lr = 0.00000900, grad_norm = 0.988281
+2026-08-03 17:25:41 - __main__ - INFO -   Batch 310: loss = 0.3722
+2026-08-03 17:25:42 - __main__ - INFO -   Optimizer step 704: lr = 0.00000893, grad_norm = 1.093750
+2026-08-03 17:25:43 - __main__ - INFO -   Batch 315: loss = 0.4153
+2026-08-03 17:25:43 - __main__ - INFO -   Optimizer step 705: lr = 0.00000886, grad_norm = 1.101562
+2026-08-03 17:25:44 - __main__ - INFO -   Optimizer step 706: lr = 0.00000879, grad_norm = 1.000000
+2026-08-03 17:25:44 - __main__ - INFO -   Batch 320: loss = 0.3497
+2026-08-03 17:25:46 - __main__ - INFO -   Optimizer step 707: lr = 0.00000872, grad_norm = 0.890625
+2026-08-03 17:25:46 - __main__ - INFO -   Batch 325: loss = 0.2820
+2026-08-03 17:25:47 - __main__ - INFO -   Optimizer step 708: lr = 0.00000865, grad_norm = 0.933594
+2026-08-03 17:25:47 - __main__ - INFO -   Batch 330: loss = 0.2788
+2026-08-03 17:25:48 - __main__ - INFO -   Optimizer step 709: lr = 0.00000858, grad_norm = 0.988281
+2026-08-03 17:25:49 - __main__ - INFO -   Batch 335: loss = 0.3073
+2026-08-03 17:25:49 - __main__ - INFO -   Optimizer step 710: lr = 0.00000851, grad_norm = 0.976562
+2026-08-03 17:25:50 - __main__ - INFO -   Optimizer step 711: lr = 0.00000844, grad_norm = 0.941406
+2026-08-03 17:25:50 - __main__ - INFO -   Batch 340: loss = 0.2501
+2026-08-03 17:25:52 - __main__ - INFO -   Optimizer step 712: lr = 0.00000837, grad_norm = 1.070312
+2026-08-03 17:25:52 - __main__ - INFO -   Batch 345: loss = 0.2280
+2026-08-03 17:25:53 - __main__ - INFO -   Optimizer step 713: lr = 0.00000830, grad_norm = 0.843750
+2026-08-03 17:25:53 - __main__ - INFO -   Batch 350: loss = 0.3782
+2026-08-03 17:25:54 - __main__ - INFO -   Optimizer step 714: lr = 0.00000823, grad_norm = 0.894531
+2026-08-03 17:25:55 - __main__ - INFO -   Batch 355: loss = 0.1675
+2026-08-03 17:25:55 - __main__ - INFO -   Optimizer step 715: lr = 0.00000816, grad_norm = 0.886719
+2026-08-03 17:25:56 - __main__ - INFO -   Optimizer step 716: lr = 0.00000809, grad_norm = 0.957031
+2026-08-03 17:25:56 - __main__ - INFO -   Batch 360: loss = 0.4722
+2026-08-03 17:25:58 - __main__ - INFO -   Optimizer step 717: lr = 0.00000802, grad_norm = 0.898438
+2026-08-03 17:25:58 - __main__ - INFO -   Batch 365: loss = 0.1390
+2026-08-03 17:25:59 - __main__ - INFO -   Optimizer step 718: lr = 0.00000796, grad_norm = 0.902344
+2026-08-03 17:25:59 - __main__ - INFO -   Batch 370: loss = 0.1760
+2026-08-03 17:26:00 - __main__ - INFO -   Optimizer step 719: lr = 0.00000789, grad_norm = 0.777344
+2026-08-03 17:26:01 - __main__ - INFO -   Batch 375: loss = 0.6504
+2026-08-03 17:26:01 - __main__ - INFO -   Optimizer step 720: lr = 0.00000782, grad_norm = 1.117188
+2026-08-03 17:26:02 - __main__ - INFO -   Optimizer step 721: lr = 0.00000775, grad_norm = 0.753906
+2026-08-03 17:26:03 - __main__ - INFO -   Batch 380: loss = 0.1071
+2026-08-03 17:26:04 - __main__ - INFO -   Optimizer step 722: lr = 0.00000769, grad_norm = 0.828125
+2026-08-03 17:26:04 - __main__ - INFO -   Batch 385: loss = 0.2071
+2026-08-03 17:26:05 - __main__ - INFO -   Optimizer step 723: lr = 0.00000762, grad_norm = 0.824219
+2026-08-03 17:26:06 - __main__ - INFO -   Batch 390: loss = 0.4472
+2026-08-03 17:26:06 - __main__ - INFO -   Optimizer step 724: lr = 0.00000755, grad_norm = 0.945312
+2026-08-03 17:26:07 - __main__ - INFO -   Batch 395: loss = 0.3081
+2026-08-03 17:26:07 - __main__ - INFO -   Optimizer step 725: lr = 0.00000749, grad_norm = 1.007812
+2026-08-03 17:26:09 - __main__ - INFO -   Optimizer step 726: lr = 0.00000742, grad_norm = 0.875000
+2026-08-03 17:26:09 - __main__ - INFO -   Batch 400: loss = 0.5003
+2026-08-03 17:26:10 - __main__ - INFO -   Optimizer step 727: lr = 0.00000736, grad_norm = 0.761719
+2026-08-03 17:26:11 - __main__ - INFO -   Batch 405: loss = 0.1739
+2026-08-03 17:26:13 - __main__ - INFO -   Optimizer step 728: lr = 0.00000729, grad_norm = 0.781250
+2026-08-03 17:26:15 - __main__ - INFO -   Batch 410: loss = 0.6384
+2026-08-03 17:26:17 - __main__ - INFO -   Optimizer step 729: lr = 0.00000722, grad_norm = 1.023438
+2026-08-03 17:26:20 - __main__ - INFO -   Batch 415: loss = 0.3448
+2026-08-03 17:26:20 - __main__ - INFO -   Optimizer step 730: lr = 0.00000716, grad_norm = 0.847656
+2026-08-03 17:26:23 - __main__ - INFO -   Optimizer step 731: lr = 0.00000709, grad_norm = 0.777344
+2026-08-03 17:26:23 - __main__ - INFO -   Batch 420: loss = 0.1131
+2026-08-03 17:26:26 - __main__ - INFO -   Optimizer step 732: lr = 0.00000703, grad_norm = 0.996094
+2026-08-03 17:26:27 - __main__ - INFO -   Batch 425: loss = 0.1901
+2026-08-03 17:26:29 - __main__ - INFO -   Optimizer step 733: lr = 0.00000696, grad_norm = 0.875000
+2026-08-03 17:26:30 - __main__ - INFO -   Batch 430: loss = 0.2104
+2026-08-03 17:26:31 - __main__ - INFO -   Optimizer step 734: lr = 0.00000690, grad_norm = 0.980469
+2026-08-03 17:26:32 - __main__ - INFO -   Batch 435: loss = 0.1900
+2026-08-03 17:26:32 - __main__ - INFO -   Optimizer step 735: lr = 0.00000684, grad_norm = 0.832031
+2026-08-03 17:26:33 - __main__ - INFO -   Optimizer step 736: lr = 0.00000677, grad_norm = 0.882812
+2026-08-03 17:26:34 - __main__ - INFO -   Batch 440: loss = 0.2320
+2026-08-03 17:26:35 - __main__ - INFO -   Optimizer step 737: lr = 0.00000671, grad_norm = 1.062500
+2026-08-03 17:26:35 - __main__ - INFO -   Batch 445: loss = 0.3522
+2026-08-03 17:26:37 - __main__ - INFO -   Optimizer step 738: lr = 0.00000665, grad_norm = 1.015625
+2026-08-03 17:26:37 - __main__ - INFO -   Batch 450: loss = 0.2473
+2026-08-03 17:26:38 - __main__ - INFO -   Optimizer step 739: lr = 0.00000658, grad_norm = 0.953125
+2026-08-03 17:26:39 - __main__ - INFO -   Batch 455: loss = 0.3307
+2026-08-03 17:26:39 - __main__ - INFO -   Optimizer step 740: lr = 0.00000652, grad_norm = 0.949219
+2026-08-03 17:26:41 - __main__ - INFO -   Optimizer step 741: lr = 0.00000646, grad_norm = 0.765625
+2026-08-03 17:26:41 - __main__ - INFO -   Batch 460: loss = 0.3846
+2026-08-03 17:26:42 - __main__ - INFO -   Optimizer step 742: lr = 0.00000640, grad_norm = 0.773438
+2026-08-03 17:26:43 - __main__ - INFO -   Batch 465: loss = 0.5348
+2026-08-03 17:26:43 - __main__ - INFO -   Optimizer step 743: lr = 0.00000633, grad_norm = 0.984375
+2026-08-03 17:26:44 - __main__ - INFO -   Batch 470: loss = 0.4553
+2026-08-03 17:26:45 - __main__ - INFO -   Optimizer step 744: lr = 0.00000627, grad_norm = 1.000000
+2026-08-03 17:26:46 - __main__ - INFO -   Batch 475: loss = 0.1725
+2026-08-03 17:26:46 - __main__ - INFO -   Optimizer step 745: lr = 0.00000621, grad_norm = 0.785156
+2026-08-03 17:26:47 - __main__ - INFO -   Optimizer step 746: lr = 0.00000615, grad_norm = 0.906250
+2026-08-03 17:26:47 - __main__ - INFO -   Batch 480: loss = 0.1610
+2026-08-03 17:26:48 - __main__ - INFO -   Optimizer step 747: lr = 0.00000609, grad_norm = 0.925781
+2026-08-03 17:26:49 - __main__ - INFO -   Batch 485: loss = 0.2649
+2026-08-03 17:26:50 - __main__ - INFO -   Optimizer step 748: lr = 0.00000603, grad_norm = 1.007812
+2026-08-03 17:26:50 - __main__ - INFO -   Batch 490: loss = 0.4302
+2026-08-03 17:26:51 - __main__ - INFO -   Optimizer step 749: lr = 0.00000597, grad_norm = 0.699219
+2026-08-03 17:26:52 - __main__ - INFO -   Batch 495: loss = 0.2638
+2026-08-03 17:26:52 - __main__ - INFO -   Optimizer step 750: lr = 0.00000591, grad_norm = 0.996094
+2026-08-03 17:26:53 - __main__ - INFO -   Optimizer step 751: lr = 0.00000585, grad_norm = 0.835938
+2026-08-03 17:26:53 - __main__ - INFO -   Batch 500: loss = 0.2701
+2026-08-03 17:26:54 - __main__ - INFO -   Optimizer step 752: lr = 0.00000579, grad_norm = 1.031250
+2026-08-03 17:26:55 - __main__ - INFO -   Batch 505: loss = 0.2309
+2026-08-03 17:26:56 - __main__ - INFO -   Optimizer step 753: lr = 0.00000573, grad_norm = 0.937500
+2026-08-03 17:26:56 - __main__ - INFO -   Batch 510: loss = 0.5529
+2026-08-03 17:26:57 - __main__ - INFO -   Optimizer step 754: lr = 0.00000567, grad_norm = 0.796875
+2026-08-03 17:26:58 - __main__ - INFO -   Batch 515: loss = 0.2981
+2026-08-03 17:26:58 - __main__ - INFO -   Optimizer step 755: lr = 0.00000561, grad_norm = 1.054688
+2026-08-03 17:26:59 - __main__ - INFO -   Optimizer step 756: lr = 0.00000555, grad_norm = 0.953125
+2026-08-03 17:26:59 - __main__ - INFO -   Batch 520: loss = 0.2654
+2026-08-03 17:27:01 - __main__ - INFO -   Optimizer step 757: lr = 0.00000550, grad_norm = 0.750000
+2026-08-03 17:27:01 - __main__ - INFO -   Batch 525: loss = 0.1039
+2026-08-03 17:27:02 - __main__ - INFO -   Optimizer step 758: lr = 0.00000544, grad_norm = 0.718750
+2026-08-03 17:27:02 - __main__ - INFO -   Batch 530: loss = 0.3243
+2026-08-03 17:27:03 - __main__ - INFO -   Optimizer step 759: lr = 0.00000538, grad_norm = 0.953125
+2026-08-03 17:27:04 - __main__ - INFO -   Batch 535: loss = 0.3115
+2026-08-03 17:27:04 - __main__ - INFO -   Optimizer step 760: lr = 0.00000532, grad_norm = 0.835938
+2026-08-03 17:27:05 - __main__ - INFO -   Optimizer step 761: lr = 0.00000527, grad_norm = 0.992188
+2026-08-03 17:27:05 - __main__ - INFO -   Batch 540: loss = 0.2558
+2026-08-03 17:27:07 - __main__ - INFO -   Optimizer step 762: lr = 0.00000521, grad_norm = 0.859375
+2026-08-03 17:27:07 - __main__ - INFO -   Batch 545: loss = 0.2854
+2026-08-03 17:27:08 - __main__ - INFO -   Optimizer step 763: lr = 0.00000515, grad_norm = 0.968750
+2026-08-03 17:27:08 - __main__ - INFO -   Batch 550: loss = 0.2594
+2026-08-03 17:27:09 - __main__ - INFO -   Optimizer step 764: lr = 0.00000510, grad_norm = 0.898438
+2026-08-03 17:27:10 - __main__ - INFO -   Batch 555: loss = 0.1375
+2026-08-03 17:27:10 - __main__ - INFO -   Optimizer step 765: lr = 0.00000504, grad_norm = 0.667969
+2026-08-03 17:27:11 - __main__ - INFO -   Optimizer step 766: lr = 0.00000498, grad_norm = 0.902344
+2026-08-03 17:27:12 - __main__ - INFO -   Batch 560: loss = 0.2560
+2026-08-03 17:27:13 - __main__ - INFO -   Optimizer step 767: lr = 0.00000493, grad_norm = 0.863281
+2026-08-03 17:27:13 - __main__ - INFO -   Batch 565: loss = 0.1225
+2026-08-03 17:27:14 - __main__ - INFO -   Optimizer step 768: lr = 0.00000487, grad_norm = 0.976562
+2026-08-03 17:27:15 - __main__ - INFO -   Batch 570: loss = 0.2429
+2026-08-03 17:27:15 - __main__ - INFO -   Optimizer step 769: lr = 0.00000482, grad_norm = 1.062500
+2026-08-03 17:27:16 - __main__ - INFO -   Batch 575: loss = 0.2368
+2026-08-03 17:27:16 - __main__ - INFO -   Optimizer step 770: lr = 0.00000476, grad_norm = 1.007812
+2026-08-03 17:27:18 - __main__ - INFO -   Optimizer step 771: lr = 0.00000471, grad_norm = 1.046875
+2026-08-03 17:27:18 - __main__ - INFO -   Batch 580: loss = 0.3675
+2026-08-03 17:27:19 - __main__ - INFO -   Optimizer step 772: lr = 0.00000466, grad_norm = 0.882812
+2026-08-03 17:27:19 - __main__ - INFO -   Batch 585: loss = 0.6430
+2026-08-03 17:27:20 - __main__ - INFO -   Optimizer step 773: lr = 0.00000460, grad_norm = 0.945312
+2026-08-03 17:27:21 - __main__ - INFO -   Batch 590: loss = 0.5394
+2026-08-03 17:27:21 - __main__ - INFO -   Optimizer step 774: lr = 0.00000455, grad_norm = 1.015625
+2026-08-03 17:27:22 - __main__ - INFO -   Batch 595: loss = 0.1309
+2026-08-03 17:27:22 - __main__ - INFO -   Optimizer step 775: lr = 0.00000449, grad_norm = 0.996094
+2026-08-03 17:27:24 - __main__ - INFO -   Optimizer step 776: lr = 0.00000444, grad_norm = 0.898438
+2026-08-03 17:27:24 - __main__ - INFO -   Batch 600: loss = 0.2554
+2026-08-03 17:27:25 - __main__ - INFO -   Optimizer step 777: lr = 0.00000439, grad_norm = 1.195312
+2026-08-03 17:27:25 - __main__ - INFO -   Batch 605: loss = 0.1994
+2026-08-03 17:27:26 - __main__ - INFO -   Optimizer step 778: lr = 0.00000434, grad_norm = 1.046875
+2026-08-03 17:27:27 - __main__ - INFO -   Batch 610: loss = 0.2196
+2026-08-03 17:27:27 - __main__ - INFO -   Optimizer step 779: lr = 0.00000428, grad_norm = 0.851562
+2026-08-03 17:27:28 - __main__ - INFO -   Batch 615: loss = 0.3393
+2026-08-03 17:27:29 - __main__ - INFO -   Optimizer step 780: lr = 0.00000423, grad_norm = 1.039062
+2026-08-03 17:27:30 - __main__ - INFO -   Optimizer step 781: lr = 0.00000418, grad_norm = 0.914062
+2026-08-03 17:27:30 - __main__ - INFO -   Batch 620: loss = 0.4430
+2026-08-03 17:27:31 - __main__ - INFO -   Optimizer step 782: lr = 0.00000413, grad_norm = 0.925781
+2026-08-03 17:27:31 - __main__ - INFO -   Batch 625: loss = 0.1304
+2026-08-03 17:27:32 - __main__ - INFO -   Optimizer step 783: lr = 0.00000408, grad_norm = 0.785156
+2026-08-03 17:27:33 - __main__ - INFO -   Batch 630: loss = 0.2083
+2026-08-03 17:27:33 - __main__ - INFO -   Optimizer step 784: lr = 0.00000403, grad_norm = 0.941406
+2026-08-03 17:27:34 - __main__ - INFO -   Batch 635: loss = 0.1464
+2026-08-03 17:27:35 - __main__ - INFO -   Optimizer step 785: lr = 0.00000398, grad_norm = 1.015625
+2026-08-03 17:27:36 - __main__ - INFO -   Optimizer step 786: lr = 0.00000393, grad_norm = 0.996094
+2026-08-03 17:27:36 - __main__ - INFO -   Batch 640: loss = 0.3127
+2026-08-03 17:27:37 - __main__ - INFO -   Optimizer step 787: lr = 0.00000388, grad_norm = 0.808594
+2026-08-03 17:27:37 - __main__ - INFO -   Batch 645: loss = 0.1987
+2026-08-03 17:27:38 - __main__ - INFO -   Optimizer step 788: lr = 0.00000383, grad_norm = 0.937500
+2026-08-03 17:27:39 - __main__ - INFO -   Batch 650: loss = 0.3148
+2026-08-03 17:27:39 - __main__ - INFO -   Optimizer step 789: lr = 0.00000378, grad_norm = 1.265625
+2026-08-03 17:27:40 - __main__ - INFO -   Batch 655: loss = 0.2454
+2026-08-03 17:27:41 - __main__ - INFO -   Optimizer step 790: lr = 0.00000373, grad_norm = 1.023438
+2026-08-03 17:27:42 - __main__ - INFO -   Optimizer step 791: lr = 0.00000368, grad_norm = 1.039062
+2026-08-03 17:27:42 - __main__ - INFO -   Batch 660: loss = 0.1884
+2026-08-03 17:27:43 - __main__ - INFO -   Optimizer step 792: lr = 0.00000363, grad_norm = 0.949219
+2026-08-03 17:27:43 - __main__ - INFO -   Batch 665: loss = 0.2092
+2026-08-03 17:27:44 - __main__ - INFO -   Optimizer step 793: lr = 0.00000359, grad_norm = 1.031250
+2026-08-03 17:27:45 - __main__ - INFO -   Batch 670: loss = 0.2075
+2026-08-03 17:27:46 - __main__ - INFO -   Optimizer step 794: lr = 0.00000354, grad_norm = 0.945312
+2026-08-03 17:27:46 - __main__ - INFO -   Batch 675: loss = 0.1785
+2026-08-03 17:27:47 - __main__ - INFO -   Optimizer step 795: lr = 0.00000349, grad_norm = 0.859375
+2026-08-03 17:27:48 - __main__ - INFO -   Optimizer step 796: lr = 0.00000344, grad_norm = 0.890625
+2026-08-03 17:27:48 - __main__ - INFO -   Batch 680: loss = 0.2777
+2026-08-03 17:27:49 - __main__ - INFO -   Optimizer step 797: lr = 0.00000340, grad_norm = 1.125000
+2026-08-03 17:27:49 - __main__ - INFO -   Batch 685: loss = 0.2400
+2026-08-03 17:27:50 - __main__ - INFO -   Optimizer step 798: lr = 0.00000335, grad_norm = 0.886719
+2026-08-03 17:27:51 - __main__ - INFO -   Batch 690: loss = 0.4267
+2026-08-03 17:27:52 - __main__ - INFO -   Optimizer step 799: lr = 0.00000330, grad_norm = 0.937500
+2026-08-03 17:27:52 - __main__ - INFO -   Batch 695: loss = 0.2058
+2026-08-03 17:27:53 - __main__ - INFO -   Optimizer step 800: lr = 0.00000326, grad_norm = 1.046875
+2026-08-03 17:27:54 - __main__ - INFO -   Optimizer step 801: lr = 0.00000321, grad_norm = 0.945312
+2026-08-03 17:27:54 - __main__ - INFO -   Batch 700: loss = 0.2816
+2026-08-03 17:27:55 - __main__ - INFO -   Optimizer step 802: lr = 0.00000317, grad_norm = 1.007812
+2026-08-03 17:27:56 - __main__ - INFO -   Batch 705: loss = 0.2076
+2026-08-03 17:27:56 - __main__ - INFO -   Optimizer step 803: lr = 0.00000312, grad_norm = 0.851562
+2026-08-03 17:27:57 - __main__ - INFO -   Batch 710: loss = 0.2372
+2026-08-03 17:27:58 - __main__ - INFO -   Optimizer step 804: lr = 0.00000308, grad_norm = 0.902344
+2026-08-03 17:27:59 - __main__ - INFO -   Batch 715: loss = 0.1462
+2026-08-03 17:27:59 - __main__ - INFO -   Optimizer step 805: lr = 0.00000303, grad_norm = 1.062500
+2026-08-03 17:28:00 - __main__ - INFO -   Optimizer step 806: lr = 0.00000299, grad_norm = 0.960938
+2026-08-03 17:28:00 - __main__ - INFO -   Batch 720: loss = 0.2089
+2026-08-03 17:28:01 - __main__ - INFO -   Optimizer step 807: lr = 0.00000294, grad_norm = 0.808594
+2026-08-03 17:28:02 - __main__ - INFO -   Batch 725: loss = 0.3260
+2026-08-03 17:28:03 - __main__ - INFO -   Optimizer step 808: lr = 0.00000290, grad_norm = 0.914062
+2026-08-03 17:28:03 - __main__ - INFO -   Batch 730: loss = 0.3938
+2026-08-03 17:28:04 - __main__ - INFO -   Optimizer step 809: lr = 0.00000286, grad_norm = 0.843750
+2026-08-03 17:28:05 - __main__ - INFO -   Batch 735: loss = 0.5807
+2026-08-03 17:28:05 - __main__ - INFO -   Optimizer step 810: lr = 0.00000281, grad_norm = 0.984375
+2026-08-03 17:28:06 - __main__ - INFO -   Optimizer step 811: lr = 0.00000277, grad_norm = 1.085938
+2026-08-03 17:28:06 - __main__ - INFO -   Batch 740: loss = 0.2891
+2026-08-03 17:28:07 - __main__ - INFO -   Optimizer step 812: lr = 0.00000273, grad_norm = 0.898438
+2026-08-03 17:28:08 - __main__ - INFO -   Batch 745: loss = 0.1000
+2026-08-03 17:28:09 - __main__ - INFO -   Optimizer step 813: lr = 0.00000269, grad_norm = 0.917969
+2026-08-03 17:28:09 - __main__ - INFO -   Batch 750: loss = 0.0835
+2026-08-03 17:28:10 - __main__ - INFO -   Optimizer step 814: lr = 0.00000265, grad_norm = 0.855469
+2026-08-03 17:28:11 - __main__ - INFO -   Batch 755: loss = 0.1799
+2026-08-03 17:28:11 - __main__ - INFO -   Optimizer step 815: lr = 0.00000260, grad_norm = 0.953125
+2026-08-03 17:28:12 - __main__ - INFO -   Optimizer step 816: lr = 0.00000256, grad_norm = 1.007812
+2026-08-03 17:28:12 - __main__ - INFO -   Batch 760: loss = 0.1548
+2026-08-03 17:28:13 - __main__ - INFO -   Optimizer step 817: lr = 0.00000252, grad_norm = 0.808594
+2026-08-03 17:28:14 - __main__ - INFO -   Batch 765: loss = 0.2256
+2026-08-03 17:28:15 - __main__ - INFO -   Optimizer step 818: lr = 0.00000248, grad_norm = 1.109375
+2026-08-03 17:28:15 - __main__ - INFO -   Batch 770: loss = 0.5306
+2026-08-03 17:28:16 - __main__ - INFO -   Optimizer step 819: lr = 0.00000244, grad_norm = 0.855469
+2026-08-03 17:28:17 - __main__ - INFO -   Batch 775: loss = 0.2353
+2026-08-03 17:28:17 - __main__ - INFO -   Optimizer step 820: lr = 0.00000240, grad_norm = 0.886719
+2026-08-03 17:28:18 - __main__ - INFO -   Optimizer step 821: lr = 0.00000236, grad_norm = 0.828125
+2026-08-03 17:28:18 - __main__ - INFO -   Batch 780: loss = 0.1660
+2026-08-03 17:28:20 - __main__ - INFO -   Optimizer step 822: lr = 0.00000232, grad_norm = 1.007812
+2026-08-03 17:28:20 - __main__ - INFO -   Batch 785: loss = 0.1924
+2026-08-03 17:28:21 - __main__ - INFO -   Optimizer step 823: lr = 0.00000228, grad_norm = 1.031250
+2026-08-03 17:28:21 - __main__ - INFO -   Batch 790: loss = 0.2988
+2026-08-03 17:28:22 - __main__ - INFO -   Optimizer step 824: lr = 0.00000225, grad_norm = 1.015625
+2026-08-03 17:28:23 - __main__ - INFO -   Batch 795: loss = 0.0842
+2026-08-03 17:28:23 - __main__ - INFO -   Optimizer step 825: lr = 0.00000221, grad_norm = 0.855469
+2026-08-03 17:28:24 - __main__ - INFO -   Optimizer step 826: lr = 0.00000217, grad_norm = 0.851562
+2026-08-03 17:28:24 - __main__ - INFO -   Batch 800: loss = 0.4127
+2026-08-03 17:28:26 - __main__ - INFO -   Optimizer step 827: lr = 0.00000213, grad_norm = 0.921875
+2026-08-03 17:28:26 - __main__ - INFO -   Batch 805: loss = 0.1942
+2026-08-03 17:28:27 - __main__ - INFO -   Optimizer step 828: lr = 0.00000209, grad_norm = 0.957031
+2026-08-03 17:28:27 - __main__ - INFO -   Batch 810: loss = 0.1315
+2026-08-03 17:28:28 - __main__ - INFO -   Optimizer step 829: lr = 0.00000206, grad_norm = 0.875000
+2026-08-03 17:28:29 - __main__ - INFO -   Batch 815: loss = 0.4551
+2026-08-03 17:28:29 - __main__ - INFO -   Optimizer step 830: lr = 0.00000202, grad_norm = 0.671875
+2026-08-03 17:28:30 - __main__ - INFO -   Optimizer step 831: lr = 0.00000198, grad_norm = 0.968750
+2026-08-03 17:28:31 - __main__ - INFO -   Batch 820: loss = 0.4368
+2026-08-03 17:28:32 - __main__ - INFO -   Optimizer step 832: lr = 0.00000195, grad_norm = 1.117188
+2026-08-03 17:28:32 - __main__ - INFO -   Batch 825: loss = 0.1876
+2026-08-03 17:28:33 - __main__ - INFO -   Optimizer step 833: lr = 0.00000191, grad_norm = 1.039062
+2026-08-03 17:28:33 - __main__ - INFO -   Batch 830: loss = 0.4308
+2026-08-03 17:28:34 - __main__ - INFO -   Optimizer step 834: lr = 0.00000188, grad_norm = 0.972656
+2026-08-03 17:28:35 - __main__ - INFO -   Batch 835: loss = 0.1986
+2026-08-03 17:28:35 - __main__ - INFO -   Optimizer step 835: lr = 0.00000184, grad_norm = 1.203125
+2026-08-03 17:28:37 - __main__ - INFO -   Optimizer step 836: lr = 0.00000181, grad_norm = 0.906250
+2026-08-03 17:28:37 - __main__ - INFO -   Batch 840: loss = 0.4044
+2026-08-03 17:28:38 - __main__ - INFO -   Optimizer step 837: lr = 0.00000177, grad_norm = 0.878906
+2026-08-03 17:28:38 - __main__ - INFO -   Batch 845: loss = 0.3806
+2026-08-03 17:28:39 - __main__ - INFO -   Optimizer step 838: lr = 0.00000174, grad_norm = 1.054688
+2026-08-03 17:28:40 - __main__ - INFO -   Batch 850: loss = 0.5224
+2026-08-03 17:28:40 - __main__ - INFO -   Optimizer step 839: lr = 0.00000170, grad_norm = 1.007812
+2026-08-03 17:28:41 - __main__ - INFO -   Batch 855: loss = 0.1793
+2026-08-03 17:28:41 - __main__ - INFO -   Optimizer step 840: lr = 0.00000167, grad_norm = 0.789062
+2026-08-03 17:28:43 - __main__ - INFO -   Optimizer step 841: lr = 0.00000164, grad_norm = 0.914062
+2026-08-03 17:28:43 - __main__ - INFO -   Batch 860: loss = 0.4601
+2026-08-03 17:28:44 - __main__ - INFO -   Optimizer step 842: lr = 0.00000160, grad_norm = 0.667969
+2026-08-03 17:28:44 - __main__ - INFO -   Batch 865: loss = 0.1801
+2026-08-03 17:28:45 - __main__ - INFO -   Optimizer step 843: lr = 0.00000157, grad_norm = 0.832031
+2026-08-03 17:28:46 - __main__ - INFO -   Batch 870: loss = 0.2653
+2026-08-03 17:28:46 - __main__ - INFO -   Optimizer step 844: lr = 0.00000154, grad_norm = 1.062500
+2026-08-03 17:28:47 - __main__ - INFO -   Batch 875: loss = 0.2870
+2026-08-03 17:28:47 - __main__ - INFO -   Optimizer step 845: lr = 0.00000151, grad_norm = 0.925781
+2026-08-03 17:28:49 - __main__ - INFO -   Optimizer step 846: lr = 0.00000148, grad_norm = 1.031250
+2026-08-03 17:28:49 - __main__ - INFO -   Batch 880: loss = 0.2453
+2026-08-03 17:28:50 - __main__ - INFO -   Optimizer step 847: lr = 0.00000144, grad_norm = 0.804688
+2026-08-03 17:28:50 - __main__ - INFO -   Batch 885: loss = 0.3660
+2026-08-03 17:28:51 - __main__ - INFO -   Optimizer step 848: lr = 0.00000141, grad_norm = 0.824219
+2026-08-03 17:28:52 - __main__ - INFO -   Batch 890: loss = 0.4397
+2026-08-03 17:28:52 - __main__ - INFO -   Optimizer step 849: lr = 0.00000138, grad_norm = 0.968750
+2026-08-03 17:28:53 - __main__ - INFO -   Batch 895: loss = 0.3613
+2026-08-03 17:28:54 - __main__ - INFO -   Optimizer step 850: lr = 0.00000135, grad_norm = 0.988281
+2026-08-03 17:28:55 - __main__ - INFO -   Optimizer step 851: lr = 0.00000132, grad_norm = 0.925781
+2026-08-03 17:28:55 - __main__ - INFO -   Batch 900: loss = 0.0994
+2026-08-03 17:28:56 - __main__ - INFO -   Optimizer step 852: lr = 0.00000129, grad_norm = 0.871094
+2026-08-03 17:28:56 - __main__ - INFO -   Batch 905: loss = 0.2406
+2026-08-03 17:28:57 - __main__ - INFO -   Optimizer step 853: lr = 0.00000126, grad_norm = 0.929688
+2026-08-03 17:28:58 - __main__ - INFO -   Batch 910: loss = 0.6443
+2026-08-03 17:28:58 - __main__ - INFO -   Optimizer step 854: lr = 0.00000124, grad_norm = 0.968750
+2026-08-03 17:28:59 - __main__ - INFO -   Batch 915: loss = 0.4450
+2026-08-03 17:29:00 - __main__ - INFO -   Optimizer step 855: lr = 0.00000121, grad_norm = 0.773438
+2026-08-03 17:29:01 - __main__ - INFO -   Optimizer step 856: lr = 0.00000118, grad_norm = 0.933594
+2026-08-03 17:29:01 - __main__ - INFO -   Batch 920: loss = 0.2531
+2026-08-03 17:29:02 - __main__ - INFO -   Optimizer step 857: lr = 0.00000115, grad_norm = 0.914062
+2026-08-03 17:29:02 - __main__ - INFO -   Batch 925: loss = 0.2411
+2026-08-03 17:29:03 - __main__ - INFO -   Optimizer step 858: lr = 0.00000112, grad_norm = 0.894531
+2026-08-03 17:29:04 - __main__ - INFO -   Batch 930: loss = 0.2079
+2026-08-03 17:29:04 - __main__ - INFO -   Optimizer step 859: lr = 0.00000110, grad_norm = 1.250000
+2026-08-03 17:29:05 - __main__ - INFO -   Batch 935: loss = 0.1309
+2026-08-03 17:29:06 - __main__ - INFO -   Optimizer step 860: lr = 0.00000107, grad_norm = 0.964844
+2026-08-03 17:29:07 - __main__ - INFO -   Optimizer step 861: lr = 0.00000104, grad_norm = 0.851562
+2026-08-03 17:29:07 - __main__ - INFO -   Batch 940: loss = 0.2714
+2026-08-03 17:29:08 - __main__ - INFO -   Optimizer step 862: lr = 0.00000102, grad_norm = 1.085938
+2026-08-03 17:29:08 - __main__ - INFO -   Batch 945: loss = 0.3538
+2026-08-03 17:29:09 - __main__ - INFO -   Optimizer step 863: lr = 0.00000099, grad_norm = 1.164062
+2026-08-03 17:29:10 - __main__ - INFO -   Batch 950: loss = 0.1070
+2026-08-03 17:29:11 - __main__ - INFO -   Optimizer step 864: lr = 0.00000096, grad_norm = 0.859375
+2026-08-03 17:29:11 - __main__ - INFO -   Batch 955: loss = 0.0552
+2026-08-03 17:29:12 - __main__ - INFO -   Optimizer step 865: lr = 0.00000094, grad_norm = 0.894531
+2026-08-03 17:29:13 - __main__ - INFO -   Optimizer step 866: lr = 0.00000091, grad_norm = 0.996094
+2026-08-03 17:29:13 - __main__ - INFO -   Batch 960: loss = 0.0943
+2026-08-03 17:29:14 - __main__ - INFO -   Optimizer step 867: lr = 0.00000089, grad_norm = 0.847656
+2026-08-03 17:29:14 - __main__ - INFO -   Batch 965: loss = 0.4823
+2026-08-03 17:29:15 - __main__ - INFO -   Optimizer step 868: lr = 0.00000086, grad_norm = 1.000000
+2026-08-03 17:29:16 - __main__ - INFO -   Batch 970: loss = 0.0727
+2026-08-03 17:29:17 - __main__ - INFO -   Optimizer step 869: lr = 0.00000084, grad_norm = 1.031250
+2026-08-03 17:29:17 - __main__ - INFO -   Batch 975: loss = 0.3049
+2026-08-03 17:29:18 - __main__ - INFO -   Optimizer step 870: lr = 0.00000082, grad_norm = 0.949219
+2026-08-03 17:29:19 - __main__ - INFO -   Optimizer step 871: lr = 0.00000079, grad_norm = 0.937500
+2026-08-03 17:29:19 - __main__ - INFO -   Batch 980: loss = 0.2488
+2026-08-03 17:29:20 - __main__ - INFO -   Optimizer step 872: lr = 0.00000077, grad_norm = 0.832031
+2026-08-03 17:29:21 - __main__ - INFO -   Batch 985: loss = 0.2837
+2026-08-03 17:29:21 - __main__ - INFO -   Optimizer step 873: lr = 0.00000075, grad_norm = 1.109375
+2026-08-03 17:29:22 - __main__ - INFO -   Batch 990: loss = 0.4382
+2026-08-03 17:29:23 - __main__ - INFO -   Optimizer step 874: lr = 0.00000072, grad_norm = 0.847656
+2026-08-03 17:29:24 - __main__ - INFO -   Batch 995: loss = 0.3007
+2026-08-03 17:29:24 - __main__ - INFO -   Optimizer step 875: lr = 0.00000070, grad_norm = 1.039062
+2026-08-03 17:29:25 - __main__ - INFO -   Optimizer step 876: lr = 0.00000068, grad_norm = 0.953125
+2026-08-03 17:29:25 - __main__ - INFO -   Batch 1000: loss = 0.5288
+2026-08-03 17:29:26 - __main__ - INFO -   Optimizer step 877: lr = 0.00000066, grad_norm = 0.847656
+2026-08-03 17:29:27 - __main__ - INFO -   Batch 1005: loss = 0.6547
+2026-08-03 17:29:27 - __main__ - INFO -   Optimizer step 878: lr = 0.00000064, grad_norm = 1.335938
+2026-08-03 17:29:28 - __main__ - INFO -   Batch 1010: loss = 0.7864
+2026-08-03 17:29:29 - __main__ - INFO -   Optimizer step 879: lr = 0.00000062, grad_norm = 1.031250
+2026-08-03 17:29:30 - __main__ - INFO -   Batch 1015: loss = 0.4390
+2026-08-03 17:29:30 - __main__ - INFO -   Optimizer step 880: lr = 0.00000060, grad_norm = 0.781250
+2026-08-03 17:29:31 - __main__ - INFO -   Optimizer step 881: lr = 0.00000058, grad_norm = 0.832031
+2026-08-03 17:29:31 - __main__ - INFO -   Batch 1020: loss = 0.2065
+2026-08-03 17:29:32 - __main__ - INFO -   Optimizer step 882: lr = 0.00000056, grad_norm = 0.917969
+2026-08-03 17:29:33 - __main__ - INFO -   Batch 1025: loss = 0.3267
+2026-08-03 17:29:34 - __main__ - INFO -   Optimizer step 883: lr = 0.00000054, grad_norm = 0.910156
+2026-08-03 17:29:34 - __main__ - INFO -   Batch 1030: loss = 0.1248
+2026-08-03 17:29:35 - __main__ - INFO -   Optimizer step 884: lr = 0.00000052, grad_norm = 0.996094
+2026-08-03 17:29:36 - __main__ - INFO -   Batch 1035: loss = 0.1446
+2026-08-03 17:29:36 - __main__ - INFO -   Optimizer step 885: lr = 0.00000050, grad_norm = 1.023438
+2026-08-03 17:29:37 - __main__ - INFO -   Optimizer step 886: lr = 0.00000048, grad_norm = 0.753906
+2026-08-03 17:29:37 - __main__ - INFO -   Batch 1040: loss = 0.3359
+2026-08-03 17:29:38 - __main__ - INFO -   Optimizer step 887: lr = 0.00000046, grad_norm = 0.992188
+2026-08-03 17:29:39 - __main__ - INFO -   Batch 1045: loss = 0.5958
+2026-08-03 17:29:40 - __main__ - INFO -   Optimizer step 888: lr = 0.00000045, grad_norm = 1.039062
+2026-08-03 17:29:40 - __main__ - INFO -   Batch 1050: loss = 0.6124
+2026-08-03 17:29:41 - __main__ - INFO -   Optimizer step 889: lr = 0.00000043, grad_norm = 0.894531
+2026-08-03 17:29:42 - __main__ - INFO -   Batch 1055: loss = 0.2174
+2026-08-03 17:29:42 - __main__ - INFO -   Optimizer step 890: lr = 0.00000041, grad_norm = 0.824219
+2026-08-03 17:29:43 - __main__ - INFO -   Optimizer step 891: lr = 0.00000040, grad_norm = 0.832031
+2026-08-03 17:29:43 - __main__ - INFO -   Batch 1060: loss = 0.3595
+2026-08-03 17:29:44 - __main__ - INFO -   Optimizer step 892: lr = 0.00000038, grad_norm = 0.789062
+2026-08-03 17:29:45 - __main__ - INFO -   Batch 1065: loss = 0.4217
+2026-08-03 17:29:46 - __main__ - INFO -   Optimizer step 893: lr = 0.00000036, grad_norm = 0.984375
+2026-08-03 17:29:46 - __main__ - INFO -   Batch 1070: loss = 0.1841
+2026-08-03 17:29:47 - __main__ - INFO -   Optimizer step 894: lr = 0.00000035, grad_norm = 0.988281
+2026-08-03 17:29:48 - __main__ - INFO -   Batch 1075: loss = 0.3341
+2026-08-03 17:29:48 - __main__ - INFO -   Optimizer step 895: lr = 0.00000033, grad_norm = 0.953125
+2026-08-03 17:29:49 - __main__ - INFO -   Optimizer step 896: lr = 0.00000032, grad_norm = 0.933594
+2026-08-03 17:29:49 - __main__ - INFO -   Batch 1080: loss = 0.2186
+2026-08-03 17:29:51 - __main__ - INFO -   Optimizer step 897: lr = 0.00000030, grad_norm = 0.835938
+2026-08-03 17:29:51 - __main__ - INFO -   Batch 1085: loss = 0.3556
+2026-08-03 17:29:52 - __main__ - INFO -   Optimizer step 898: lr = 0.00000029, grad_norm = 0.753906
+2026-08-03 17:29:52 - __main__ - INFO -   Batch 1090: loss = 0.3795
+2026-08-03 17:29:53 - __main__ - INFO -   Optimizer step 899: lr = 0.00000028, grad_norm = 1.171875
+2026-08-03 17:29:54 - __main__ - INFO -   Batch 1095: loss = 0.4373
+2026-08-03 17:29:54 - __main__ - INFO -   Optimizer step 900: lr = 0.00000026, grad_norm = 1.132812
+2026-08-03 17:29:55 - __main__ - INFO -   Optimizer step 901: lr = 0.00000025, grad_norm = 0.898438
+2026-08-03 17:29:55 - __main__ - INFO -   Batch 1100: loss = 0.0919
+2026-08-03 17:29:57 - __main__ - INFO -   Optimizer step 902: lr = 0.00000024, grad_norm = 0.945312
+2026-08-03 17:29:57 - __main__ - INFO -   Batch 1105: loss = 0.4440
+2026-08-03 17:29:58 - __main__ - INFO -   Optimizer step 903: lr = 0.00000022, grad_norm = 0.777344
+2026-08-03 17:29:58 - __main__ - INFO -   Batch 1110: loss = 0.3797
+2026-08-03 17:29:59 - __main__ - INFO -   Optimizer step 904: lr = 0.00000021, grad_norm = 0.937500
+2026-08-03 17:30:00 - __main__ - INFO -   Batch 1115: loss = 0.3857
+2026-08-03 17:30:00 - __main__ - INFO -   Optimizer step 905: lr = 0.00000020, grad_norm = 0.929688
+2026-08-03 17:30:01 - __main__ - INFO -   Optimizer step 906: lr = 0.00000019, grad_norm = 0.816406
+2026-08-03 17:30:01 - __main__ - INFO -   Batch 1120: loss = 0.1251
+2026-08-03 17:30:03 - __main__ - INFO -   Optimizer step 907: lr = 0.00000018, grad_norm = 0.968750
+2026-08-03 17:30:03 - __main__ - INFO -   Batch 1125: loss = 0.1587
+2026-08-03 17:30:04 - __main__ - INFO -   Optimizer step 908: lr = 0.00000017, grad_norm = 0.890625
+2026-08-03 17:30:04 - __main__ - INFO -   Batch 1130: loss = 0.4779
+2026-08-03 17:30:05 - __main__ - INFO -   Optimizer step 909: lr = 0.00000015, grad_norm = 1.023438
+2026-08-03 17:30:06 - __main__ - INFO -   Batch 1135: loss = 0.1062
+2026-08-03 17:30:06 - __main__ - INFO -   Optimizer step 910: lr = 0.00000014, grad_norm = 0.773438
+2026-08-03 17:30:08 - __main__ - INFO -   Optimizer step 911: lr = 0.00000014, grad_norm = 0.882812
+2026-08-03 17:30:08 - __main__ - INFO -   Batch 1140: loss = 0.1039
+2026-08-03 17:30:09 - __main__ - INFO -   Optimizer step 912: lr = 0.00000013, grad_norm = 0.921875
+2026-08-03 17:30:09 - __main__ - INFO -   Batch 1145: loss = 0.2124
+2026-08-03 17:30:10 - __main__ - INFO -   Optimizer step 913: lr = 0.00000012, grad_norm = 0.785156
+2026-08-03 17:30:11 - __main__ - INFO -   Batch 1150: loss = 0.3781
+2026-08-03 17:30:11 - __main__ - INFO -   Optimizer step 914: lr = 0.00000011, grad_norm = 0.871094
+2026-08-03 17:30:12 - __main__ - INFO -   Batch 1155: loss = 0.1565
+2026-08-03 17:30:12 - __main__ - INFO -   Optimizer step 915: lr = 0.00000010, grad_norm = 0.839844
+2026-08-03 17:30:14 - __main__ - INFO -   Optimizer step 916: lr = 0.00000009, grad_norm = 0.800781
+2026-08-03 17:30:14 - __main__ - INFO -   Batch 1160: loss = 0.1492
+2026-08-03 17:30:15 - __main__ - INFO -   Optimizer step 917: lr = 0.00000008, grad_norm = 0.859375
+2026-08-03 17:30:15 - __main__ - INFO -   Batch 1165: loss = 0.3183
+2026-08-03 17:30:16 - __main__ - INFO -   Optimizer step 918: lr = 0.00000008, grad_norm = 1.062500
+2026-08-03 17:30:17 - __main__ - INFO -   Batch 1170: loss = 0.1845
+2026-08-03 17:30:17 - __main__ - INFO -   Optimizer step 919: lr = 0.00000007, grad_norm = 0.808594
+2026-08-03 17:30:18 - __main__ - INFO -   Batch 1175: loss = 0.1408
+2026-08-03 17:30:18 - __main__ - INFO -   Optimizer step 920: lr = 0.00000006, grad_norm = 1.054688
+2026-08-03 17:30:20 - __main__ - INFO -   Optimizer step 921: lr = 0.00000006, grad_norm = 0.871094
+2026-08-03 17:30:20 - __main__ - INFO -   Batch 1180: loss = 0.2080
+2026-08-03 17:30:21 - __main__ - INFO -   Optimizer step 922: lr = 0.00000005, grad_norm = 0.839844
+2026-08-03 17:30:21 - __main__ - INFO -   Batch 1185: loss = 0.3111
+2026-08-03 17:30:22 - __main__ - INFO -   Optimizer step 923: lr = 0.00000004, grad_norm = 1.023438
+2026-08-03 17:30:23 - __main__ - INFO -   Batch 1190: loss = 0.4150
+2026-08-03 17:30:23 - __main__ - INFO -   Optimizer step 924: lr = 0.00000004, grad_norm = 0.890625
+2026-08-03 17:30:24 - __main__ - INFO -   Batch 1195: loss = 0.1766
+2026-08-03 17:30:24 - __main__ - INFO -   Optimizer step 925: lr = 0.00000003, grad_norm = 1.062500
+2026-08-03 17:30:26 - __main__ - INFO -   Optimizer step 926: lr = 0.00000003, grad_norm = 1.023438
+2026-08-03 17:30:26 - __main__ - INFO -   Batch 1200: loss = 0.1278
+2026-08-03 17:30:27 - __main__ - INFO -   Optimizer step 927: lr = 0.00000002, grad_norm = 0.785156
+2026-08-03 17:30:27 - __main__ - INFO -   Batch 1205: loss = 0.4259
+2026-08-03 17:30:28 - __main__ - INFO -   Optimizer step 928: lr = 0.00000002, grad_norm = 0.824219
+2026-08-03 17:30:29 - __main__ - INFO -   Batch 1210: loss = 0.1745
+2026-08-03 17:30:29 - __main__ - INFO -   Optimizer step 929: lr = 0.00000002, grad_norm = 0.855469
+2026-08-03 17:30:30 - __main__ - INFO -   Batch 1215: loss = 0.4231
+2026-08-03 17:30:31 - __main__ - INFO -   Optimizer step 930: lr = 0.00000001, grad_norm = 0.878906
+2026-08-03 17:30:32 - __main__ - INFO -   Optimizer step 931: lr = 0.00000001, grad_norm = 0.847656
+2026-08-03 17:30:32 - __main__ - INFO -   Batch 1220: loss = 0.1172
+2026-08-03 17:30:33 - __main__ - INFO -   Optimizer step 932: lr = 0.00000001, grad_norm = 1.140625
+2026-08-03 17:30:33 - __main__ - INFO -   Batch 1225: loss = 0.4718
+2026-08-03 17:30:34 - __main__ - INFO -   Optimizer step 933: lr = 0.00000001, grad_norm = 0.902344
+2026-08-03 17:30:35 - __main__ - INFO -   Batch 1230: loss = 0.4139
+2026-08-03 17:30:35 - __main__ - INFO -   Optimizer step 934: lr = 0.00000000, grad_norm = 0.921875
+2026-08-03 17:30:36 - __main__ - INFO -   Batch 1235: loss = 0.1596
+2026-08-03 17:30:37 - __main__ - INFO -   Optimizer step 935: lr = 0.00000000, grad_norm = 0.832031
+2026-08-03 17:30:38 - __main__ - INFO -   Optimizer step 936: lr = 0.00000000, grad_norm = 0.976562
+2026-08-03 17:30:38 - __main__ - INFO -   Batch 1240: loss = 0.1013
+2026-08-03 17:30:39 - __main__ - INFO -   Optimizer step 937: lr = 0.00000000, grad_norm = 0.878906
+2026-08-03 17:30:39 - __main__ - INFO -   Batch 1245: loss = 0.6278
+2026-08-03 17:30:40 - __main__ - INFO -   Optimizer step 938: lr = 0.00000000, grad_norm = 1.187500
+2026-08-03 17:30:40 - __main__ - INFO -   Optimizer step 939: lr = 0.00000000, grad_norm = 0.546875
+2026-08-03 17:30:41 - __main__ - INFO - Epoch 3 completed - Epoch Loss: 0.3018
+2026-08-03 17:30:41 - __main__ - INFO - 
+======================================================================
+2026-08-03 17:30:41 - __main__ - INFO - Training Complete
+2026-08-03 17:30:41 - __main__ - INFO - ======================================================================
+2026-08-03 17:30:41 - __main__ - INFO - Average loss: 0.3954
+2026-08-03 17:30:41 - __main__ - INFO - Total steps: 3747
+2026-08-03 17:30:41 - __main__ - INFO - Optimizer steps: 939
+2026-08-03 17:30:41 - __main__ - INFO - Training time: 3 epoch(s)
+2026-08-03 17:30:41 - __main__ - INFO - 
+[Post-Training Verification]
+2026-08-03 17:30:41 - __main__ - INFO -   Parameters that were trained: 160
+2026-08-03 17:30:41 - __main__ - INFO - ======================================================================
+
+2026-08-03 17:30:41 - __main__ - INFO - 
+Saving fine-tuned model...
+2026-08-03 17:30:49 - __main__ - INFO - Model and tokenizer saved to /home/edgeai_lab/minseong_results/rsn_tuned_llama2_7b-chat-cb_lr5e-5_20260803_173041
+2026-08-03 17:30:49 - __main__ - INFO - ✓ Gradient hooks cleaned up
+2026-08-03 17:30:49 - __main__ - INFO - 
+======================================================================
+2026-08-03 17:30:49 - __main__ - INFO - SN-Tune Complete!
+2026-08-03 17:30:49 - __main__ - INFO - ======================================================================
+2026-08-03 17:30:49 - __main__ - INFO - Fine-tuned model saved to: /home/edgeai_lab/minseong_results/rsn_tuned_llama2_7b-chat-cb_lr5e-5_20260803_173041
+2026-08-03 17:30:49 - __main__ - INFO - 
+Starting upload to Hugging Face: kmseong/llama2_7b-chat-only-rsn-tuned-lr5e-5-cb
+2026-08-03 17:32:11 - __main__ - INFO - ✓ Upload completed: https://huggingface.co/kmseong/llama2_7b-chat-only-rsn-tuned-lr5e-5-cb
+2026-08-03 17:32:11 - __main__ - INFO - ======================================================================
+
